@@ -58,7 +58,7 @@ export function LandingPage() {
   return (
     <div className="stack-lg">
       <section className="hero">
-        <div className="hero__copy animate-fade-up">
+        <div className="hero__copy">
           <h1>Change careers without starting over.</h1>
           <p className="lead">
             Upload your CV, discover realistic career paths, and get a weekly plan you can actually follow.
@@ -67,7 +67,7 @@ export function LandingPage() {
             <Button variant="primary" className="btn--lg" onClick={() => navigate("/start")}>
               Build my career roadmap
             </Button>
-            <Button className="btn--lg" onClick={tryDemo} disabled={!config.data} loading={config.isLoading}>
+            <Button variant="subtle" onClick={tryDemo} disabled={!config.data} loading={config.isLoading}>
               Try the demo
             </Button>
           </div>

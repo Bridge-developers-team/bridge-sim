@@ -139,7 +139,7 @@ export function PlanPage() {
       </section>
 
       {notice && (
-        <p className="notice" role="status">
+        <p className="notice animate-drop" role="status">
           {notice}
         </p>
       )}
@@ -292,7 +292,7 @@ function TaskRow({
         </details>
         {task.type === "simulation" && (
           <div>
-            <Button size="sm" variant="primary" onClick={onOpen}>
+            <Button size="sm" onClick={onOpen}>
               Open practice task
             </Button>
           </div>

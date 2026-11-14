@@ -22,8 +22,8 @@
   --border-subtle: #dad6cd;
   --border: #c4beb1;
   --text: #0b1a3a;
-  --text-subtle: #4a4d57;
-  --text-faint: #63656d;
+  --text-subtle: #46506a;
+  --text-faint: #5d667e;
 
   /* Midnight Navy: action, shell, selection */
   --brand: #0b1a3a;
@@ -54,7 +54,7 @@
   --info-bg: #e6eaf3;
   --info-fg: #0b1a3a;
   --neutral-bg: #fbf8f2;
-  --neutral-fg: #4a4d57;
+  --neutral-fg: #46506a;
 
   /* Task kinds: deep on white (k-), bright on the navy band (kb-) */
   --k-research: #b5790f;
@@ -71,7 +71,8 @@
   --kb-application: #ef9cc1;
 
   /* Flat by default. The one shadow lifts the landing's sample plan. */
-  --shadow-sample: 0 18px 40px -18px rgba(11, 26, 58, 0.45);
+  --shadow-sample: 0 1px 2px rgba(11, 26, 58, 0.06), 0 6px 16px -6px rgba(11, 26, 58, 0.16),
+    0 24px 48px -24px rgba(11, 26, 58, 0.28);
 
   color-scheme: light;
   accent-color: var(--brand);
@@ -124,11 +125,9 @@
 
 /* Scales: theme-independent */
 :root {
-  --space-025: 2px;
+  /* Four-point scale only (DESIGN.md, The Four-Point Rule). 1px is for borders. */
   --space-050: 4px;
-  --space-075: 6px;
   --space-100: 8px;
-  --space-125: 10px;
   --space-150: 12px;
   --space-200: 16px;
   --space-250: 20px;
@@ -136,6 +135,7 @@
   --space-400: 32px;
   --space-500: 40px;
   --space-600: 48px;
+  --space-800: 64px;
 
   --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Headings share the interface face; Literata is the editorial voice. */
@@ -146,13 +146,22 @@
   /* Body is 17px for evening reading; one size in lists, rank from weight. */
   --type-body-size: 17px;
   --type-body-line: 1.55;
-  --type-small-size: 0.88rem;
+  --type-xs: 0.75rem; /* 12px */
+  --type-sm: 0.875rem; /* 14px */
+  --type-md: 1rem; /* 16px */
+  --type-lg: 1.25rem; /* 20px */
+  --type-xl: 1.5rem; /* 24px */
+  --type-2xl: 1.75rem; /* 28px: the next step's title */
+  --type-3xl: 2.25rem; /* 36px: a single total */
+  --type-4xl: 2.5rem; /* 40px: a single score */
+  --type-small-size: var(--type-sm);
   --type-small-line: 1.45;
-  --type-label-size: 0.8rem;
+  --type-label-size: var(--type-xs);
   --type-input-touch: 16px;
   --tracking-label: 0.06em;
 
   --radius-bar: 3px;
+  --radius-tag: 4px;
   --radius-control: 8px;
   --radius-panel: 12px;
   --radius-band: 14px;
@@ -166,7 +175,6 @@
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fade: 200ms;
-  --dur-fade-up: 280ms;
   --dur-fill: 700ms;
 }
 
@@ -224,12 +232,12 @@ h1 {
 }
 
 h2 {
-  font-size: 1.55rem;
+  font-size: var(--type-xl);
   line-height: 1.1;
 }
 
 h3 {
-  font-size: 1.2rem;
+  font-size: var(--type-lg);
   line-height: 1.15;
 }
 
@@ -270,16 +278,34 @@ textarea {
   outline-offset: 2px;
 }
 
-/* Motion: short and one-directional. */
-@keyframes fade-up {
+/* Motion: short, ease-out, and it starts where the user acted (DESIGN.md,
+   Motion). Opening is a touch slower than closing; closing is instant. */
+@keyframes unfold {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
     transform: none;
   }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Disclosure content unfolds from its own summary line. */
+details[open] > :not(summary) {
+  animation: unfold 180ms var(--ease) both;
+  transform-origin: top left;
 }
 
 @keyframes fade {
@@ -316,25 +342,13 @@ textarea {
   }
 }
 
-.animate-fade-up {
-  animation: fade-up var(--dur-fade-up) var(--ease) both;
-}
-
 .animate-fade {
   animation: fade var(--dur-fade) ease-out both;
 }
 
-.stagger > * {
-  animation: fade-up 300ms var(--ease) both;
-}
-.stagger > *:nth-child(2) {
-  animation-delay: 45ms;
-}
-.stagger > *:nth-child(3) {
-  animation-delay: 90ms;
-}
-.stagger > *:nth-child(n + 4) {
-  animation-delay: 135ms;
+/* Errors and notices drop in from the top edge of the place they belong to. */
+.animate-drop {
+  animation: drop-in 200ms var(--ease) both;
 }
 
 button:not(:disabled):active {

@@ -174,7 +174,7 @@ function PracticeWorkspace({ taskId, practice }: { taskId: string; practice: Pra
 
       {work.evaluation && (
         <>
-          <Panel className="animate-fade-up">
+          <Panel>
             <PanelHeader title="AI practice feedback" note="Practice, not a hiring decision" />
             <PanelBody>
               <ModeBanner mode={work.evaluationMode} />
