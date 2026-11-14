@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet } from "react-router";
 import { useJourney } from "../state/journey";
-import { BridgeMark } from "./Icons";
+import { BridgeLogo } from "./Icons";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout() {
@@ -10,8 +10,7 @@ export function Layout() {
       <header className="top">
         <div className="top__inner">
           <Link to="/" className="brand" aria-label="Bridge home">
-            <BridgeMark />
-            Bridge
+            <BridgeLogo />
           </Link>
           <nav className="nav" aria-label="Main">
             <NavLink to="/start">Start</NavLink>

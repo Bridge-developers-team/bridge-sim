@@ -64,10 +64,12 @@ tasks and feedback; Claude Haiku 5.5 (`claude-haiku-5-5`) for sample answers.
 
 ## Design
 
-Visual system: **Seed Packet Calendar**. The roadmap reads like a planting
-calendar: each week is a row of task bars sized by minutes, coloured by kind
-and filled when done. See [`DESIGN.md`](DESIGN.md) for tokens and rules and
-[`PRODUCT.md`](PRODUCT.md) for product facts.
+Visual system: **Midnight Navy + Signature Gold**, from the brand kit in
+[`brand/`](brand/) (logo, icons, favicon, palette and guide). The roadmap is
+drawn as a span: each week is a row of task bars sized by minutes, coloured by
+kind and filled when done, with the next step in gold. See
+[`DESIGN.md`](DESIGN.md) for tokens and rules and [`PRODUCT.md`](PRODUCT.md)
+for product facts.
 
 ## How it is built
 

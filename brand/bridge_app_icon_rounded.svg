@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Bridge rounded-square app icon</title>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="34%" r="80%">
+      <stop offset="0" stop-color="#1A2E5C"/>
+      <stop offset="0.6" stop-color="#0B1A3A"/>
+      <stop offset="1" stop-color="#071230"/>
+    </radialGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F2D896"/>
+      <stop offset="0.45" stop-color="#D3AC5C"/>
+      <stop offset="1" stop-color="#9E7330"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#FCEBB8"/>
+      <stop offset="0.5" stop-color="#E2BF73"/>
+      <stop offset="1" stop-color="#C2944A"/>
+    </linearGradient>
+    <linearGradient id="deck" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#A97E34"/>
+      <stop offset="0.5" stop-color="#D9B567"/>
+      <stop offset="1" stop-color="#F3DB9E"/>
+    </linearGradient>
+    <filter id="lift" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="205" fill="url(#bg)"/>
+  <rect x="3" y="3" width="1018" height="1018" rx="202" fill="none" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="6"/>
+  <g transform="translate(144.1 291.6) scale(2.25)" filter="url(#lift)">
+    <path d="M4 168C30 62 92 0 165 0C238 0 302 55 327 145L262 130C252 72 228 32 187 32C148 32 120 72 104 124C66 134 30 148 4 168Z" fill="url(#band)"/>
+    <path d="M187 32C232 36 272 78 292 137L262 130C252 72 228 32 187 32Z" fill="url(#face)"/>
+    <path d="M187 32C232 36 272 78 292 137" fill="none" stroke="#8A6327" stroke-opacity="0.45" stroke-width="1.2"/>
+    <path d="M4 168C30 62 92 0 165 0C238 0 302 55 327 145" fill="none" stroke="#FFF3CF" stroke-opacity="0.45" stroke-width="1.2"/>
+    <path d="M0 203C55 160 150 120 258 110L259 116C205 121 160 139 141 170L139 203Z" fill="url(#deck)"/>
+    <path d="M0 203C55 160 150 120 258 110" fill="none" stroke="#FFF3CF" stroke-opacity="0.5" stroke-width="1"/>
+  </g>
+</svg>

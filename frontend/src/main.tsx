@@ -4,7 +4,8 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./App";
 import { applyTheme, getStoredTheme } from "./lib/theme";
-import "@fontsource-variable/archivo/standard.css";
+import "@fontsource-variable/inter/index.css";
+import "@fontsource-variable/literata/index.css";
 import "./styles/tokens.css";
 import "./styles/components.css";
 

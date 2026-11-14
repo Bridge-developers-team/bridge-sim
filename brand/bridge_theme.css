@@ -1,0 +1,19 @@
+/* Bridge / Brand design tokens - Midnight Navy & Gold */
+:root {
+  --brand-primary: #0B1A3A;
+  --brand-accent: #C9A14E;
+  --brand-background: #F6F1E6;
+  --brand-text: #0B1A3A;
+  --brand-surface: #FFFFFF;
+  --brand-stone: #3B332B;
+  --brand-muted: #63656D;
+  --brand-border: #DAD6CD;
+  --brand-primary-hover: #172B50;
+  --brand-focus-ring: #82621F;
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-editorial: 'Literata', Georgia, serif;
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --radius-button: 8px;
+}
+/* Use navy for text and CTAs. Gold is for accents, never small body text on ivory. */
