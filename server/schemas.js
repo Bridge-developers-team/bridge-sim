@@ -2,6 +2,7 @@
 // shape; counts and ranges are re-checked in code (see server/llm.js).
 import { z } from "zod";
 import { RUBRIC_IDS } from "../lib/rubric.js";
+import { SKILL_IDS } from "../data/skills.js";
 
 export const TaskSchema = z.object({
   title: z.string().describe("Short task title, max 8 words"),
@@ -33,6 +34,26 @@ export const GradeResponseSchema = z.object({
   ),
   strength: z.string().describe("The single best thing in the answer"),
   topFix: z.string().describe("The single change that would raise the score most"),
+  resumeBullet: z
+    .string()
+    .describe("One honest resume bullet (max 30 words) describing this work sample as a self-directed project; only claims supported by the answer"),
+});
+
+export const MapResponseSchema = z.object({
+  person: z.object({
+    situation: z.string().describe("One line, e.g. 'Recent BA in Political Science, job hunting' or 'ICU nurse, 6 years'"),
+    field: z.string().describe("Their major or current field"),
+  }),
+  skills: z
+    .array(
+      z.object({
+        id: z.enum(SKILL_IDS),
+        level: z.number().describe("Integer 1-3: 1 coursework/exposure, 2 applied in a real project or job, 3 repeated use with a visible result"),
+        evidence: z.string().describe("Exact verbatim quote copied from the profile (5-25 words) that proves this level"),
+      }),
+    )
+    .describe("Every skill from the list that the profile shows, each once"),
+  hiddenStrength: z.string().describe("One sentence: a strength this person probably undersells, grounded in the profile"),
 });
 
 export const DemoAnswerSchema = z.object({

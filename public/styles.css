@@ -153,3 +153,28 @@ pre.answer { white-space: pre-wrap; font: inherit; background: var(--bg); paddin
   .rubric tr { display: block; border-top: 1px solid var(--line); padding: 8px 0; }
   .rubric td { display: block; border: 0; padding: 4px 0; width: auto !important; }
 }
+
+/* ---- v2: tracks, steps, Bridge Map ---- */
+input[type="text"] { width: 100%; font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.steps { display: flex; gap: 6px; list-style: none; padding: 0; margin: 8px 0 16px; flex-wrap: wrap; counter-reset: step; }
+.steps li { counter-increment: step; font-size: 0.85rem; color: var(--muted); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.steps li::before { content: counter(step) ". "; }
+.steps li.now { color: var(--text); border-color: var(--accent); font-weight: 600; }
+.steps li.done { color: var(--accent); }
+.track-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 8px 0 24px; }
+.track-card { text-align: left; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+.track-card strong { font-size: 1.15rem; }
+.track-card span { color: var(--muted); }
+.track-card:hover { border-color: var(--accent); }
+.role-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 22px; margin: 12px 0; }
+.role-card h4 { margin-top: 10px; }
+.fit { display: flex; flex-direction: column; align-items: center; min-width: 84px; color: var(--accent); }
+.fit strong { font-size: 1.6rem; line-height: 1; }
+.fit span { font-size: 0.75rem; color: var(--muted); }
+.skills { list-style: none; padding: 0; margin: 10px 0 0; }
+.skills li { border-top: 1px solid var(--line); padding: 10px 0; }
+.skills .pill { margin-left: 8px; font-weight: 400; }
+.callout { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; }
+.row.tight { gap: 6px; margin-top: 0; }
+.tight-cols { gap: 8px 20px; }
+.role-card ul { font-size: 0.93rem; }

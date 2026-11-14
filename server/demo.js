@@ -2,12 +2,12 @@
 // clicked through. Output is fixed template text and a crude word-count
 // heuristic, NOT AI. The UI shows a banner whenever this mode is active.
 
-export function demoTasks({ role }) {
+export function demoTasks({ role, person }) {
   const t = role.title;
   return {
     profile: {
-      currentRole: "Your current role (demo mode: resume not read)",
-      industry: "your current industry",
+      currentRole: person?.situation ?? "Your current role (demo mode: resume not read)",
+      industry: person?.field ?? "your current field",
       transferableSkills: ["Communication", "Planning", "Working with people under pressure"],
       gaps: [`Core ${t} methods`, "Industry tools for the new role"],
     },
@@ -59,6 +59,7 @@ export function demoGrade({ answer }) {
     ],
     strength: "Demo mode: no AI feedback. Add an API key to get a real review.",
     topFix: "Demo mode: no AI feedback. Add an API key to get a real review.",
+    resumeBullet: "Demo mode: an AI-written resume bullet appears here with an API key.",
   };
 }
 
@@ -69,4 +70,45 @@ It matters because each complaint takes a manager about an hour, and two deadlin
 Fix 1 (first): a one-page handover checklist, tested with 2 of the 8 people for two weeks. Cost: almost nothing.
 Fix 2: a short weekly review of complaints to spot patterns, using part of the $5,000 for a simple shared tracker.
 I would check success by counting complaints per week before and after.`;
+}
+
+// Demo skill map: keyword matching only, NOT AI. Evidence is the sentence that
+// contains the keyword, so the code-side quote check passes.
+const KEYWORDS = {
+  statistics: ["regression", "statistic", "anova", "t-test", "fixed-effects", "mixed-effects", "stata", "spss"],
+  programming: ["python", " r ", "in r", "sql", "pandas", "tidyverse"],
+  data_wrangling: ["cleaned", "merged", "data entry", "entered and checked", "dataset", "panel"],
+  machine_learning: ["machine learning", "random forest", "neural", "classifier"],
+  visualization: ["chart", "dashboard", "tableau", "graph"],
+  spreadsheet_modeling: ["excel", "spreadsheet", "pivot"],
+  finance_accounting: ["accounting", "finance", "budget", "valuation", "$"],
+  economics: ["economic", "game theory", "political economy"],
+  research_design: ["experiment", "preregistered", "research", "study", "survey"],
+  qualitative_research: ["interview", "coded the transcripts", "themes", "focus group"],
+  writing: ["wrote", "thesis", "op-ed", "writing", "report"],
+  presenting: ["presented", "taught", "trained", "symposium", "debate"],
+  policy_institutions: ["political", "policy", "government", "public health", "election"],
+  healthcare_domain: ["nurse", "patient", "clinical", "icu", "health"],
+  education_domain: ["teacher", "taught", "lesson", "curriculum", "students"],
+  people_skills: ["mentor", "coaching", "hiring", "team members", "advising"],
+  project_coordination: ["organized", "led ", "coordinated", "rollout", "schedule"],
+  customer_relationships: ["customer", "client", "family communication", "parent communication"],
+  process_improvement: ["reduced", "cut overtime", "reorganization", "improved", "workflow"],
+};
+const ACTION = /(thesis|built|ran |designed|led |cleaned|analy[sz]ed|wrote|presented|taught|trained|reduced|cut )/i;
+
+export function demoMap({ resume }) {
+  const sentences = String(resume).split(/(?<=[.!?])\s+|\n+/).map((x) => x.trim()).filter((x) => x.split(/\s+/).length >= 3);
+  const skills = [];
+  for (const [id, words] of Object.entries(KEYWORDS)) {
+    const hit = sentences.find((sen) => words.some((w) => (" " + sen.toLowerCase() + " ").includes(w)));
+    if (!hit) continue;
+    skills.push({ id, level: ACTION.test(hit) ? 2 : 1, evidence: hit.split(/\s+/).slice(0, 25).join(" ") });
+  }
+  const first = sentences[1] ?? sentences[0] ?? "";
+  return {
+    person: { situation: first.slice(0, 80) || "Demo profile", field: "demo mode (keyword match, not AI)" },
+    skills,
+    hiddenStrength: "Demo mode: no AI reading. Add an API key for a real skill map.",
+  };
 }

@@ -1,8 +1,11 @@
-// SAMPLE resumes for demo use. Fictional people; any resemblance is accidental.
+// SAMPLE profiles for demo use. Fictional people, schools named generically,
+// employers marked fictional. track: "changer" (working adult) or "graduate".
 
 export const SAMPLES = [
   {
     id: "teacher",
+    track: "changer",
+    interests: "",
     label: "Sample: Middle-school teacher",
     suggestedRole: "instructional-designer",
     resume: `Maria Lopez (SAMPLE)
@@ -26,6 +29,8 @@ Skills
   },
   {
     id: "nurse",
+    track: "changer",
+    interests: "",
     label: "Sample: ICU nurse",
     suggestedRole: "health-data-analyst",
     resume: `James Carter, RN (SAMPLE)
@@ -48,6 +53,8 @@ Skills
   },
   {
     id: "retail",
+    track: "changer",
+    interests: "",
     label: "Sample: Retail store manager",
     suggestedRole: "operations-analyst",
     resume: `Aisha Thompson (SAMPLE)
@@ -66,5 +73,63 @@ Education
 
 Skills
 - Scheduling and labor budgets, inventory and shrink, hiring and coaching, weekly sales reporting, conflict resolution`,
+  },
+  {
+    id: "polisci",
+    track: "graduate",
+    label: "Sample: Political science BA (quant)",
+    suggestedRole: "risk-analyst",
+    interests: "finance or machine learning",
+    resume: `Daniel Kim (SAMPLE)
+B.A. Political Science, minor in Statistics, state university, May 2026. GPA 3.6
+
+Senior thesis: "Do local job losses move turnout?" Built a county-level panel (2008-2024) from Census and election data and estimated fixed-effects regressions in R. Found a 1.2-point turnout drop per 10% manufacturing job loss; presented at the undergraduate research symposium.
+
+Relevant courses: Quantitative Political Analysis, Regression Models, Game Theory, Comparative Political Economy, Intro to Python for Social Science.
+
+Experience
+- Research assistant, comparative politics lab (2024-2026): cleaned and merged survey waves of 6,000 respondents, wrote codebooks, made charts for two working papers.
+- Debate team captain: organized weekly practice for 14 members and travel to 5 tournaments.
+- Since graduation: part-time barista while applying; 70+ applications to policy jobs, 2 interviews.
+
+Skills: R (tidyverse, fixest), basic Python (pandas), Excel, Stata, survey weighting, academic writing.`,
+  },
+  {
+    id: "psych",
+    track: "graduate",
+    label: "Sample: Psychology BA",
+    suggestedRole: "ux-researcher",
+    interests: "UX or marketing",
+    resume: `Priya Shah (SAMPLE)
+B.A. Psychology, liberal arts college, December 2025
+
+Honors project: designed and ran an online experiment (n=212) on how choice overload affects decision time; preregistered hypotheses, analyzed with t-tests and ANOVA in SPSS.
+
+Relevant courses: Research Methods, Cognitive Psychology, Social Psychology, Statistics for Behavioral Science, Human-Computer Interaction (elective).
+
+Experience
+- Peer mentor, first-year advising center (2023-2025): ran 1:1 check-ins with 25 students per term and wrote summary notes for advisors.
+- Interviewed 15 students for a campus dining satisfaction study and coded the transcripts into themes for the dining office report.
+- Since graduation: temp receptionist at a dental office.
+
+Skills: SPSS, Qualtrics, Excel, interviewing, APA-style writing, Canva.`,
+  },
+  {
+    id: "biology",
+    track: "graduate",
+    label: "Sample: Biology MS",
+    suggestedRole: "health-data-analyst",
+    interests: "health data or consulting",
+    resume: `Marcus Johnson (SAMPLE)
+M.S. Biology, public research university, August 2025. B.S. Biology, 2023
+
+Master's thesis: effects of temperature on gene expression in zebrafish; ran qPCR experiments, analyzed results with mixed-effects models in R, wrote a 60-page thesis.
+
+Experience
+- Teaching assistant, Intro Biology lab (2023-2025): taught 3 lab sections of 24 students, graded reports, held office hours.
+- Lab volunteer, county public health department (summer 2024): entered and checked case data for a foodborne illness investigation; made weekly charts for the epidemiologist.
+- Since graduation: applying to lab tech and pharma jobs; considering leaving the bench.
+
+Skills: R, Excel, experimental design, scientific writing, basic SQL (one online course).`,
   },
 ];

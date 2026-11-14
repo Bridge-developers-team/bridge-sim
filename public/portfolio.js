@@ -1,6 +1,6 @@
 // Portfolio page: decodes the #hash, recomputes scores in code, shows the
 // rubric evidence and the switch-cost plan. Nothing is fetched except role data.
-import { el, clear, api, money, demoBanner } from "/ui.js";
+import { el, clear, mount, api, money, demoBanner } from "/ui.js";
 import { decodeState, encodeState } from "/lib/shareState.js";
 import { scoreTask, overallScore, bandFor } from "/lib/scoring.js";
 import { planSwitch } from "/lib/switchCost.js";
@@ -9,12 +9,13 @@ import { RUBRIC } from "/lib/rubric.js";
 const app = document.getElementById("app");
 let data = null;
 let role = null;
+let config = null;
 
-function levelDots(level) {
+function levelDots(level, max = 4) {
   return el(
     "span",
-    { class: "dots", "aria-label": `level ${level} of 4` },
-    [0, 1, 2, 3].map((n) => el("span", { class: "dot" + (n < level ? " on" : "") })),
+    { class: "dots", "aria-label": `level ${level} of ${max}` },
+    Array.from({ length: max }, (_, n) => el("span", { class: "dot" + (n < level ? " on" : "") })),
   );
 }
 
@@ -68,6 +69,7 @@ function taskCard(task, k) {
       ),
     ),
     el("div", { class: "cols" }, el("div", {}, el("h4", {}, "Best part"), el("p", {}, task.grade.strength)), el("div", {}, el("h4", {}, "Biggest fix"), el("p", {}, task.grade.topFix))),
+    task.grade.resumeBullet ? el("p", { class: "callout" }, el("strong", {}, "Resume line: "), task.grade.resumeBullet) : null,
     el(
       "details",
       {},
@@ -81,6 +83,8 @@ function taskCard(task, k) {
 }
 
 function planCard(simScore) {
+  const grad = data.track === "graduate";
+  const gapHours = Number.isFinite(data.fit?.gapHours) ? data.fit.gapHours : null;
   const salary = el("input", { type: "number", min: 0, step: 1000, inputmode: "numeric", id: "salary", placeholder: "e.g. 58000" });
   const hours = el("input", { type: "number", min: 1, max: 60, step: 1, inputmode: "numeric", id: "hours" });
   salary.value = data.plan?.salary ?? "";
@@ -94,20 +98,24 @@ function planCard(simScore) {
       return;
     }
     try {
-      const p = planSwitch({ role, currentSalary: salary.value, hoursPerWeek: hours.value, simScore });
+      const p = planSwitch({ role, currentSalary: salary.value, hoursPerWeek: hours.value, simScore, gapHours });
       out.append(
         el(
           "div",
           { class: "stats" },
-          stat(`${p.months} months`, `to get job-ready at ${hours.value} h/week (${p.hoursNeeded} hours)`),
+          stat(p.months === 0 ? "Ready now" : `${p.months} month${p.months === 1 ? "" : "s"}`, `to close your skill gaps at ${hours.value} h/week (${p.hoursNeeded} hours)`),
           stat(money(p.courseCost), "course cost"),
           stat(p.firstYearChange < 0 ? money(p.monthlyGap) + "/mo" : "No pay cut", p.firstYearChange < 0 ? "income gap in your first year" : "entry pay is at or above yours"),
-          stat(p.breakEvenYears === null ? "Never on pay alone" : p.breakEvenYears === 0 ? "Right away" : `${p.breakEvenYears} years`, "to earn back costs at median pay"),
+          grad
+            ? stat((p.firstYearChange >= 0 ? "+" : "") + money(p.firstYearChange) + "/yr", "first-year pay vs. now, at entry level")
+            : stat(p.breakEvenYears === null ? "Never on pay alone" : p.breakEvenYears < 0.1 ? "Within weeks" : `${p.breakEvenYears} years`, "to earn back costs at median pay"),
         ),
         el(
           "p",
           { class: "muted small" },
-          `Your sim score (${simScore ?? "none"}) sets learning time to ×${p.multiplier} of the typical ${role.baseHours} hours. ` +
+          (gapHours !== null
+            ? `Study hours come from your Bridge Map gaps (${gapHours} h), adjusted ×${p.multiplier} by your sim score (${simScore ?? "none"}). `
+            : `Your sim score (${simScore ?? "none"}) sets learning time to ×${p.multiplier} of the typical ${role.baseHours} hours. `) +
             `Entry pay ${money(role.entryPay)}, median ${money(role.medianPay)}. Courses: ${role.courses.map((c) => `${c.name} ${money(c.price)}${c.billing === "monthly" ? "/mo" : ""}`).join("; ")}.`,
         ),
       );
@@ -124,16 +132,78 @@ function planCard(simScore) {
   return el(
     "section",
     { class: "card" },
-    el("h2", {}, "Switch-cost plan"),
-    el("p", { class: "muted" }, "What switching would cost you, worked out from your inputs and the role data."),
+    el("h2", {}, grad ? "Launch plan" : "Switch-cost plan"),
+    el("p", { class: "muted" }, grad ? "Time and money to get job-ready for this role, from your skill gaps and the role data." : "What switching would cost you, worked out from your inputs and the role data."),
     !role.verified ? el("p", { class: "warn" }, "Prototype: pay and course figures for this role are sample placeholders, not yet checked against BLS or course pricing pages.") : null,
     el(
       "div",
       { class: "row wrap-row" },
-      el("label", { for: "salary", class: "field" }, "Current yearly pay (USD)", salary),
+      el("label", { for: "salary", class: "field" }, grad ? "Current yearly pay (USD, 0 if not working)" : "Current yearly pay (USD)", salary),
       el("label", { for: "hours", class: "field" }, "Hours per week you can study", hours),
     ),
     out,
+  );
+}
+
+function resumeCard() {
+  const bullets = data.tasks.map((t) => t.grade?.resumeBullet).filter((b) => b && !b.startsWith("Demo mode"));
+  if (bullets.length === 0) return null;
+  const text = bullets.map((b) => "- " + b).join("\n");
+  const btn = el(
+    "button",
+    {
+      type: "button",
+      class: "secondary",
+      onclick: async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = "Copied";
+        } catch {
+          btn.textContent = "Select the text to copy";
+        }
+      },
+    },
+    "Copy resume lines",
+  );
+  return el(
+    "section",
+    { class: "card" },
+    el("h2", {}, "Add to your resume"),
+    el("p", { class: "muted" }, "Written from your graded answers. Describe them as self-directed work samples and link this page as proof."),
+    el("ul", {}, bullets.map((b) => el("li", {}, b))),
+    el("div", { class: "actions" }, btn),
+  );
+}
+
+function skillsCard() {
+  if (!Array.isArray(data.skills) || data.skills.length === 0) return null;
+  const names = new Map((config?.skills ?? []).map((s) => [s.id, s.name]));
+  const levelNames = config?.skillLevels ?? [];
+  const needs = new Map(role.needs.map((n) => [n.skill, n.level]));
+  const relevant = data.skills.filter((s) => needs.has(s.id));
+  const other = data.skills.filter((s) => !needs.has(s.id));
+  const item = (s) =>
+        el(
+          "li",
+          {},
+          el(
+            "div",
+            { class: "row space" },
+            el("strong", {}, names.get(s.id) ?? s.id, needs.has(s.id) ? el("span", { class: "pill" }, `role needs level ${needs.get(s.id)}`) : null),
+            el("span", { class: "row tight" }, levelDots(s.level, 3), el("span", { class: "small muted" }, levelNames[s.level] ?? "")),
+          ),
+          s.verified && s.evidence ? el("blockquote", {}, "\u201C" + s.evidence + "\u201D") : el("div", { class: "small muted" }, "Not proven by a quote: counted as level 1."),
+        );
+  return el(
+    "section",
+    { class: "card" },
+    el("h2", {}, "Skill evidence"),
+    el("p", { class: "muted" }, "Skills found in the profile, each backed by a quote that code checked against the person's own text."),
+    relevant.length ? el("ul", { class: "skills" }, relevant.map(item)) : el("p", { class: "muted" }, "None of this role's core skills were found yet."),
+    other.length ? el("details", {}, el("summary", {}, `Other skills (${other.length})`), el("ul", { class: "skills" }, other.map(item))) : null,
+    data.fit?.gaps?.length
+      ? el("p", {}, el("strong", {}, "Gaps for this role: "), data.fit.gaps.map((g) => `${names.get(g.skill) ?? g.skill} (${g.have} to ${g.need}, about ${g.hours} h)`).join("; "))
+      : null,
   );
 }
 
@@ -163,14 +233,15 @@ async function render() {
     "Copy share link",
   );
 
-  clear(app).append(
+  mount(app, 
     demoBanner(data.mode) ?? "",
     el(
       "section",
       { class: "card hero-card" },
-      el("p", { class: "eyebrow" }, `Career test-drive · ${data.createdAt}`),
+      el("p", { class: "eyebrow" }, `${data.track === "graduate" ? "Graduate" : "Career change"} test-drive · ${data.createdAt}`),
       el("h1", { class: "flush" }, role.title),
-      el("p", { class: "muted" }, `From ${data.profile.currentRole} (${data.profile.industry})`),
+      el("p", { class: "muted" }, `From ${data.person?.situation ?? data.profile.currentRole}`),
+      data.fit ? el("p", { class: "small" }, `Skill fit on paper: ${data.fit.fit}%. The work sample scores below show what you can actually do.`) : null,
       overall !== null
         ? el(
             "div",
@@ -185,9 +256,11 @@ async function render() {
         el("div", {}, el("h3", {}, "Carries over"), el("ul", {}, data.profile.transferableSkills.map((s) => el("li", {}, s)))),
         el("div", {}, el("h3", {}, "Tested"), el("ul", {}, data.profile.gaps.map((s) => el("li", {}, s)))),
       ),
-      el("div", { class: "actions" }, copyBtn, el("a", { class: "secondary button", href: "/" }, "Try another role")),
+      el("div", { class: "actions" }, copyBtn, el("a", { class: "secondary button", href: "/?step=map" }, "Try another direction")),
     ),
     ...data.tasks.map(taskCard),
+    resumeCard() ?? "",
+    skillsCard() ?? "",
     planCard(overall),
     el(
       "section",
@@ -214,8 +287,15 @@ async function render() {
       el(
         "div",
         { class: "cols" },
-        el("div", { class: "price" }, el("strong", {}, "$29"), el("span", {}, "One more role test-drive")),
-        el("div", { class: "price" }, el("strong", {}, "$79"), el("span", {}, "Three roles + full switch plan")),
+        data.track === "graduate"
+          ? [
+              el("div", { class: "price" }, el("strong", {}, "$19"), el("span", {}, "One more direction test-drive")),
+              el("div", { class: "price" }, el("strong", {}, "$49"), el("span", {}, "Three directions + launch plan + resume pack (parents can gift it)")),
+            ]
+          : [
+              el("div", { class: "price" }, el("strong", {}, "$29"), el("span", {}, "One more role test-drive")),
+              el("div", { class: "price" }, el("strong", {}, "$79"), el("span", {}, "Three roles + full switch plan")),
+            ],
       ),
       el("p", { class: "fine" }, "Pricing preview. Payments are not active in this prototype."),
     ),
@@ -225,16 +305,16 @@ async function render() {
 (async () => {
   const token = location.hash.slice(1);
   if (!token) {
-    clear(app).append(el("div", { class: "card" }, el("p", {}, "This link has no portfolio in it. "), el("a", { href: "/" }, "Start a test-drive")));
+    mount(app, el("div", { class: "card" }, el("p", {}, "This link has no portfolio in it. "), el("a", { href: "/" }, "Start a test-drive")));
     return;
   }
   try {
     data = await decodeState(token);
-    const config = await api("/api/config");
+    config = await api("/api/config");
     role = config.roles.find((r) => r.id === data.roleId);
     if (!role) throw new Error("Unknown role in link");
     await render();
   } catch (err) {
-    clear(app).append(el("div", { class: "card error" }, "Could not open this portfolio link: " + err.message));
+    mount(app, el("div", { class: "card error" }, "Could not open this portfolio link: " + err.message));
   }
 })();

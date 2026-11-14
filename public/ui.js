@@ -21,6 +21,16 @@ export function clear(node) {
   return node;
 }
 
+// Replace a node's children, skipping null/false/"" (append() would print "null").
+export function mount(node, ...children) {
+  clear(node);
+  for (const c of children.flat()) {
+    if (c === null || c === undefined || c === false || c === "") continue;
+    node.append(c);
+  }
+  return node;
+}
+
 export async function api(path, body) {
   const res = await fetch(path, {
     method: body ? "POST" : "GET",
