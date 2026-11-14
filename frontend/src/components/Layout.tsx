@@ -1,20 +1,20 @@
 import { Link, NavLink, Outlet } from "react-router";
 import { useJourney } from "../state/journey";
+import { BridgeMark } from "./Icons";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout() {
   const journey = useJourney();
   return (
     <>
-      <header className="top glass">
+      <header className="top">
         <div className="top__inner">
-          <Link to="/" className="brand">
-            <svg viewBox="0 0 32 32" aria-hidden="true">
-              <path d="M6 21c3-7 7-10 10-10s7 3 10 10M6 21h20" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-            </svg>
+          <Link to="/" className="brand" aria-label="Bridge home">
+            <BridgeMark />
             Bridge
           </Link>
           <nav className="nav" aria-label="Main">
+            <NavLink to="/start">Start</NavLink>
             {journey.careers && <NavLink to="/paths">Paths</NavLink>}
             {journey.roadmap && <NavLink to="/plan">Plan</NavLink>}
           </nav>

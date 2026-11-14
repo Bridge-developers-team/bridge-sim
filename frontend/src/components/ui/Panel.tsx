@@ -9,7 +9,7 @@ export function Panel({ className, children, id }: { className?: string; childre
   );
 }
 
-/** Panel headers carry a micro label, not a heading-sized title. */
+/** A card heading in sentence case (DESIGN.md: Heading), with an optional note. */
 export function PanelHeader({ title, note, actions }: { title: string; note?: ReactNode; actions?: ReactNode }) {
   return (
     <header className="panel__header">

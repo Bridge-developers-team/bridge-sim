@@ -1,13 +1,13 @@
 ---
 version: 1
 slug: "public-index-html"
-primary_target: "public/index.html"
-related_targets: ["public/app.js","public/styles.css"]
+primary_target: "frontend/src/routes/PlanPage.tsx"
+related_targets: ["frontend/src/styles/tokens.css","frontend/src/styles/components.css","frontend/src/components/GrowingCalendar.tsx","frontend/src/routes/LandingPage.tsx"]
 ---
 
 ## Scope
 
-The Bridge web app (one page, hash routes): landing, CV upload, constraints, career paths, roadmap, practice, case study. Primary surface: the roadmap (`#/roadmap`). Visitor mode: Operate (the landing hero leans Persuade inside the same world).
+The Bridge web app (React, client routes): landing, CV upload and constraints (`/start`), career paths (`/paths`), roadmap (`/plan`), practice (`/practice/:id`), public proof page (`/p/:id`). Primary surface: the roadmap (`/plan`). Visitor mode: Operate (the landing hero leans Persuade inside the same world).
 
 ## Audience, job, constraints
 

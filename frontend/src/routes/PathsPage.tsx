@@ -100,8 +100,8 @@ export function PathsPage() {
         }
       />
       <header className="page-head">
-        <p className="eyebrow">Your 3 paths</p>
-        <h1>Where your experience already points</h1>
+        <h1>You're not starting from zero.</h1>
+        <p className="lead">Here's what your experience already gives you: three paths that reuse it.</p>
         <p className="muted">
           We read you as <strong>{profile.currentRole}</strong>
           {profile.yearsExperience !== null && <>, {profile.yearsExperience} years</>}
@@ -157,7 +157,7 @@ function CareerCard({ career, chosen, onChoose }: { career: Career; chosen: bool
       <p className="muted">{career.roleSummary}</p>
       <p>{career.fitExplanation}</p>
 
-      <h3 className="micro">You already have</h3>
+      <h3 className="label">You already have</h3>
       <ul className="skills">
         {career.transferableSkills.map((s) => (
           <li key={s.skill}>
@@ -168,7 +168,7 @@ function CareerCard({ career, chosen, onChoose }: { career: Career; chosen: bool
         ))}
       </ul>
 
-      <h3 className="micro">To build</h3>
+      <h3 className="label">To build</h3>
       <ul className="plain">
         {career.missingSkills.map((s) => (
           <li key={s}>{s}</li>

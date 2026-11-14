@@ -33,14 +33,14 @@ async function run(name, viewport, colorScheme) {
   await shot("1-landing");
 
   await page.getByRole("button", { name: "Try the demo" }).click();
-  await page.getByRole("heading", { name: "Where your experience already points" }).waitFor();
+  await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
   const cards = await page.locator("article.career").count();
   if (cards !== 3) problems.push(`${name}: expected 3 career cards, got ${cards}`);
   await noSideScroll(page, `${name} paths`);
   await shot("2-paths");
 
   await page.getByRole("button", { name: "Build my 30-day plan" }).first().click();
-  await page.getByRole("heading", { name: "Your first 30 days" }).waitFor();
+  await page.locator("#packet-role").waitFor();
   await noSideScroll(page, `${name} plan`);
   await shot("3-plan");
 
@@ -89,8 +89,8 @@ async function startForm() {
   await noSideScroll(page, "start-form");
   await page.screenshot({ path: `${OUT}start-form.png`, fullPage: true });
   await submit.click();
-  await page.getByRole("heading", { name: "Where your experience already points" }).waitFor();
-  const titles = await page.locator(".career__title").allInnerTexts();
+  await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
+  const titles = await page.locator(".career__title").allTextContents();
   if (!titles.includes("Clinical Informatics Analyst")) problems.push(`start-form: nurse paths missing, got ${titles}`);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("bridge-journey")).profile.hoursPerWeek);
   if (saved !== 8) problems.push(`start-form: hours not saved (${saved})`);

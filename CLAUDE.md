@@ -20,15 +20,19 @@ frontend/  React 18 + Vite + TypeScript + TanStack Query, plain CSS
   src/api/        client.ts, types.ts (mirror of backend models), bridge.ts (one fn per route)
   src/lib/        pure logic (progress, finance, journey); tests/ cover it
   src/state/      the journey store (localStorage)
-  src/components/ ui/ primitives copied from the facerec dashboard
+  src/components/ ui/ primitives; GrowingCalendar (the design's signature)
   src/routes/     one page per file
-  src/styles/     tokens.css (facerec tokens) + components.css
+  src/styles/     tokens.css + components.css: the Seed Packet Calendar (DESIGN.md)
   e2e/walk.mjs    real-browser walk of the judge path
 Dockerfile, render.yaml, .github/workflows/ci.yml
 ```
 
 ## Rules
 
+- **Design:** `DESIGN.md` is the visual spec (Seed Packet Calendar) and
+  `PRODUCT.md` the product facts; `.impeccable/` records the design direction.
+  One packet-green band per screen, no kickers above headings, no gradients,
+  colours only with a job. Change the spec first, then the CSS.
 - **Layers point inward.** `api -> services -> llm | db -> domain`. import-linter
   fails CI on a wrong import. A router never contains logic; a rule lives in
   `domain/` with a test.

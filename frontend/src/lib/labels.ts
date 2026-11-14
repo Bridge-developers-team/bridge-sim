@@ -6,7 +6,7 @@ import type { WeekStatus } from "./progress.ts";
 
 export const EFFORT: Record<Effort, { label: string; tone: Tone }> = {
   lower: { label: "Lower effort", tone: "ok" },
-  medium: { label: "Medium effort", tone: "info" },
+  medium: { label: "Medium effort", tone: "neutral" },
   higher: { label: "Higher effort", tone: "warn" },
   unknown: { label: "Effort unknown", tone: "neutral" },
 };
@@ -22,7 +22,7 @@ export const TASK_TYPE: Record<TaskType, string> = {
 
 export const WEEK_STATUS: Record<WeekStatus, { label: string; tone: Tone }> = {
   "not-started": { label: "Not started", tone: "neutral" },
-  "in-progress": { label: "In progress", tone: "info" },
+  "in-progress": { label: "In progress", tone: "warn" },
   completed: { label: "Completed", tone: "ok" },
 };
 

@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { Choices, MultiChoices } from "../components/ui/Choices";
 import { TextArea, TextInput } from "../components/ui/Field";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
+import { UploadIcon } from "../components/Icons";
 import { readCvFile } from "../lib/pdf";
 import { memory, updateJourney, useJourney } from "../state/journey";
 
@@ -31,6 +32,7 @@ export function StartPage() {
   const [roles, setRoles] = useState(journey.profile.interestedRoles.join(", "));
   const [fileNote, setFileNote] = useState<{ text: string; error: boolean } | null>(null);
   const [reading, setReading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const limits = config.data?.limits;
@@ -71,27 +73,49 @@ export function StartPage() {
     <form className="stack-lg" onSubmit={submit}>
       <header className="page-head">
         <h1>Tell Bridge where you are now</h1>
-        <p className="muted">Two minutes. Your CV is read in your browser and sent only to the AI that suggests paths.</p>
+        <p className="lead">Two minutes, all tap-to-choose. Your CV is read in your browser and sent only to the AI that suggests paths.</p>
       </header>
 
       <Panel>
-        <PanelHeader title="1 · Your experience" note={<span className="tabular">{resume.trim().length} chars</span>} />
+        <PanelHeader title="Your experience" note={<span className="tabular">{resume.trim().length} chars</span>} />
         <PanelBody className="stack">
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".pdf,.txt,application/pdf,text/plain"
+            className="sr-only"
+            tabIndex={-1}
+            onChange={(e) => void onFile(e.target.files?.[0])}
+          />
+          <button
+            type="button"
+            className={`dropzone ${dragging ? "dropzone--over" : ""}`}
+            onClick={() => fileInput.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              void onFile(e.dataTransfer.files[0]);
+            }}
+            aria-busy={reading || undefined}
+          >
+            <span className="dropzone__icon">
+              <UploadIcon />
+            </span>
+            <span className="dropzone__text">
+              <span className="dropzone__title">{reading ? "Reading your CV..." : "Upload your CV"}</span>
+              <span className="muted small">PDF or .txt, or drop it here. It is read on this device.</span>
+            </span>
+          </button>
           <div className="row">
-            <input
-              ref={fileInput}
-              type="file"
-              accept=".pdf,.txt,application/pdf,text/plain"
-              className="sr-only"
-              id="cv-file"
-              onChange={(e) => void onFile(e.target.files?.[0])}
-            />
-            <Button variant="primary" loading={reading} onClick={() => fileInput.current?.click()}>
-              Upload CV (PDF or .txt)
-            </Button>
+            <span className="muted small">Or use a sample:</span>
             {config.data?.samples.map((s) => (
-              <Button key={s.id} size="sm" variant="subtle" onClick={() => setResume(s.resume)}>
-                {s.label}
+              <Button key={s.id} size="sm" onClick={() => setResume(s.resume)}>
+                {s.label.replace(/^Sample: /, "")}
               </Button>
             ))}
           </div>
@@ -109,7 +133,7 @@ export function StartPage() {
       </Panel>
 
       <Panel>
-        <PanelHeader title="2 · Your situation" />
+        <PanelHeader title="Your week and your goals" />
         <PanelBody className="stack">
           <div className="grid-2">
             <TextInput
@@ -165,7 +189,7 @@ export function StartPage() {
         </PanelBody>
       </Panel>
 
-      <div className="sticky-actions">
+      <div className="form-actions">
         <Button type="submit" variant="primary" className="btn--lg" disabled={tooShort}>
           Find my 3 paths
         </Button>

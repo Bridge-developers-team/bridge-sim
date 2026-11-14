@@ -27,9 +27,9 @@ Used at home in spare time, often in the evening, on laptop or phone, by someone
 
 ## Capabilities and Constraints
 
-- Flow: landing → CV upload → constraints (all tap-to-choose) → 3 career paths + comparison → 30-day roadmap → practice task with rubric feedback → case study export (Markdown, print/PDF).
-- Plain HTML/CSS/JS front end served by Node + Express; no build step. Claude Sonnet 5.5 and Haiku 5.5 via the Anthropic API; a labeled demo mode without a key.
-- Progress lives in the browser (localStorage). The CV text and income figures are never stored. No accounts, no public share links.
+- Flow: landing → CV upload + constraints (all tap-to-choose) → 3 career paths + comparison → 30-day roadmap → practice task with rubric feedback → public proof page (published only on request, deletable).
+- React + TypeScript front end (Vite) served by a FastAPI (Python) backend. Claude Sonnet 5.5 and Haiku 5.5 via the Anthropic API; a labeled demo mode without a key.
+- Progress lives in the browser (localStorage). The CV text and income figures are never stored. No accounts. The only stored data is a proof page the user chose to publish.
 - Never invents salaries, course prices, job listings, hiring dates, success probabilities, or external links. Effort is qualitative (lower / medium / higher).
 
 ## Brand Commitments
@@ -39,7 +39,7 @@ Used at home in spare time, often in the evening, on laptop or phone, by someone
 
 ## Evidence on Hand
 
-- Fictitious sample CVs in `data/samples.js` (teacher, nurse, retail manager, three graduates), labeled as samples.
+- Fictitious sample CVs in `backend/src/bridge/domain/samples.py` (teacher, nurse, retail manager), labeled as samples.
 - Market research with sources in `docs/research-graduates.md`.
 - No testimonials, customers, pricing validation, or outcome data exist; none may be invented.
 

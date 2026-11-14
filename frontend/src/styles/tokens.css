@@ -1,206 +1,126 @@
 /* ============================================================================
-   tokens.css: design tokens, resets, primitives. Copied from the facerec
-   dashboard (DESIGN_SPEC.md there) so Bridge looks like the team's other work:
-   Manrope, navy ink, brand blue, flat panels with hairline borders, five status
-   tones, one easing curve. Latin font subsets only. No component styles here;
-   those live in components.css and use only these tokens.
+   tokens.css: the Seed Packet Calendar (DESIGN.md at the repo root is the
+   source of truth; .impeccable/ records the direction). Leaf-paper ground,
+   white packet-stock panels ruled at 1px, one packet-green band per screen,
+   fixed "variety" colours per task kind. Archivo condensed is the variety-name
+   voice; the system sans carries everything read at length.
+
+   Token NAMES are the facerec set (so components read --text, --brand, ...);
+   VALUES are DESIGN.md's. Dark mode is the `dark` class on <html> (set by
+   lib/theme.ts and before first paint by index.html), never a media query in
+   CSS, so the user's choice always wins over the OS.
+   No component styles here; those live in components.css.
    ========================================================================= */
 
-@font-face {
-  font-family: "Manrope";
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url("/fonts/manrope-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
-    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
-    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: "Manrope";
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url("/fonts/manrope-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
-    U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-
-/* --- 2. Light theme — the default, tuned first ------------------------------
-   Cool-tinted page, white panels: the page carries the blue, panels lift off
-   it. Ink is Atlassian navy, not black. No prefers-color-scheme query anywhere
-   in this file, or in styles.css — the theme is the `dark` class on <html> and
-   nothing else (DESIGN_SPEC §6; the reason is that OS-driven rules fire from
-   the operating system's setting rather than the user's, leaking dark
-   fragments into the light theme).                                           */
-
 :root {
-  --background: #f4f6fa;
+  /* Neutrals: Leaf Paper, Packet Stock, Seed Ink, Stem, Rule */
+  --background: #edf1e8;
   --surface: #ffffff;
-  --surface-sunken: #f4f6fa;
-  --surface-hover: #e9eef7;
+  --surface-sunken: #f4f7f1;
+  --surface-hover: #e1ecdd;
+  --border-subtle: #d3dccd;
+  --border: #b8c6b2;
+  --text: #17241b;
+  --text-subtle: #4e5e53;
+  --text-faint: #6b7a6f;
 
-  --border-subtle: #e2e7f0;
-  --border: #cfd6e4;
-
-  --text: #172b4d;
-  --text-subtle: #5a6a85;
-  /* 3.0:1 on --surface. Large text and UI borders ONLY — never body copy,
-     never a 12px timestamp. If a small label must be quiet, use --text-subtle.
-     Note the dark theme's faint tier reaches 4.8:1, so a component that passes
-     there can still fail here: check both. */
-  --text-faint: #8795ad;
-
-  --brand: #0b5cd5;
-  --brand-hover: #0847a8;
-  --brand-pressed: #063478;
+  /* Packet Green: action, shell, selection, focus */
+  --brand: #1f5134;
+  --brand-hover: #163e27;
   --on-brand: #ffffff;
-  --accent-soft: #e4eeff;
+  --accent-soft: #e1ecdd;
+  --ring: #2f7a4c;
+  --focus-halo: color-mix(in srgb, #2f7a4c 22%, transparent);
 
-  --ring: #0b5cd5;
-  --ring-offset: #ffffff;
+  /* The packet band: the one green band per screen */
+  --band: #1f5134;
+  --band-deep: #163e27;
+  --band-ink: #f3f7ef;
+  --band-muted: #c2d6c6;
 
-  /* Status — znp's lozenge palette (Atlassian's), verbatim. Five tones, and
-     deliberately no -border token: outlined pills read as noise at table and
-     feed density. Fill plus text color carries the tone. */
-  --ok-bg: #dcfff1;
-  --ok-fg: #216e4e;
-  --warn-bg: #fff7d6;
-  --warn-fg: #7f5f01;
-  --danger-bg: #ffeceb;
-  --danger-fg: #ae2e24;
-  --info-bg: #deebff;
-  --info-fg: #0055cc;
-  --neutral-bg: #dcdfe4;
-  --neutral-fg: #44546f;
+  /* State. Amber and red mean state; nothing else uses them. */
+  --ok-bg: #dcefdf;
+  --ok-fg: #1d5631;
+  --warn-bg: #fbf0d6;
+  --warn-fg: #6e4a00;
+  --danger-bg: #fbe4df;
+  --danger-fg: #8f2416;
+  --info-bg: #e1ecdd;
+  --info-fg: #1f5134;
+  --neutral-bg: #f4f7f1;
+  --neutral-fg: #4e5e53;
 
-  /* Chart series. Deliberately NOT the status tones above: status colors are
-     tuned for text-on-fill contrast inside a lozenge, these for adjacent-series
-     discrimination on a plotting surface. Do not unify.
+  /* Task kinds, like seed varieties: deep on white (k-), bright on the band (kb-) */
+  --k-research: #b5790f;
+  --k-learning: #6b4fa0;
+  --k-simulation: #c23c24;
+  --k-portfolio: #2f7a4c;
+  --k-networking: #1e7590;
+  --k-application: #a3345f;
+  --kb-research: #f2c14e;
+  --kb-learning: #c3b0ef;
+  --kb-simulation: #ff8a6e;
+  --kb-portfolio: #9fdcad;
+  --kb-networking: #86d2e6;
+  --kb-application: #ef9cc1;
 
-     Re-stepped after running the dataviz validator, which the previous values
-     failed on two checks (yellow outside the lightness band; serious↔warning
-     only ΔE 13.6 for normal vision, below the 15 floor). The unlock was moving
-     `critical` off pure red toward crimson: four warm hues on one ladder
-     cannot separate while red sits next to orange.
-     `node scripts/validate_palette.js "<these>" --mode light` -> 0 failures. */
-  --chart-good: #1f8a4c;
-  --chart-warning: #e0a000;
-  --chart-serious: #dd5c1a;
-  --chart-critical: #a81348;
-  --chart-accent: #2a78d6;
-
-  --header-bg: rgba(250, 251, 253, 0.82);
-  --overlay: rgba(23, 43, 77, 0.45);
-  --scrollbar: #bcc4d4;
-  --pulse: rgba(33, 110, 78, 0.45);
-
-  /* Overlays only — dialogs, popovers, dropdowns. Content cards get a border
-     and a background step, never a shadow (DESIGN_SPEC §5). */
-  --shadow-overlay: 0 1px 2px rgba(9, 30, 66, 0.08), 0 8px 24px rgba(9, 30, 66, 0.16);
-  /* A resting card or form panel: barely there. It lifts the surface off the
-     tinted page; it is not a depth cue (DESIGN_SPEC §5, amended in §16). */
-  --shadow-card: 0 1px 2px rgba(9, 30, 66, 0.06), 0 1px 3px rgba(9, 30, 66, 0.04);
-  --shadow-card-hover: 0 2px 6px rgba(9, 30, 66, 0.1), 0 1px 2px rgba(9, 30, 66, 0.06);
-  /* Soft halo around a focused field, in the brand colour. */
-  --focus-halo: color-mix(in srgb, var(--brand) 20%, transparent);
+  /* Flat by default. The one shadow lifts the landing's sample plan. */
+  --shadow-sample: 0 18px 40px -18px rgba(18, 52, 32, 0.45);
 
   color-scheme: light;
+  accent-color: var(--brand);
 }
 
-
-/* --- 3. Dark theme ----------------------------------------------------------
-   Selector is :root.dark, not html.dark, deliberately: (0,2,0) specificity so
-   this file can override the legacy stylesheet's own dark block while both are
-   loaded. Import order then decides, and tokens.css is imported last.
-
-   Soft slate with a blue undertone, taken from znp verbatim. Not near-black:
-   #171b21 against #242c35 is a real step between page and panel, where a
-   near-black scheme collapses the two.                                       */
-
 :root.dark {
-  --background: #171b21;
-  --surface: #242c35;
-  --surface-sunken: #171b21;
-  --surface-hover: #2f3842;
+  --background: #101712;
+  --surface: #18211b;
+  --surface-sunken: #1d2921;
+  --surface-hover: #213528;
+  --border-subtle: #2b3a30;
+  --border: #3d5044;
+  --text: #e5ede5;
+  --text-subtle: #a5b5a9;
+  --text-faint: #8a9a8e;
 
-  --border-subtle: #2d3642;
-  --border: #3a4450;
+  /* Sprout: buttons stay legible on dark green ground */
+  --brand: #9fdcad;
+  --brand-hover: #b9e8c4;
+  --on-brand: #0d2316;
+  --accent-soft: #213528;
+  --ring: #9fdcad;
+  --focus-halo: color-mix(in srgb, #9fdcad 28%, transparent);
 
-  --text: #ffffff;
-  --text-subtle: #d8dee8;
-  --text-faint: #8d97a6;
+  --band: #1d4a30;
+  --band-deep: #133322;
 
-  /* Lightened, not the light theme's blue reused: a mid blue on a dark surface
-     sinks into the background. --on-brand flips to near-black for AA on it. */
-  --brand: #6aaeff;
-  --brand-hover: #96c5ff;
-  --brand-pressed: #cce0ff;
-  --on-brand: #0f1419;
-  --accent-soft: #1e3048;
+  --ok-bg: #1d3a26;
+  --ok-fg: #a9e0b8;
+  --warn-bg: #3a3015;
+  --warn-fg: #f2d38c;
+  --danger-bg: #3d1e1a;
+  --danger-fg: #f7b7aa;
+  --info-bg: #213528;
+  --info-fg: #9fdcad;
+  --neutral-bg: #1d2921;
+  --neutral-fg: #a5b5a9;
 
-  --ring: #96c5ff;
-  --ring-offset: #171b21;
-
-  --ok-bg: rgba(5, 150, 105, 0.5);
-  --ok-fg: #6ee7b7;
-  --warn-bg: rgba(180, 83, 9, 0.45);
-  --warn-fg: #fde68a;
-  --danger-bg: rgba(220, 38, 38, 0.45);
-  --danger-fg: #fca5a5;
-  --info-bg: rgba(29, 78, 216, 0.55);
-  --info-fg: #bfdbfe;
-  --neutral-bg: #4a5568;
-  --neutral-fg: #ffffff;
-
-  /* Re-stepped for the dark plotting surface, not auto-inverted: the dark
-     lightness band sits higher, so these are the light hues lifted into it.
-
-     Validator: CVD separation and chroma PASS; normal-vision separation lands
-     at ΔE 14.9 against a 15 floor on the warning↔serious pair. Roughly twenty
-     candidate ladders were measured and none cleared it -- with four warm hues
-     in one stack the pair is structurally close. It ships because the skill's
-     required relief is present and not optional here: the compliance bar
-     carries a labelled legend with counts, and its segments are separated by a
-     2px surface gap. If that legend is ever dropped, this palette stops being
-     defensible and the chart needs three tones, not four. */
-  --chart-good: #34b368;
-  --chart-warning: #f5bb2e;
-  --chart-serious: #f07e3c;
-  --chart-critical: #d63f74;
-  --chart-accent: #5a9df0;
-
-  --header-bg: rgba(36, 44, 53, 0.82);
-  --overlay: rgba(8, 12, 18, 0.62);
-  --scrollbar: #4a5564;
-  --pulse: rgba(110, 231, 183, 0.4);
-
-  /* Softer shadow plus a hairline light edge: on a dark surface a shadow
-     barely registers, so the separation comes from the edge. */
-  --shadow-overlay:
-    0 1px 2px rgba(0, 0, 0, 0.32),
-    0 8px 24px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.35);
-  --focus-halo: color-mix(in srgb, var(--brand) 32%, transparent);
+  --k-research: var(--kb-research);
+  --k-learning: var(--kb-learning);
+  --k-simulation: var(--kb-simulation);
+  --k-portfolio: var(--kb-portfolio);
+  --k-networking: var(--kb-networking);
+  --k-application: var(--kb-application);
 
   color-scheme: dark;
 }
 
-
-/* --- 4. Scales — theme-independent -----------------------------------------
-   Spacing is the intersection of Cloudscape, Carbon and Atlassian: a 4px base
-   sharing 2/4/8/12/16/24/32/40, plus Atlassian's 6 and 20. Every margin,
-   padding and gap uses one of these. No arbitrary values anywhere.           */
-
+/* Scales: theme-independent */
 :root {
   --space-025: 2px;
   --space-050: 4px;
   --space-075: 6px;
   --space-100: 8px;
+  --space-125: 10px;
   --space-150: 12px;
   --space-200: 16px;
   --space-250: 20px;
@@ -208,112 +128,39 @@
   --space-400: 32px;
   --space-500: 40px;
   --space-600: 48px;
-  --space-800: 64px;
 
-  /* Type. Sizes are Carbon's scale, line heights follow Cloudscape's ratios,
-     tracking follows znp's (a geometric grotesque falls apart at default
-     tracking in large sizes). Nothing below 11px, and 11px only for uppercase
-     micro labels where the caps carry the legibility. */
-  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
-    monospace;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Archivo Variable", "Archivo", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
-  --type-display-size: 32px;
-  --type-display-line: 38px;
-  --type-h1-size: 24px;
-  --type-h1-line: 30px;
-  --type-h2-size: 20px;
-  --type-h2-line: 26px;
-  --type-h3-size: 16px;
-  --type-h3-line: 22px;
-  --type-body-size: 14px;
-  --type-body-line: 20px;
-  --type-body-compact-line: 18px;
-  --type-small-size: 13px;
-  --type-small-line: 18px;
-  --type-label-size: 12px;
-  --type-label-line: 16px;
-  --type-micro-size: 11px;
-  --type-micro-line: 14px;
+  /* Body is 17px for evening reading; one size in lists, rank from weight. */
+  --type-body-size: 17px;
+  --type-body-line: 1.55;
+  --type-small-size: 0.88rem;
+  --type-small-line: 1.45;
+  --type-label-size: 0.8rem;
+  --type-input-touch: 16px;
+  --tracking-label: 0.06em;
 
-  --tracking-display: -0.03em;
-  --tracking-h2: -0.02em;
-  --tracking-label: 0.01em;
-  --tracking-micro: 0.04em;
-
-  /* Sharp reads industrial. Carbon uses 0, Atlassian 3. The 10px radius of the
-     stylesheet this replaces is a main reason it read as a template. */
-  --radius-sm: 2px;
-  --radius: 4px;
-  /* Controls and cards: a step softer than the console's 4px, closer to znp. */
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-bar: 3px;
+  --radius-control: 8px;
+  --radius-panel: 10px;
+  --radius-band: 14px;
   --radius-full: 999px;
 
-  /* Shell geometry. Not on the spacing scale — these are fixed structural
-     dimensions from DESIGN_SPEC §10, not rhythm. */
-  --header-h: 56px;
-  --sidebar-w: 240px;
-  /* Controls in the shell. Fixed on purpose: `--control-h` changes between
-     density tiers and the chrome must not. */
-  --chrome-control-h: 32px;
-  --nav-active-bar: 3px;
-  /* The smallest thing a finger can reliably hit (Apple HIG, WCAG 2.5.5). */
+  --header-h: 60px;
   --tap-target: 44px;
-  /* Height of a field or button inside a form panel. */
-  --control-h-form: 36px;
-  /* iOS zooms the whole page when an input under this size takes focus. */
-  --type-input-touch: 16px;
-  --toolbar-control-basis: 8rem;
-  --bar-label-narrow: 7rem;
-  /* Shell chrome never compacts: the sidebar must not resize under the
-     cursor when a console route is opened. */
-  --nav-item-h: 32px;
-  /* Feed decision column: fixed so the lozenges align down the list. */
-  --lozenge-fixed-w: 132px;
-  /* Narrowest a stat tile may get before the auto-fit grid drops a column. */
-  --stat-tile-min: 180px;
-  --dialog-max-w: 520px;
-  /* The one breakpoint: below it every table becomes a RecordCard list.
-     Cannot be used in a @media query — custom properties do not resolve
-     there — so the media rule repeats the number and cites this token. */
-  --bp-table: 768px;
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --page-max: 980px;
 
-  /* Density. Set per route by [data-density] below — type size is identical in
-     both tiers, only spacing and heights change (Cloudscape's model). */
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fade: 200ms;
-  --dur-pop: 180ms;
   --dur-fade-up: 280ms;
-  --dur-pulse: 2400ms;
+  --dur-fill: 700ms;
 }
 
-
-/* --- 4b. Density tiers ------------------------------------------------------
-   console: /monitor, /dashboard — a guard watching a full shift.
-   admin:   everything else — an office administrator, occasional use.
-   Fixed per route, not user-configurable (DESIGN_SPEC §3).                    */
-
-[data-density="admin"],
-:root {
-  --row-h: 40px;
-  --cell-pad-y: 8px;
-  --cell-pad-x: 16px;
-  --control-h: 32px;
-  --control-h-sm: 28px;
-  --panel-pad: 16px;
-  --grid-gap: 16px;
-  --section-gap: 24px;
-  --tile-pad-y: 16px;
-  --tile-pad-x: 20px;
-  --event-row-h: 40px;
-}
-
-
-
-/* --- 5. Resets and element defaults ---------------------------------------- */
+/* Resets and element defaults */
 
 *,
 *::before,
@@ -327,24 +174,14 @@ body {
   padding: 0;
 }
 
-/* znp's dark page, matched. The tokens above are already its exact values;
-   this gradient is the rest of its character — a soft brand wash at the top
-   of the viewport. Distinct from the `.glass-field` glow that was dropped:
-   that one sat UNDER content panels and cost text contrast, this is the bare
-   page behind everything. */
-:root.dark body {
-  background:
-    radial-gradient(
-      ellipse 130% 70% at 50% -15%,
-      rgba(106, 174, 255, 0.07),
-      transparent 55%
-    ),
-    var(--surface-sunken);
+html {
+  scrollbar-color: var(--border) var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--text);
+  caret-color: var(--brand);
   font-family: var(--font-sans);
   font-size: var(--type-body-size);
   line-height: var(--type-body-line);
@@ -355,47 +192,48 @@ body {
 h1,
 h2,
 h3,
-h4,
 p,
-figure,
-dl,
-dd {
+figure {
   margin: 0;
 }
 
-/* Tight headings: at default tracking a geometric grotesque falls apart into
-   separate letters at display sizes. */
+/* The variety-name voice: condensed Archivo, sentence case unless a short name. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-stretch: 78%;
+  font-weight: 760;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  color: var(--text);
+}
+
 h1 {
-  font-size: var(--type-h1-size);
-  line-height: var(--type-h1-line);
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
+  font-size: clamp(2rem, 4.2vw, 3rem);
+  line-height: 1.02;
 }
 
 h2 {
-  font-size: var(--type-h2-size);
-  line-height: var(--type-h2-line);
-  font-weight: 700;
-  letter-spacing: var(--tracking-h2);
+  font-size: 1.55rem;
+  line-height: 1.1;
 }
 
 h3 {
-  font-size: var(--type-h3-size);
-  line-height: var(--type-h3-line);
-  font-weight: 700;
-  letter-spacing: var(--tracking-h2);
+  font-size: 1.2rem;
+  line-height: 1.15;
 }
 
 a {
   color: var(--brand);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
 a:hover {
-  color: var(--brand-hover);
+  text-decoration-thickness: 2px;
 }
 
-/* Inherit rather than reset to the UA default: every control in this app is
-   restyled, and a stray system font in a <select> is the usual tell. */
 button,
 input,
 select,
@@ -404,76 +242,21 @@ textarea {
   color: inherit;
 }
 
-/* Every metric, table number, timestamp, similarity score and count. The
-   single cheapest thing that makes a dashboard look engineered. */
-.tabular,
-td[data-numeric],
-th[data-numeric] {
+::selection {
+  background: var(--band);
+  color: var(--band-ink);
+}
+
+.tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* Visible on every interactive element. Never removed without a replacement. */
 :focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 1px;
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
 
-::selection {
-  background: var(--accent-soft);
-  color: var(--text);
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar) transparent;
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar);
-  border: 3px solid transparent;
-  border-radius: var(--radius-full);
-  background-clip: content-box;
-}
-
-
-/* --- 6. Primitives ---------------------------------------------------------
-   Glass applies to ONE thing: the sticky app header. Content panels stay
-   opaque — there is nothing to blur behind them and text under text reads
-   badly. No brand-glow field: it is decoration that costs contrast on a screen
-   watched for eight hours (DESIGN_SPEC §5).                                   */
-
-.glass {
-  background: var(--header-bg);
-  backdrop-filter: blur(16px) saturate(1.6);
-  -webkit-backdrop-filter: blur(16px) saturate(1.6);
-}
-
-@supports not (backdrop-filter: blur(1px)) {
-  .glass {
-    background: var(--surface);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .glass {
-    background: var(--surface);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-/* Motion: short and one-directional. People sit in this all day — the job is
-   to show what appeared and where, not to entertain. */
-
+/* Motion: short and one-directional. */
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -494,28 +277,18 @@ th[data-numeric] {
   }
 }
 
-@keyframes pop {
+@keyframes fill {
   from {
-    opacity: 0;
-    transform: scale(0.96) translateY(4px);
+    transform: scaleX(0);
   }
   to {
-    opacity: 1;
-    transform: none;
+    transform: scaleX(1);
   }
 }
 
-/* The ONLY looping animation in the application — the live connection dot. If
-   a second one appears, one of them is wrong. */
-@keyframes pulse-ring {
-  0% {
-    box-shadow: 0 0 0 0 var(--pulse);
-  }
-  70% {
-    box-shadow: 0 0 0 7px transparent;
-  }
-  100% {
-    box-shadow: 0 0 0 0 transparent;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -537,28 +310,21 @@ th[data-numeric] {
   animation: fade var(--dur-fade) ease-out both;
 }
 
-.animate-pop {
-  animation: pop var(--dur-pop) var(--ease) both;
-}
-
-.animate-pulse-ring {
-  animation: pulse-ring var(--dur-pulse) ease-out infinite;
-}
-
-/* Siblings appear in order so the eye can follow the sequence. Past the fifth
-   step it stops being perceptible, so there are exactly five. */
 .stagger > * {
   animation: fade-up 300ms var(--ease) both;
 }
-.stagger > *:nth-child(1) { animation-delay: 0ms; }
-.stagger > *:nth-child(2) { animation-delay: 45ms; }
-.stagger > *:nth-child(3) { animation-delay: 90ms; }
-.stagger > *:nth-child(4) { animation-delay: 135ms; }
-.stagger > *:nth-child(n + 5) { animation-delay: 170ms; }
+.stagger > *:nth-child(2) {
+  animation-delay: 45ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+.stagger > *:nth-child(n + 4) {
+  animation-delay: 135ms;
+}
 
-/* Short "it worked" response on press. */
 button:not(:disabled):active {
-  transform: translateY(0.5px);
+  transform: translateY(1px);
 }
 
 @media (prefers-reduced-motion: reduce) {

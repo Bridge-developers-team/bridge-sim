@@ -107,8 +107,8 @@ function PracticeWorkspace({ taskId, practice }: { taskId: string; practice: Pra
     <div className="stack-lg">
       <ModeBanner mode={work.mode} />
       <header className="page-head">
-        <p className="eyebrow">Practice · {practice.targetRole}</p>
         <h1>Try the job for {practice.timeboxMinutes} minutes</h1>
+        <p className="muted">A small, realistic piece of {practice.targetRole} work. Read the rubric first.</p>
       </header>
 
       <Panel>

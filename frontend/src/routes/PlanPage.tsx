@@ -11,6 +11,7 @@ import { Lozenge } from "../components/ui/Lozenge";
 import { ModeBanner } from "../components/ui/ModeBanner";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
+import { GrowingCalendar } from "../components/GrowingCalendar";
 import { MoneyCheck } from "../components/MoneyCheck";
 import { selectedCareer, setDone, withPractice, withRoadmap } from "../lib/journey";
 import { TASK_TYPE, WEEK_STATUS, hoursText, minutesText } from "../lib/labels";
@@ -27,6 +28,12 @@ export function PlanPage() {
   const [hours, setHours] = useState(journey.roadmap?.hoursPerWeek ?? journey.profile.hoursPerWeek);
   const [track, setTrack] = useState<Track>(journey.roadmap?.track ?? journey.profile.transitionPreference);
   const [notice, setNotice] = useState<string | null>(null);
+  // The bar of a task ticked just now animates its fill once.
+  const [justFilled, setJustFilled] = useState<string | null>(null);
+  const tick = (taskId: string, done: boolean) => {
+    updateJourney((j) => setDone(j, taskId, done));
+    setJustFilled(done ? taskId : null);
+  };
   const started = useRef(false);
   const sample = journey.careers?.mode === "sample";
 
@@ -105,21 +112,31 @@ export function PlanPage() {
   return (
     <div className="stack-lg">
       <ModeBanner mode={journey.roadmapMode} />
-      <header className="page-head">
-        <p className="eyebrow">
-          {plan.currentRole} → {plan.targetRole}
-        </p>
-        <h1>Your first 30 days</h1>
-        <p className="muted">
-          {hoursText(plan.hoursPerWeek)} · {config.data?.tracks.find((t) => t.id === plan.track)?.label ?? plan.track}
-        </p>
-        <div className="progress" aria-label={`${stats.done} of ${stats.total} tasks done`}>
-          <div className="progress__bar" style={{ width: `${stats.percent}%` }} />
+      <section className="packet" aria-labelledby="packet-role">
+        <h1 id="packet-role" className="packet__role">
+          <span className="sr-only">My career roadmap: </span>
+          {plan.targetRole}
+        </h1>
+        <p className="packet__from">from {plan.currentRole}</p>
+        <div className="packet__meta">
+          <p className="packet__progress tabular">
+            <strong>
+              {stats.done} of {stats.total}
+            </strong>{" "}
+            tasks done ({stats.percent}%)
+          </p>
+          <span>
+            Your first 30 days · {hoursText(plan.hoursPerWeek)} ·{" "}
+            {config.data?.tracks.find((t) => t.id === plan.track)?.label ?? plan.track}
+          </span>
         </div>
-        <p className="small tabular">
-          {stats.done} of {stats.total} tasks done · {stats.percent}%
-        </p>
-      </header>
+        <GrowingCalendar roadmap={plan} justFilled={justFilled} onJump={jumpToTask} />
+        {career.missingSkills.length > 0 && (
+          <p className="packet__skills">
+            <strong>Skills this plan builds:</strong> {career.missingSkills.join(", ")}
+          </p>
+        )}
+      </section>
 
       {notice && (
         <p className="notice" role="status">
@@ -129,9 +146,9 @@ export function PlanPage() {
 
       {next ? (
         <Panel className="next">
-          <PanelHeader title={`Your next step · week ${next.week}`} note={minutesText(next.task.estimatedMinutes)} />
+          <PanelHeader title="Your next step" note={`Week ${next.week} · ${minutesText(next.task.estimatedMinutes)}`} />
           <PanelBody className="stack">
-            <h2>{next.task.title}</h2>
+            <p className="next__title">{next.task.title}</p>
             <p className="muted">{next.task.whyThisMatters}</p>
             <div className="row">
               {next.task.type === "simulation" ? (
@@ -139,7 +156,7 @@ export function PlanPage() {
                   Open the practice task
                 </Button>
               ) : (
-                <Button variant="primary" onClick={() => updateJourney((j) => setDone(j, next.task.id, true))}>
+                <Button variant="primary" onClick={() => tick(next.task.id, true)}>
                   Mark as done
                 </Button>
               )}
@@ -168,7 +185,7 @@ export function PlanPage() {
               {week.objective && <p className="muted">{week.objective}</p>}
               <ul className="tasks">
                 {week.tasks.map((task) => (
-                  <TaskRow key={task.id} task={task} onOpen={() => navigate(`/practice/${task.id}`)} />
+                  <TaskRow key={task.id} task={task} onTick={tick} onOpen={() => navigate(`/practice/${task.id}`)} />
                 ))}
               </ul>
             </PanelBody>
@@ -232,21 +249,31 @@ export function PlanPage() {
   );
 }
 
-function TaskRow({ task, onOpen }: { task: Task; onOpen: () => void }) {
+function TaskRow({
+  task,
+  onTick,
+  onOpen,
+}: {
+  task: Task;
+  onTick: (taskId: string, done: boolean) => void;
+  onOpen: () => void;
+}) {
   return (
-    <li className={`task ${task.completed ? "task--done" : ""}`}>
+    <li className="task" id={`task-${task.id}`}>
       <input
+        id={`check-${task.id}`}
         type="checkbox"
         className="task__check"
         checked={task.completed}
-        onChange={(e) => updateJourney((j) => setDone(j, task.id, e.target.checked))}
+        onChange={(e) => onTick(task.id, e.target.checked)}
         aria-label={`Done: ${task.title}`}
       />
       <div className="task__body">
         <div className="task__head">
           <span className="task__title">{task.title}</span>
-          <Lozenge tone={task.type === "simulation" ? "info" : "neutral"}>{TASK_TYPE[task.type]}</Lozenge>
+          <Lozenge kind={task.type}>{TASK_TYPE[task.type]}</Lozenge>
           <span className="muted small tabular">{minutesText(task.estimatedMinutes)}</span>
+          {task.completed && <Lozenge tone="ok">Done</Lozenge>}
         </div>
         <p className="small">
           <span className="strong">You make:</span> {task.deliverable}
@@ -273,6 +300,13 @@ function TaskRow({ task, onOpen }: { task: Task; onOpen: () => void }) {
       </div>
     </li>
   );
+}
+
+/** A calendar bar jumps to its task row and focuses the checkbox. */
+function jumpToTask(taskId: string) {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById(`task-${taskId}`)?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  document.getElementById(`check-${taskId}`)?.focus({ preventScroll: true });
 }
 
 /** The first practice task is written in the background while the user reads

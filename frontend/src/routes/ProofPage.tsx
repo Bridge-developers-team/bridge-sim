@@ -28,9 +28,10 @@ export function ProofPage() {
     <article className="stack-lg">
       <ModeBanner mode={p.mode} />
       <header className="page-head">
-        <p className="eyebrow">Work sample · {p.practice.targetRole}</p>
         <h1>{p.displayName ? `${p.displayName}'s practice task` : "A practice task"}</h1>
-        <p className="muted small">Published {date}</p>
+        <p className="muted">
+          Work sample for {p.practice.targetRole} · published {date}
+        </p>
       </header>
 
       <Panel>
