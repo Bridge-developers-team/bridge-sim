@@ -7,6 +7,7 @@ import { PlanPage } from "./routes/PlanPage";
 import { PracticePage } from "./routes/PracticePage";
 import { ProofPage } from "./routes/ProofPage";
 import { StartPage } from "./routes/StartPage";
+import { TastePage } from "./routes/TastePage";
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
         <Route path="paths" element={<PathsPage />} />
         <Route path="plan" element={<PlanPage />} />
         <Route path="practice/:taskId" element={<PracticePage />} />
+        <Route path="taste/:careerId" element={<TastePage />} />
         <Route path="p/:proofId" element={<ProofPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

@@ -39,6 +39,24 @@ async function run(name, viewport, colorScheme) {
   await noSideScroll(page, `${name} paths`);
   await shot("2-paths");
 
+  // Career tasting: taste two paths, rate them, and the map recommends one.
+  for (const [i, feeling] of [[0, "I'd love it"], [1, "Dreading it"]]) {
+    if (i === 0) await page.getByRole("button", { name: /^Start with .* · 10 min$/ }).click();
+    else await page.getByRole("button", { name: /^Taste the next path/ }).click();
+    await page.getByRole("heading", { name: /^Taste it:/ }).waitFor();
+    await page.getByRole("button", { name: "Fill a sample answer" }).click();
+    await page.waitForFunction(() => (document.querySelector("textarea")?.value ?? "").length > 50);
+    await page.getByRole("button", { name: "Get feedback", exact: true }).click();
+    await page.getByRole("radio", { name: feeling }).click();
+  }
+  await noSideScroll(page, `${name} taste`);
+  await page.getByRole("button", { name: "See my Taste Map" }).click();
+  await page.getByText("Recommended from your tastes").waitFor();
+  const map = await page.locator("svg.taste-map title").textContent();
+  if (!/Thrive|Grow into/.test(map ?? "")) problems.push(`${name}: taste map has no wanted path: ${map}`);
+  await noSideScroll(page, `${name} taste map`);
+  await shot("2b-taste-map");
+
   await page.getByRole("button", { name: "Build my 30-day plan" }).first().click();
   await page.locator("#packet-role").waitFor();
   await noSideScroll(page, `${name} plan`);
