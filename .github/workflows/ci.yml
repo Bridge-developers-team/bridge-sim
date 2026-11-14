@@ -81,6 +81,9 @@ jobs:
         with:
           version: "0.12.3"
           enable-cache: true
+          # The server below must not hold uv's cache lock; skip the prune
+          # anyway so a stray process can never stall the job's cleanup.
+          prune-cache: false
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -100,7 +103,10 @@ jobs:
           DATABASE_URL: sqlite+aiosqlite:////tmp/e2e.db
         run: |
           uv sync --frozen --no-dev
-          nohup uv run --no-dev uvicorn bridge.main:create_app --factory --port 8000 > /tmp/server.log 2>&1 &
+          # Run uvicorn from the venv, not through `uv run`: a long-lived uv
+          # process holds the cache lock and made setup-uv's cleanup time out.
+          nohup .venv/bin/uvicorn bridge.main:create_app --factory --port 8000 > /tmp/server.log 2>&1 &
+          echo $! > /tmp/server.pid
           for i in $(seq 1 30); do curl -sf localhost:8000/healthz && exit 0; sleep 1; done
           cat /tmp/server.log; exit 1
       - name: Walk the judge path
@@ -113,6 +119,9 @@ jobs:
           path: frontend/e2e/out/
       - if: failure()
         run: cat /tmp/server.log
+      - name: Stop server
+        if: always()
+        run: if [ -f /tmp/server.pid ]; then kill "$(cat /tmp/server.pid)" || true; fi
 
   docker:
     name: Docker image (build + smoke test)
