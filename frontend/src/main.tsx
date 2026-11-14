@@ -8,6 +8,7 @@ import "@fontsource-variable/inter/index.css";
 import "@fontsource-variable/literata/index.css";
 import "./styles/tokens.css";
 import "./styles/components.css";
+import "./styles/glass.css";
 
 applyTheme(getStoredTheme());
 

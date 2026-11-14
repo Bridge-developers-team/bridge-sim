@@ -8,6 +8,11 @@ export function Layout() {
   const { pathname } = useLocation();
   return (
     <>
+      <div className="ambient" aria-hidden="true">
+        <div className="ambient__orb ambient__orb--gold" />
+        <div className="ambient__orb ambient__orb--navy" />
+        <div className="ambient__orb ambient__orb--sky" />
+      </div>
       <header className="top">
         <div className="top__inner">
           <Link to="/" className="brand" aria-label="Bridge home">
