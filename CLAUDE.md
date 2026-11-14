@@ -22,17 +22,20 @@ frontend/  React 18 + Vite + TypeScript + TanStack Query, plain CSS
   src/state/      the journey store (localStorage)
   src/components/ ui/ primitives; GrowingCalendar (the design's signature)
   src/routes/     one page per file
-  src/styles/     tokens.css + components.css: the Seed Packet Calendar (DESIGN.md)
+  src/styles/     tokens.css + components.css: Midnight Navy + Signature Gold (DESIGN.md)
   e2e/walk.mjs    real-browser walk of the judge path
+brand/     the brand kit: logo and icon masters (SVG), PNG/ICO exports, guide
 Dockerfile, render.yaml, .github/workflows/ci.yml
 ```
 
 ## Rules
 
-- **Design:** `DESIGN.md` is the visual spec (Seed Packet Calendar) and
-  `PRODUCT.md` the product facts; `.impeccable/` records the design direction.
-  One packet-green band per screen, no kickers above headings, no gradients,
-  colours only with a job. Change the spec first, then the CSS.
+- **Design:** `DESIGN.md` is the visual spec (Midnight Navy + Signature Gold,
+  from the kit in `brand/`) and `PRODUCT.md` the product facts; `.impeccable/`
+  records the design direction. One navy band per screen, gold only for the
+  logo and the next step, no kickers above headings, no gradients, colours
+  only with a job. Change the spec first, then the CSS. Logo files come from
+  `brand/`; never redraw or retype the logo.
 - **Layers point inward.** `api -> services -> llm | db -> domain`. import-linter
   fails CI on a wrong import. A router never contains logic; a rule lives in
   `domain/` with a test.

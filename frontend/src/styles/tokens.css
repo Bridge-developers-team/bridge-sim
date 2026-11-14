@@ -1,9 +1,10 @@
 /* ============================================================================
-   tokens.css: the Seed Packet Calendar (DESIGN.md at the repo root is the
-   source of truth; .impeccable/ records the direction). Leaf-paper ground,
-   white packet-stock panels ruled at 1px, one packet-green band per screen,
-   fixed "variety" colours per task kind. Archivo condensed is the variety-name
-   voice; the system sans carries everything read at length.
+   tokens.css: Bridge's Midnight Navy + Signature Gold identity (DESIGN.md at
+   the repo root is the source of truth; brand/ holds the logo files and the
+   brand kit). Ivory ground, white panels ruled at 1px in a warm border, navy
+   text and navy actions, one navy span band per screen, gold only for the
+   logo and the "Next" step. Inter carries the interface; Literata is the
+   editorial voice for the target role and the landing headline only.
 
    Token NAMES are the facerec set (so components read --text, --brand, ...);
    VALUES are DESIGN.md's. Dark mode is the `dark` class on <html> (set by
@@ -13,30 +14,35 @@
    ========================================================================= */
 
 :root {
-  /* Neutrals: Leaf Paper, Packet Stock, Seed Ink, Stem, Rule */
-  --background: #edf1e8;
+  /* Neutrals: Ivory ground, white panels, Midnight Navy ink, Warm Border */
+  --background: #f6f1e6;
   --surface: #ffffff;
-  --surface-sunken: #f4f7f1;
-  --surface-hover: #e1ecdd;
-  --border-subtle: #d3dccd;
-  --border: #b8c6b2;
-  --text: #17241b;
-  --text-subtle: #4e5e53;
-  --text-faint: #6b7a6f;
+  --surface-sunken: #fbf8f2;
+  --surface-hover: #f0eadd;
+  --border-subtle: #dad6cd;
+  --border: #c4beb1;
+  --text: #0b1a3a;
+  --text-subtle: #4a4d57;
+  --text-faint: #63656d;
 
-  /* Packet Green: action, shell, selection, focus */
-  --brand: #1f5134;
-  --brand-hover: #163e27;
+  /* Midnight Navy: action, shell, selection */
+  --brand: #0b1a3a;
+  --brand-hover: #172b50;
   --on-brand: #ffffff;
-  --accent-soft: #e1ecdd;
-  --ring: #2f7a4c;
-  --focus-halo: color-mix(in srgb, #2f7a4c 22%, transparent);
+  --accent-soft: #efe9dc;
+  /* Focus is deep gold: the accent, dark enough to read on ivory and white */
+  --ring: #82621f;
+  --focus-halo: color-mix(in srgb, #82621f 22%, transparent);
 
-  /* The packet band: the one green band per screen */
-  --band: #1f5134;
-  --band-deep: #163e27;
-  --band-ink: #f3f7ef;
-  --band-muted: #c2d6c6;
+  /* Signature Gold: the logo and the "Next" step, nothing else */
+  --gold: #c9a14e;
+  --on-gold: #0b1a3a;
+
+  /* The span band: the one navy band per screen */
+  --band: #0b1a3a;
+  --band-deep: #071230;
+  --band-ink: #f6f1e6;
+  --band-muted: #b7c0d4;
 
   /* State. Amber and red mean state; nothing else uses them. */
   --ok-bg: #dcefdf;
@@ -45,12 +51,12 @@
   --warn-fg: #6e4a00;
   --danger-bg: #fbe4df;
   --danger-fg: #8f2416;
-  --info-bg: #e1ecdd;
-  --info-fg: #1f5134;
-  --neutral-bg: #f4f7f1;
-  --neutral-fg: #4e5e53;
+  --info-bg: #e6eaf3;
+  --info-fg: #0b1a3a;
+  --neutral-bg: #fbf8f2;
+  --neutral-fg: #4a4d57;
 
-  /* Task kinds, like seed varieties: deep on white (k-), bright on the band (kb-) */
+  /* Task kinds: deep on white (k-), bright on the navy band (kb-) */
   --k-research: #b5790f;
   --k-learning: #6b4fa0;
   --k-simulation: #c23c24;
@@ -65,33 +71,35 @@
   --kb-application: #ef9cc1;
 
   /* Flat by default. The one shadow lifts the landing's sample plan. */
-  --shadow-sample: 0 18px 40px -18px rgba(18, 52, 32, 0.45);
+  --shadow-sample: 0 18px 40px -18px rgba(11, 26, 58, 0.45);
 
   color-scheme: light;
   accent-color: var(--brand);
 }
 
 :root.dark {
-  --background: #101712;
-  --surface: #18211b;
-  --surface-sunken: #1d2921;
-  --surface-hover: #213528;
-  --border-subtle: #2b3a30;
-  --border: #3d5044;
-  --text: #e5ede5;
-  --text-subtle: #a5b5a9;
-  --text-faint: #8a9a8e;
+  --background: #0a1124;
+  --surface: #111a30;
+  --surface-sunken: #0d152a;
+  --surface-hover: #182543;
+  --border-subtle: #233150;
+  --border: #35466b;
+  --text: #f1ece1;
+  --text-subtle: #b5bbc9;
+  --text-faint: #9aa1b2;
 
-  /* Sprout: buttons stay legible on dark green ground */
-  --brand: #9fdcad;
-  --brand-hover: #b9e8c4;
-  --on-brand: #0d2316;
-  --accent-soft: #213528;
-  --ring: #9fdcad;
-  --focus-halo: color-mix(in srgb, #9fdcad 28%, transparent);
+  /* Gold actions on dark navy, so buttons stay legible */
+  --brand: #d4af62;
+  --brand-hover: #e2c27e;
+  --on-brand: #0b1a3a;
+  --accent-soft: #1b2846;
+  --ring: #d4af62;
+  --focus-halo: color-mix(in srgb, #d4af62 28%, transparent);
 
-  --band: #1d4a30;
-  --band-deep: #133322;
+  --gold: #d4af62;
+
+  --band: #15284f;
+  --band-deep: #0b1a3a;
 
   --ok-bg: #1d3a26;
   --ok-fg: #a9e0b8;
@@ -99,10 +107,10 @@
   --warn-fg: #f2d38c;
   --danger-bg: #3d1e1a;
   --danger-fg: #f7b7aa;
-  --info-bg: #213528;
-  --info-fg: #9fdcad;
-  --neutral-bg: #1d2921;
-  --neutral-fg: #a5b5a9;
+  --info-bg: #1b2846;
+  --info-fg: #c9d3ea;
+  --neutral-bg: #0d152a;
+  --neutral-fg: #b5bbc9;
 
   --k-research: var(--kb-research);
   --k-learning: var(--kb-learning);
@@ -129,8 +137,10 @@
   --space-500: 40px;
   --space-600: 48px;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Archivo Variable", "Archivo", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Headings share the interface face; Literata is the editorial voice. */
+  --font-display: var(--font-sans);
+  --font-editorial: "Literata Variable", "Literata", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   /* Body is 17px for evening reading; one size in lists, rank from weight. */
@@ -144,7 +154,7 @@
 
   --radius-bar: 3px;
   --radius-control: 8px;
-  --radius-panel: 10px;
+  --radius-panel: 12px;
   --radius-band: 14px;
   --radius-full: 999px;
 
@@ -197,14 +207,13 @@ figure {
   margin: 0;
 }
 
-/* The variety-name voice: condensed Archivo, sentence case unless a short name. */
+/* Headings: Inter, tight, sentence case. */
 h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-stretch: 78%;
-  font-weight: 760;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   text-wrap: balance;
   color: var(--text);
 }
@@ -245,6 +254,11 @@ textarea {
 ::selection {
   background: var(--band);
   color: var(--band-ink);
+}
+
+.dark ::selection {
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
 .tabular {

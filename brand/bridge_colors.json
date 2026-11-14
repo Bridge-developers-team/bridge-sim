@@ -1,0 +1,25 @@
+{
+  "brand": "Bridge",
+  "selected_direction": "Midnight Navy & Signature Gold",
+  "colors": {
+    "primary": "#0B1A3A",
+    "accent": "#C9A14E",
+    "background": "#F6F1E6",
+    "stone": "#3B332B",
+    "white": "#FFFFFF",
+    "mutedText": "#63656D",
+    "border": "#DAD6CD",
+    "primaryHover": "#172B50"
+  },
+  "typography": {
+    "wordmark": "Approved lettering, traced to outlines in the logo SVGs (no font needed); never retype it",
+    "ui": "Inter 400/500/600/700",
+    "editorial": "Literata (optional, headlines only)"
+  },
+  "usage": {
+    "gold": "Highlights and graphic details; not body text on light backgrounds",
+    "navy": "Navigation, headings, CTA background",
+    "ivory": "Page background",
+    "white": "Cards and light surfaces"
+  }
+}

@@ -1,6 +1,6 @@
 /* ============================================================================
-   components.css: every component and layout class, in the Seed Packet
-   Calendar system (DESIGN.md). Values come from tokens.css only.
+   components.css: every component and layout class, in Bridge's Midnight
+   Navy + Signature Gold system (DESIGN.md). Values come from tokens.css only.
    Phone first: one centred column (max 980px), 16px side gutter; only chip
    rows and the comparison table scroll sideways, inside their own box.
    ========================================================================= */
@@ -33,28 +33,20 @@ body {
   padding: 0 max(var(--space-200), env(safe-area-inset-right)) 0 max(var(--space-200), env(safe-area-inset-left));
 }
 
-/* Wordmark: bridge-arch mark plus BRIDGE in condensed caps */
+/* Logo: the brand kit's horizontal logo, drawn inline so the navy parts
+   follow the text colour (ivory in dark mode) and the gold stays gold. */
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-100);
-  font-family: var(--font-display);
-  font-stretch: 75%;
-  font-weight: 800;
-  font-size: 1.35rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  min-height: var(--tap-target);
   color: var(--text);
   text-decoration: none;
 }
 
 .brand svg {
-  width: 30px;
-  height: 18px;
-  stroke: var(--brand);
-  fill: none;
-  stroke-width: 2.4;
-  stroke-linecap: round;
+  display: block;
+  width: auto;
+  height: 30px;
 }
 
 .nav {
@@ -234,7 +226,7 @@ svg.icon {
   stroke-linejoin: round;
 }
 
-/* --- Buttons: primary packet green, secondary white with a strong rule --- */
+/* --- Buttons: primary navy, secondary white with a strong rule --- */
 
 .btn {
   display: inline-flex;
@@ -484,7 +476,7 @@ svg.icon {
   resize: vertical;
 }
 
-/* CV dropzone: dashed rule, round green icon, condensed green label */
+/* CV dropzone: dashed rule, round navy icon, bold navy label */
 .dropzone {
   display: flex;
   align-items: center;
@@ -523,13 +515,12 @@ svg.icon {
 
 .dropzone__title {
   font-family: var(--font-display);
-  font-stretch: 78%;
   font-size: 1.3rem;
   font-weight: 760;
   color: var(--brand);
 }
 
-/* --- Choices: round pills, selected = filled green --- */
+/* --- Choices: round pills, selected = filled navy --- */
 
 .choices {
   display: flex;
@@ -612,7 +603,6 @@ svg.icon {
 
 .track__label {
   font-family: var(--font-display);
-  font-stretch: 78%;
   font-size: 1.15rem;
   font-weight: 760;
 }
@@ -631,7 +621,7 @@ svg.icon {
   padding-top: var(--space-100);
 }
 
-/* --- The packet band: one per screen, holds the identity --- */
+/* --- The span band (.packet): one navy band per screen, holds the identity --- */
 
 .packet {
   padding: 26px 26px 20px;
@@ -642,13 +632,11 @@ svg.icon {
 
 .packet__role {
   margin: 0;
-  font-family: var(--font-display);
-  font-stretch: 70%;
-  font-weight: 820;
-  font-size: clamp(2.1rem, 5vw, 3.4rem);
-  line-height: 0.95;
-  letter-spacing: 0.005em;
-  text-transform: uppercase;
+  font-family: var(--font-editorial);
+  font-weight: 600;
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
   color: var(--band-ink);
 }
 
@@ -674,7 +662,6 @@ svg.icon {
 
 .packet__progress strong {
   font-family: var(--font-display);
-  font-stretch: 78%;
   font-size: 1.25rem;
 }
 
@@ -715,7 +702,6 @@ svg.icon {
 .gc-label {
   padding-bottom: 2px;
   font-family: var(--font-display);
-  font-stretch: 75%;
   font-weight: 750;
   font-size: 0.85rem;
   letter-spacing: 0.04em;
@@ -773,8 +759,9 @@ span.gc-bar {
   animation: fill var(--dur-fill) var(--ease) both;
 }
 
+/* The next step is the one gold thing on the band: ring and pin. */
 .gc-bar.is-next {
-  box-shadow: 0 0 0 2px var(--band-ink);
+  box-shadow: 0 0 0 2px var(--gold);
 }
 
 button.gc-bar:hover {
@@ -793,8 +780,8 @@ button.gc-bar:hover {
   z-index: 1;
   padding: 1px 6px;
   border-radius: 4px;
-  background: var(--band-ink);
-  color: var(--band);
+  background: var(--gold);
+  color: var(--on-gold);
   font-size: 0.7rem;
   font-weight: 750;
   letter-spacing: 0.06em;
@@ -861,10 +848,11 @@ button.gc-bar:hover {
 }
 
 .hero h1 {
-  font-size: clamp(2.4rem, 5.6vw, 4.2rem);
-  font-stretch: 72%;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-editorial);
+  font-size: clamp(2.4rem, 5.6vw, 4rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
 }
 
 .hero__copy {
@@ -882,13 +870,10 @@ button.gc-bar:hover {
 }
 
 .sample-plan__role {
-  font-family: var(--font-display);
-  font-stretch: 72%;
-  font-weight: 800;
-  font-size: 1.7rem;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  font-family: var(--font-editorial);
+  font-weight: 600;
+  font-size: 1.6rem;
+  line-height: 1.1;
 }
 
 .sample-plan__from {
@@ -922,7 +907,6 @@ button.gc-bar:hover {
 
 .values strong {
   font-family: var(--font-display);
-  font-stretch: 78%;
   font-size: 1.15rem;
   font-weight: 750;
 }
@@ -1045,11 +1029,9 @@ button.gc-bar:hover {
 }
 
 .career__title {
-  font-size: 1.4rem;
-  font-stretch: 72%;
-  font-weight: 800;
-  line-height: 1;
-  text-transform: uppercase;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .career .label {
@@ -1102,7 +1084,7 @@ button.gc-bar:hover {
 
 /* --- Plan --- */
 
-/* The next-action panel is the one panel with a 2px green border. */
+/* The next-action panel is the one panel with a 2px navy border. */
 .next {
   border: 2px solid var(--brand);
 }
@@ -1181,7 +1163,6 @@ button.gc-bar:hover {
 
 .money__total {
   font-family: var(--font-display);
-  font-stretch: 78%;
   font-size: 2.2rem;
   font-weight: 800;
   line-height: 1;
@@ -1233,7 +1214,6 @@ button.gc-bar:hover {
 
 .score__value {
   font-family: var(--font-display);
-  font-stretch: 78%;
   font-size: 2.6rem;
   font-weight: 800;
   line-height: 1;

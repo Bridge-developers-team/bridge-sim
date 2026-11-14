@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Bridge rounded-square app icon (flat)</title>
+  <rect width="1024" height="1024" rx="205" fill="#0B1A3A"/>
+  <g transform="translate(144.1 291.6) scale(2.25)">
+    <path d="M4 168C30 62 92 0 165 0C238 0 302 55 327 145L262 130C252 72 228 32 187 32C148 32 120 72 104 124C66 134 30 148 4 168Z" fill="#C9A14E"/>
+    <path d="M187 32C232 36 272 78 292 137L262 130C252 72 228 32 187 32Z" fill="#E3C27A"/>
+    <path d="M0 203C55 160 150 120 258 110L259 116C205 121 160 139 141 170L139 203Z" fill="#C9A14E"/>
+  </g>
+</svg>
