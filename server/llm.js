@@ -26,8 +26,18 @@ if (!["anthropic", "deepseek", "demo"].includes(PROVIDER)) {
   throw new Error(`LLM_PROVIDER must be anthropic, deepseek or demo (got "${PROVIDER}")`);
 }
 
-const DEFAULT_MODELS = { anthropic: "claude-opus-5-5", deepseek: "deepseek-flash", demo: null };
-export const MODEL = process.env.BRIDGE_MODEL || DEFAULT_MODELS[PROVIDER];
+// Two tiers on Anthropic: "main" for judgment-heavy work (writing tasks,
+// grading), "fast" for extraction and drafts (skill map, sample answers).
+const DEFAULT_MODELS = {
+  anthropic: { main: "claude-sonnet-5-5", fast: "claude-haiku-5-5" },
+  deepseek: { main: "deepseek-flash", fast: "deepseek-flash" },
+  demo: { main: null, fast: null },
+};
+export const MODELS = {
+  main: process.env.BRIDGE_MODEL || DEFAULT_MODELS[PROVIDER].main,
+  fast: process.env.BRIDGE_MODEL_FAST || DEFAULT_MODELS[PROVIDER].fast,
+};
+export const MODEL = MODELS.main;
 
 const DEEPSEEK_URL = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com") + "/chat/completions";
 
@@ -111,16 +121,18 @@ async function callDeepSeek({ system, user, schema, maxTokens = 16000 }) {
 
 // ---------- Claude (structured outputs) ----------
 
-async function callClaude({ system, user, schema, effort = "medium", maxTokens = 16000 }) {
+async function callClaude({ system, user, schema, effort = "medium", maxTokens = 16000, tier = "main" }) {
+  const model = MODELS[tier] ?? MODELS.main;
+  // Server-side refusal fallback: if a safety classifier declines, the API
+  // re-runs the request on a fallback model in the same call. Haiku has no
+  // server-side fallback, so it is only sent for the other models.
+  const fallback = model.includes("haiku") ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" };
   let response;
   try {
     response = await getClient().beta.messages.parse({
-      model: MODEL,
+      model,
       max_tokens: maxTokens,
-      // Server-side refusal fallback: if a safety classifier declines,
-      // the API re-runs the request on a fallback model in the same call.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      ...fallback,
       output_config: { effort, format: betaZodOutputFormat(schema) },
       system,
       messages: [{ role: "user", content: user }],
@@ -207,7 +219,7 @@ Rules:
   const user = `<profile>
 ${resume}
 </profile>`;
-  return callStructured({ system, user, schema: MapResponseSchema, effort: "low" });
+  return callStructured({ system, user, schema: MapResponseSchema, effort: "low", tier: "fast" });
 }
 
 const GRADE_SYSTEM = `You are a strict but fair hiring manager grading a work-sample answer for an entry-level hire.
@@ -250,6 +262,6 @@ TASK: ${task.title}
 Scenario: ${task.scenario}
 Inputs: ${task.inputs}
 Deliverable: ${task.deliverable}`;
-  const out = await callStructured({ system: DEMO_SYSTEM, user, schema: DemoAnswerSchema, effort: "low", maxTokens: 4000 });
+  const out = await callStructured({ system: DEMO_SYSTEM, user, schema: DemoAnswerSchema, effort: "low", maxTokens: 4000, tier: "fast" });
   return out.answer;
 }

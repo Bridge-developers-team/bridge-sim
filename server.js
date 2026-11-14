@@ -9,7 +9,7 @@ import { RUBRIC } from "./lib/rubric.js";
 import { scoreTask } from "./lib/scoring.js";
 import { verifySkills, levelMap, rankRoles, roleFit } from "./lib/fit.js";
 import { SKILLS, SKILL_IDS, SKILL_LEVELS } from "./data/skills.js";
-import { generateTasks, gradeAnswer, demoAnswer, mapSkills, LlmError, MODEL, PROVIDER } from "./server/llm.js";
+import { generateTasks, gradeAnswer, demoAnswer, mapSkills, LlmError, MODELS, PROVIDER } from "./server/llm.js";
 import * as demo from "./server/demo.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -45,7 +45,7 @@ function cleanTask(t) {
 app.get("/api/config", (_req, res) => {
   res.json({
     mode: DEMO_MODE ? "demo" : "live",
-    model: DEMO_MODE ? null : MODEL,
+    model: DEMO_MODE ? null : MODELS,
     roles: ROLES,
     samples: SAMPLES,
     rubric: RUBRIC,
@@ -152,5 +152,5 @@ app.listen(port, (err) => {
     console.error(`Could not start on port ${port}: ${err.code ?? err.message}. Is another server already running?`);
     process.exit(1);
   }
-  console.log(`Bridge Sim on http://localhost:${port} (${DEMO_MODE ? "DEMO MODE: no API key, fixed sample output" : `live, ${PROVIDER} model ${MODEL}`})`);
+  console.log(`Bridge Sim on http://localhost:${port} (${DEMO_MODE ? "DEMO MODE: no API key, fixed sample output" : `live, ${PROVIDER}: ${MODELS.main} + ${MODELS.fast}`})`);
 });
