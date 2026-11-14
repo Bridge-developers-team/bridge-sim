@@ -2,22 +2,17 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { bridgeApi } from "../api/bridge";
-import { errorText, useConfig } from "../api/hooks";
-import type { Practice } from "../api/types";
-import { FeedbackView } from "../components/FeedbackView";
+import { errorText } from "../api/hooks";
+import { PracticeTask } from "../components/PracticeTask";
 import { Button } from "../components/ui/Button";
 import { ErrorBox } from "../components/ui/ErrorBox";
 import { TextArea, TextInput } from "../components/ui/Field";
-import { Lozenge } from "../components/ui/Lozenge";
-import { ModeBanner } from "../components/ui/ModeBanner";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
 import { selectedCareer, updatePractice, withEvaluation, withPractice } from "../lib/journey";
 import { findTask } from "../lib/progress";
 import { getJourney, updateJourney, useJourney } from "../state/journey";
 
-const MIN_WORDS = 15;
-const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
 export function PracticePage() {
   const { taskId = "" } = useParams();
@@ -71,120 +66,23 @@ export function PracticePage() {
       />
     );
   }
-  return <PracticeWorkspace taskId={taskId} practice={work.practice} />;
+  return <PracticeWorkspace taskId={taskId} />;
 }
 
-function PracticeWorkspace({ taskId, practice }: { taskId: string; practice: Practice }) {
-  const journey = useJourney();
-  const work = journey.practices[taskId]!;
-  const config = useConfig();
-  const [answer, setAnswer] = useState(work.answer);
-  const saveTimer = useRef<number>(undefined);
-  const sample = work.mode !== "live";
-  const count = words(answer);
-  const changedSinceGrade = Boolean(work.evaluation) && answer.trim() !== work.answer.trim();
-
-  // Drafts are saved shortly after typing stops, so a reload loses nothing.
-  const onType = (value: string) => {
-    setAnswer(value);
-    window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {
-      updateJourney((j) => (j.practices[taskId]?.evaluation ? j : updatePractice(j, taskId, { answer: value })));
-    }, 400);
-  };
-
-  const grade = useMutation({
-    mutationFn: (asSample: boolean) => bridgeApi.evaluate(practice, work.practiceToken, answer.trim(), asSample),
-    onSuccess: ({ evaluation, resultToken, mode }) =>
-      updateJourney((j) => withEvaluation(j, taskId, { answer: answer.trim(), evaluation, resultToken, mode })),
-  });
-  const fill = useMutation({
-    mutationFn: () => bridgeApi.sampleAnswer(practice, getJourney().profile, sample),
-    onSuccess: ({ answer: text }) => onType(text),
-  });
-
+function PracticeWorkspace({ taskId }: { taskId: string }) {
+  const work = useJourney().practices[taskId]!;
   return (
-    <div className="stack-lg">
-      <ModeBanner mode={work.mode} />
-      <header className="page-head">
-        <h1>Try the job for {practice.timeboxMinutes} minutes</h1>
-        <p className="muted">A small, realistic piece of {practice.targetRole} work. Read the rubric first.</p>
-      </header>
-
-      <Panel>
-        <PanelHeader title="The situation" />
-        <PanelBody className="stack">
-          <p>{practice.scenario}</p>
-          <p className="strong">{practice.brief}</p>
-          <p className="small">
-            <span className="strong">Hand in:</span> {practice.expectedDeliverable}
-          </p>
-        </PanelBody>
-      </Panel>
-
-      <Panel>
-        <PanelHeader title="How it is graded" note="Read this first" />
-        <PanelBody>
-          <ul className="rubric">
-            {practice.rubric.map((c) => (
-              <li key={c.id}>
-                <span className="strong">{c.label}</span> <Lozenge>max {c.maxScore}</Lozenge>
-                <p className="muted small">{c.description}</p>
-              </li>
-            ))}
-          </ul>
-        </PanelBody>
-      </Panel>
-
-      <Panel>
-        <PanelHeader title="Your answer" note={<span className="tabular">{count} words</span>} />
-        <PanelBody className="stack">
-          <TextArea
-            label="Write it the way you would at work"
-            value={answer}
-            onChange={(e) => onType(e.target.value)}
-            rows={9}
-            maxLength={config.data?.limits.maxAnswer ?? 8000}
-          />
-          {grade.isError && (
-            <ErrorBox
-              message={errorText(grade.error)}
-              onRetry={() => grade.mutate(sample)}
-              onSample={sample ? undefined : () => grade.mutate(true)}
-            />
-          )}
-          {fill.isError && <p className="text-danger small">{errorText(fill.error)}</p>}
-          <div className="row">
-            <Button
-              variant="primary"
-              loading={grade.isPending}
-              disabled={count < MIN_WORDS || (Boolean(work.evaluation) && !changedSinceGrade)}
-              onClick={() => grade.mutate(sample)}
-            >
-              {work.evaluation ? "Get feedback on this revision" : "Get feedback"}
-            </Button>
-            <Button variant="subtle" loading={fill.isPending} onClick={() => fill.mutate()}>
-              Fill a sample answer
-            </Button>
-            {count < MIN_WORDS && <span className="muted small">At least {MIN_WORDS} words.</span>}
-          </div>
-          {grade.isPending && <p className="muted small">Grading against the rubric. Usually 10-30 seconds.</p>}
-        </PanelBody>
-      </Panel>
-
-      {work.evaluation && (
-        <>
-          <Panel>
-            <PanelHeader title="AI practice feedback" note="Practice, not a hiring decision" />
-            <PanelBody>
-              <ModeBanner mode={work.evaluationMode} />
-              <FeedbackView evaluation={work.evaluation} />
-            </PanelBody>
-          </Panel>
-          <PublishPanel taskId={taskId} />
-        </>
-      )}
-    </div>
+    <PracticeTask
+      work={work}
+      title={`Try the job for ${work.practice.timeboxMinutes} minutes`}
+      subtitle={<>A small, realistic piece of {work.practice.targetRole} work. Read the rubric first.</>}
+      onDraft={(value) =>
+        updateJourney((j) => (j.practices[taskId]?.evaluation ? j : updatePractice(j, taskId, { answer: value })))
+      }
+      onGraded={(result) => updateJourney((j) => withEvaluation(j, taskId, result))}
+    >
+      <PublishPanel taskId={taskId} />
+    </PracticeTask>
   );
 }
 

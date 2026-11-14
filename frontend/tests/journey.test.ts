@@ -62,3 +62,26 @@ test("saved state from another version or broken JSON starts fresh, never crashe
   assert.equal(saved.profile.hoursPerWeek, 8);
   assert.equal(saved.profile.currency, "USD"); // missing fields filled from defaults
 });
+
+test("tastings survive choosing a path and rebuilding the plan, and reset with new paths", async () => {
+  const { withTasting, updateTasting, tastesOf } = await import("../src/lib/journey.ts");
+  const paths = {
+    profile: {},
+    careers: [
+      { id: "designer", title: "Designer" },
+      { id: "trainer", title: "Trainer" },
+    ],
+    mode: "live",
+  } as unknown as CareersResponse;
+  let j = withCareers(emptyJourney(), paths);
+  j = withTasting(j, "designer", { practice, practiceToken: "t", mode: "live", answer: "a" });
+  j = withTasting(j, "trainer", { practice, practiceToken: "t", mode: "live", answer: "b" });
+  j = updateTasting(j, "designer", { evaluation: { totalScore: 12, maxTotal: 15 } as Evaluation, energy: 5 });
+  j = updateTasting(j, "trainer", { evaluation: { totalScore: 14, maxTotal: 15 } as Evaluation }); // no energy yet
+
+  j = withRoadmap(chooseCareer(j, "trainer"), roadmap([[task("a")]], "trainer"), "live").journey;
+
+  assert.deepEqual(tastesOf(j), [{ careerId: "designer", title: "Designer", score: 12, maxScore: 15, energy: 5 }]);
+  assert.deepEqual(withCareers(j, paths).tastings, {});
+  assert.deepEqual(parseJourney(JSON.stringify({ ...emptyJourney(), tastings: undefined })).tastings, {});
+});

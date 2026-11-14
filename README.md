@@ -10,10 +10,15 @@ know where to go. From a CV and a real week, it gives:
 2. **A 30-day plan that fits their hours.** Four weeks of concrete tasks. The
    weekly total never exceeds the hours they said they have, and ticks are
    saved as they go.
-3. **A try of the actual job.** A 10-minute practice task from the new role,
+3. **A taste of each path before choosing.** A 10-minute task from each of
+   the three paths, set in the person's own field, plus one question: would
+   you want to do this on an ordinary Tuesday? The Taste Map plots skill
+   against energy (Thrive, Grow into, Trap, Skip) and code recommends a path
+   from what they actually did.
+4. **A try of the actual job.** A 10-minute practice task from the new role,
    graded against a rubric shown before writing. A score the AI cannot back
    with a quote from the answer is capped.
-4. **Proof.** One click publishes the graded task as a public work sample. The
+5. **Proof.** One click publishes the graded task as a public work sample. The
    page can only show scores the server signed.
 
 Prototype for Business Cup 2.0 (AIESEC Astana × Zimran), November 2026.

@@ -2,10 +2,11 @@
  * functions only (tests/journey.test.ts); src/state/journey.ts stores it.
  *
  * Saved in localStorage: profile (no income), career paths, the chosen path,
- * the roadmap with ticks, practice work. NOT saved: the resume text, income
+ * the roadmap with ticks, practice work, career tastings. NOT saved: the resume text, income
  * figures. Those live in memory for one visit. */
 import type { CareersResponse, Evaluation, Mode, Practice, Profile, Roadmap } from "../api/types";
 import { mergeProgress, setTaskCompleted } from "./progress.ts";
+import type { Taste } from "./tasting.ts";
 
 export const JOURNEY_VERSION = 2;
 
@@ -20,6 +21,11 @@ export interface PracticeWork {
   proof?: { id: string; deleteKey: string };
 }
 
+/** A 10-minute taste of one career path, plus how the user felt about it. */
+export interface Tasting extends PracticeWork {
+  energy?: number;
+}
+
 export interface Journey {
   version: typeof JOURNEY_VERSION;
   profile: Profile;
@@ -28,6 +34,8 @@ export interface Journey {
   roadmap?: Roadmap;
   roadmapMode?: Mode;
   practices: Record<string, PracticeWork>;
+  /** Keyed by career id. Kept when a path is chosen or a plan rebuilt. */
+  tastings: Record<string, Tasting>;
 }
 
 export const DEFAULT_PROFILE: Profile = {
@@ -43,13 +51,13 @@ export const DEFAULT_PROFILE: Profile = {
 };
 
 export function emptyJourney(): Journey {
-  return { version: JOURNEY_VERSION, profile: { ...DEFAULT_PROFILE }, practices: {} };
+  return { version: JOURNEY_VERSION, profile: { ...DEFAULT_PROFILE }, practices: {}, tastings: {} };
 }
 
 /** New career paths start a new journey: the old plan and practice belong to
  * a path that may no longer be on screen. */
 export function withCareers(j: Journey, careers: CareersResponse): Journey {
-  return { ...j, careers, careerId: undefined, roadmap: undefined, roadmapMode: undefined, practices: {} };
+  return { ...j, careers, careerId: undefined, roadmap: undefined, roadmapMode: undefined, practices: {}, tastings: {} };
 }
 
 export function chooseCareer(j: Journey, careerId: string): Journey {
@@ -99,6 +107,32 @@ export function withEvaluation(
     proof: undefined, // a new grade is a new result; an old proof page stays as published
   });
   return setDone(next, taskId, true);
+}
+
+export function withTasting(j: Journey, careerId: string, work: Tasting): Journey {
+  return { ...j, tastings: { ...j.tastings, [careerId]: work } };
+}
+
+export function updateTasting(j: Journey, careerId: string, patch: Partial<Tasting>): Journey {
+  const current = j.tastings[careerId];
+  return current ? withTasting(j, careerId, { ...current, ...patch }) : j;
+}
+
+/** Graded tastings that also have an energy answer: what the Taste Map plots. */
+export function tastesOf(j: Journey): Taste[] {
+  return (j.careers?.careers ?? []).flatMap((career) => {
+    const t = j.tastings[career.id];
+    if (!t?.evaluation || t.energy === undefined) return [];
+    return [
+      {
+        careerId: career.id,
+        title: career.title,
+        score: t.evaluation.totalScore,
+        maxScore: t.evaluation.maxTotal,
+        energy: t.energy,
+      },
+    ];
+  });
 }
 
 export function selectedCareer(j: Journey) {

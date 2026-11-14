@@ -18,7 +18,7 @@ backend/   FastAPI + Python 3.12, managed with uv
   tests/       domain/, llm/, api/ (API tests run on SQLite and on Postgres in CI)
 frontend/  React 18 + Vite + TypeScript + TanStack Query, plain CSS
   src/api/        client.ts, types.ts (mirror of backend models), bridge.ts (one fn per route)
-  src/lib/        pure logic (progress, finance, journey); tests/ cover it
+  src/lib/        pure logic (progress, finance, journey, tasting); tests/ cover it
   src/state/      the journey store (localStorage)
   src/components/ ui/ primitives; GrowingCalendar (the design's signature)
   src/routes/     one page per file
