@@ -45,7 +45,8 @@ tests on Postgres, an npm audit and a Docker build smoke test.
 ## Deploy
 
 - **App:** Render free web service, built from the `Dockerfile`, configured in
-  `render.yaml`. Render deploys `main` only after every CI check passes.
+  `render.yaml`. Production deploys from the `preprod` branch, only after
+  every CI check passes. Change it through a PR into `preprod`.
 - **Database:** Neon free Postgres. Only published proof pages are stored.
 
 Environment variables (names only, set in Render):

@@ -1,5 +1,5 @@
-# CI: pushes to main and preprod, and every pull request. Render deploys main
-# (and a preprod service, if one is set up) only after all of these
+# CI: pushes to main and preprod, and every pull request. Render deploys
+# preprod (production) only after all of these
 # pass (render.yaml: autoDeployTrigger: checksPass), so a red check never
 # reaches production. CD itself is Render: no deploy keys live in GitHub.
 name: CI

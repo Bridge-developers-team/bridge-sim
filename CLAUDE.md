@@ -70,5 +70,6 @@ cd frontend && BASE=http://localhost:8000 npm run e2e    # needs `npm run build`
 ## Git
 
 One branch and one PR per change; commit messages are plain-English sentences
-about what the user gets. `main` deploys to Render after CI passes. Push, merge
+about what the user gets. PRs go into `preprod`, which is production: Render
+deploys it after CI passes. Push, merge
 and deploy only when asked.
