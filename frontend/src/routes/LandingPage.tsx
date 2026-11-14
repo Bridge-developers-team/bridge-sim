@@ -115,7 +115,7 @@ export function LandingPage() {
             <span className="story__step">
               <b>2</b>Three paths
             </span>
-            <h2 className="story__title">You're not starting from zero.</h2>
+            <h2 className="story__title">Your experience already counts.</h2>
             <p className="lead">Every skill is quoted from your own CV, and code checks each quote.</p>
           </div>
           <figure className="story-card story-card__focus" aria-label="Example path card: Instructional Designer">
