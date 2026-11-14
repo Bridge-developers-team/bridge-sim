@@ -27,7 +27,7 @@ With no key, or with `LLM_PROVIDER=demo`, the app runs in **demo mode**. The ski
 ## Flow
 
 1. **You**: career changer or recent graduate.
-2. **Profile**: resume, or degree + thesis + courses + projects, plus an optional "curious about" field.
+2. **Profile**: upload a PDF resume, paste it, or write out degree + thesis + courses + projects, plus an optional "curious about" field. PDFs are read in the browser with pdf.js (`public/pdf.js`); the file never leaves the device and only the text fills the box. For a scanned PDF with no selectable text, the user can click "Let the AI read it": the file goes to `POST /api/pdf-text`, Claude Haiku transcribes it in memory, and nothing is stored.
 3. **Bridge Map** (`POST /api/map`): the AI picks skills only from a fixed list of 19 (`data/skills.js`), each with a level from 1 to 3 and a quote. Code checks every quote against the user's text; an unproven skill counts only as level 1. Code then scores 13 roles (`data/roles.js`) on weighted entry-level needs and adds up the study hours for each gap.
 4. **Test-drive** (`POST /api/tasks`): 3 tasks for the chosen role, built on the person's industry (changers) or degree methods (graduates). At least one task exercises a gap skill.
 5. **Grade** (`POST /api/grade`): the AI gives a level from 0 to 4 for each rubric criterion, with quotes and a resume line. Code checks the quotes, applies the weights and the band.

@@ -15,7 +15,7 @@ const TRACKS = {
     label: "I'm working and want to change careers",
     short: "Career changer",
     sub: "You've thought about switching for a while, but don't know which field.",
-    profileHelp: "Paste your resume. Every task will be set in the industry you already know.",
+    profileHelp: "Upload or paste your resume. Every task will be set in the industry you already know.",
     placeholder: "Paste your resume or LinkedIn experience here…",
   },
   graduate: {
@@ -23,7 +23,7 @@ const TRACKS = {
     short: "Recent graduate",
     sub: "You have a degree, but can't find work in it, or want to point it somewhere new.",
     profileHelp:
-      "Paste your resume, or write it out: degree and major, thesis or capstone (what you studied and which methods you used), key courses, research or lab work, jobs since graduating, tools you know.",
+      "Upload or paste your resume, or write it out: degree and major, thesis or capstone (what you studied and which methods you used), key courses, research or lab work, jobs since graduating, tools you know.",
     placeholder:
       "B.A. Political Science, 2026. Thesis: … (method: regression in R)\nCourses: …\nResearch assistant: …\nSince graduating: …\nTools: Excel, R, Python…",
   },
@@ -176,6 +176,85 @@ function renderProfile(errorMsg) {
   const samples = state.config.samples.filter((s) => s.track === state.track);
   const submit = el("button", { type: "submit", class: "primary" }, "Map my skills");
 
+  // ---- PDF upload: read in the browser; scanned PDFs go to the AI only on request ----
+  const status = el("div", { class: "upload-status", role: "status", "aria-live": "polite" });
+  const showStatus = (kind, ...parts) => mount(status, el("div", { class: kind === "error" ? "error" : kind === "warn" ? "warn" : "callout" }, ...parts));
+  const fileInput = el("input", { type: "file", accept: ".pdf,application/pdf", id: "pdf-file", class: "visually-hidden" });
+
+  function useText(text, note) {
+    state.resume = text;
+    textarea.value = text;
+    saveDraft();
+    showStatus("ok", note, " Check the text below, edit anything wrong, then map your skills.");
+  }
+
+  async function handleFile(file) {
+    if (!file) return;
+    showStatus("ok", `Reading ${file.name}…`);
+    try {
+      const { extractPdfText } = await import("/pdf.js");
+      const { text, pages, totalPages } = await extractPdfText(file);
+      const pageNote = totalPages > pages ? ` (first ${pages} of ${totalPages} pages)` : ` (${pages} page${pages === 1 ? "" : "s"})`;
+      if (text.length >= 80) {
+        const cut = text.length > 15000;
+        return useText(text.slice(0, 15000), `Loaded ${file.name}${pageNote}.${cut ? " It was long, so only the first 15,000 characters were kept." : ""}`);
+      }
+      // Little or no selectable text: probably a scanned image.
+      if (state.config.mode === "demo") {
+        return showStatus("warn", `${file.name} has no selectable text (it looks scanned). Paste the text instead.`);
+      }
+      const askBtn = el(
+        "button",
+        {
+          type: "button",
+          class: "secondary",
+          onclick: async () => {
+            askBtn.disabled = true;
+            askBtn.textContent = "Reading with AI…";
+            try {
+              const { fileToBase64 } = await import("/pdf.js");
+              const out = await api("/api/pdf-text", { data: await fileToBase64(file) });
+              useText(out.text, `AI transcribed ${file.name}.${out.truncated ? " Only the first 15,000 characters were kept." : ""}`);
+            } catch (err) {
+              showStatus("error", err.message);
+            }
+          },
+        },
+        "Let the AI read it",
+      );
+      showStatus(
+        "warn",
+        `${file.name} has no selectable text (it looks like a scan). `,
+        "You can let the AI read the file: it is sent to Anthropic for this one request and not stored by Bridge Sim. ",
+        el("div", { class: "actions" }, askBtn),
+      );
+    } catch (err) {
+      showStatus("error", err.message);
+    } finally {
+      fileInput.value = "";
+    }
+  }
+
+  fileInput.addEventListener("change", () => handleFile(fileInput.files?.[0]));
+  textarea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    textarea.classList.add("dragging");
+  });
+  textarea.addEventListener("dragleave", () => textarea.classList.remove("dragging"));
+  textarea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    textarea.classList.remove("dragging");
+    handleFile(e.dataTransfer?.files?.[0]);
+  });
+
+  const uploadRow = el(
+    "div",
+    { class: "upload-row" },
+    fileInput,
+    el("label", { for: "pdf-file", class: "button secondary upload-btn" }, "Upload PDF resume"),
+    el("span", { class: "small muted" }, "or drop a PDF on the box. It's read in your browser; only the text is used."),
+  );
+
   mount(app, 
     demoBanner(state.config.mode) ?? "",
     steps("profile"),
@@ -220,6 +299,8 @@ function renderProfile(errorMsg) {
           ),
         ),
       ),
+      uploadRow,
+      status,
       textarea,
       el("label", { for: "interests", class: "label" }, "Anything you're curious about? (optional)"),
       interests,

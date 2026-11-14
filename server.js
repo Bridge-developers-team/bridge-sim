@@ -9,7 +9,7 @@ import { RUBRIC } from "./lib/rubric.js";
 import { scoreTask } from "./lib/scoring.js";
 import { verifySkills, levelMap, rankRoles, roleFit } from "./lib/fit.js";
 import { SKILLS, SKILL_IDS, SKILL_LEVELS } from "./data/skills.js";
-import { generateTasks, gradeAnswer, demoAnswer, mapSkills, LlmError, MODELS, PROVIDER } from "./server/llm.js";
+import { generateTasks, gradeAnswer, demoAnswer, mapSkills, transcribePdf, LlmError, MODELS, PROVIDER } from "./server/llm.js";
 import * as demo from "./server/demo.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -19,9 +19,14 @@ const MAX_ANSWER = 8000;
 
 const app = express();
 app.disable("x-powered-by");
-app.use(express.json({ limit: "100kb" }));
+// Small JSON bodies everywhere, except the PDF route, which has its own limit.
+const smallJson = express.json({ limit: "100kb" });
+app.use((req, res, next) => (req.path === "/api/pdf-text" ? next() : smallJson(req, res, next)));
 app.use(express.static(path.join(root, "public")));
 app.use("/lib", express.static(path.join(root, "lib")));
+app.use("/vendor/pdfjs", express.static(path.join(root, "node_modules/pdfjs-dist/build")));
+app.use("/vendor/pdfjs-fonts", express.static(path.join(root, "node_modules/pdfjs-dist/standard_fonts")));
+app.use("/vendor/pdfjs-cmaps", express.static(path.join(root, "node_modules/pdfjs-dist/cmaps")));
 
 function bad(res, message) {
   return res.status(400).json({ error: message });
@@ -137,11 +142,31 @@ app.post("/api/demo-answer", async (req, res, next) => {
   }
 });
 
+// Scanned PDF fallback. Only called after the user clicks "Let the AI read it".
+// The file is kept in memory for this request only and never written to disk.
+const MAX_PDF_BYTES = 5 * 1024 * 1024;
+app.post("/api/pdf-text", express.json({ limit: "8mb" }), async (req, res, next) => {
+  try {
+    if (DEMO_MODE) return bad(res, "Demo mode can't read scanned PDFs. Paste the text instead.");
+    const b64 = typeof req.body?.data === "string" ? req.body.data : "";
+    const buf = Buffer.from(b64, "base64");
+    if (buf.length === 0) return bad(res, "No file received.");
+    if (buf.length > MAX_PDF_BYTES) return bad(res, "That PDF is over 5 MB.");
+    if (buf.subarray(0, 5).toString("latin1") !== "%PDF-") return bad(res, "That file is not a PDF.");
+    const text = (await transcribePdf({ base64: buf.toString("base64") })).trim();
+    if (text.length < 40) return bad(res, "Could not read text from that PDF. Paste the text instead.");
+    res.json({ text: text.slice(0, MAX_RESUME) , truncated: text.length > MAX_RESUME });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.get("/healthz", (_req, res) => res.json({ ok: true, mode: DEMO_MODE ? "demo" : "live" }));
 
 app.use((err, _req, res, _next) => {
   if (err instanceof LlmError) return res.status(err.status).json({ error: err.message });
   if (err?.type === "entity.parse.failed") return res.status(400).json({ error: "Bad request body." });
+  if (err?.type === "entity.too.large") return res.status(413).json({ error: "That file is too large." });
   console.error(err);
   res.status(500).json({ error: "Something went wrong on our side. Try again." });
 });

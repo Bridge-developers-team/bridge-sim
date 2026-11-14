@@ -59,3 +59,7 @@ export const MapResponseSchema = z.object({
 export const DemoAnswerSchema = z.object({
   answer: z.string(),
 });
+
+export const PdfTextSchema = z.object({
+  text: z.string().describe("The full text of the document, transcribed verbatim in reading order"),
+});
