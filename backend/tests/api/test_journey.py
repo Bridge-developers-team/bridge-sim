@@ -171,3 +171,18 @@ def test_demo_feedback_quotes_the_answer_not_the_sample_label(demo):
 
     quotes = {c["evidence"] for c in graded["evaluation"]["criteria"]}
     assert quotes and all(q and not q.startswith("SAMPLE ANSWER") for q in quotes)
+
+
+@pytest.mark.parametrize("sample", SAMPLES, ids=lambda s: s.id)
+def test_tasting_all_three_sample_paths_gives_three_different_tasks(demo, sample):
+    careers = demo.post("/api/careers", json={"resumeText": sample.resume}).json()["careers"]
+
+    scenarios = {
+        demo.post(
+            "/api/practice",
+            json={"career": c, "task": {"id": f"taste-{c['id']}", "title": f"A taste of {c['title']} work"}},
+        ).json()["practice"]["scenario"]
+        for c in careers
+    }
+
+    assert len(scenarios) == 3

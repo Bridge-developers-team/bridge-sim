@@ -24,7 +24,13 @@ export const bridgeApi = {
   roadmap: (career: Career, profile: Profile, track: Track, hoursPerWeek: number, sample = false) =>
     api.post<{ roadmap: Roadmap; mode: Mode }>("/api/roadmap", { career, profile, track, hoursPerWeek, sample }),
 
-  practice: (career: Career, task: Pick<Task, "id" | "title" | "deliverable">, profile: Profile, sample = false) =>
+  /** `industry` (read from the CV) lets the server set the task in the user's own field. */
+  practice: (
+    career: Career,
+    task: Pick<Task, "id" | "title" | "deliverable">,
+    profile: Profile & { industry?: string },
+    sample = false,
+  ) =>
     api.post<{ practice: Practice; practiceToken: string; mode: Mode }>("/api/practice", {
       career,
       task: { id: task.id, title: task.title, deliverable: task.deliverable },

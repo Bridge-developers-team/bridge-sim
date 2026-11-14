@@ -283,7 +283,7 @@ def _scale_week(tasks: list[TaskDraft], budget_minutes: int, share: float) -> li
     return out
 
 
-_LEARNING_ROLE = re.compile(r"instruct|learning|training|trainer|educator", re.IGNORECASE)
+_LEARNING_ROLE = re.compile(r"instruct|learning design|e-learning", re.IGNORECASE)
 
 _ID_PRACTICE = PracticeDraft(
     scenario="A fictional regional delivery company onboards 40 new warehouse staff each month. Their old safety "
@@ -317,6 +317,91 @@ _ID_PRACTICE = PracticeDraft(
         ),
     ],
 )
+
+
+def _practice(scenario: str, brief: str, deliverable: str, rubric: list[tuple[str, str, int]]) -> PracticeDraft:
+    return PracticeDraft(
+        scenario=scenario,
+        brief=brief,
+        expected_deliverable=deliverable,
+        timebox_minutes=10,
+        rubric=[CriterionDraft(label=label, description=desc, max_score=top) for label, desc, top in rubric],
+    )
+
+
+# One fixed task per kind of role, so tasting three sample paths gives three
+# different jobs. First matching pattern wins; anything else gets the generic task.
+_ROLE_PRACTICES: list[tuple[re.Pattern[str], PracticeDraft]] = [
+    (_LEARNING_ROLE, _ID_PRACTICE),
+    (
+        re.compile(r"trainer|educator|facilitat", re.IGNORECASE),
+        _practice(
+            "A fictional logistics company is rolling out a new shift-handover app to 60 drivers. You are the trainer "
+            "running a 20-minute session at 6 a.m. Several drivers have said they 'don't need another app'.",
+            "Write how you would open the session: the first two minutes, word for word, and the one hands-on "
+            "exercise you would run. Facts: drivers start their routes at 6:30; most use the app on their phone.",
+            "An opening of about 80 words plus one exercise in 2-3 sentences",
+            [
+                ("Wins the room", "Opens with something the drivers care about, not with the app's features.", 4),
+                ("Hands-on early", "Gets people doing something on their own phone within minutes.", 4),
+                ("Fits the clock", "Respects the 20 minutes and the 6:30 start.", 3),
+            ],
+        ),
+    ),
+    (
+        re.compile(r"coordinator|project|program", re.IGNORECASE),
+        _practice(
+            "You coordinate a fictional nonprofit's spring fundraiser in 3 weeks. The venue just moved the date one "
+            "day earlier, the caterer has not confirmed, and two volunteers dropped out.",
+            "Write the message you would send to the 5-person organising team today. Facts: 120 guests are "
+            "registered; the budget has $400 left; the board chair wants an update by Friday.",
+            "One team message of 100-150 words with clear owners and dates",
+            [
+                ("Clear priorities", "Puts the venue date and caterer first, in that order.", 4),
+                ("Owners and dates", "Every action has one named owner and a deadline.", 4),
+                ("Calm and brief", "Short enough to read on a phone; no blame.", 3),
+            ],
+        ),
+    ),
+    (
+        re.compile(r"supply|inventory|planner|logistics", re.IGNORECASE),
+        _practice(
+            "A fictional home-goods retailer keeps running out of its best-selling lamp. Each store sells about 40 "
+            "a week, deliveries take 2 weeks to arrive, and stores reorder only when the shelf is empty.",
+            "Write a short note to the store managers: why they keep running out, the reorder point you suggest "
+            "with the arithmetic, and one risk of your suggestion.",
+            "A note of 100-150 words with the reorder point and how you got it",
+            [
+                ("Finds the cause", "Explains that ordering at zero leaves 2 weeks with no stock.", 4),
+                (
+                    "Right arithmetic",
+                    "Reorder point covers the 2-week lead time (about 80 lamps) plus a small buffer.",
+                    4,
+                ),
+                ("Names a risk", "Notes a real downside, such as tying up money or space in extra stock.", 3),
+            ],
+        ),
+    ),
+    (
+        re.compile(r"analyst|informatics|operations", re.IGNORECASE),
+        _practice(
+            "A fictional clinic chain says patients wait too long. Last month: Monday average wait 34 minutes, "
+            "Tuesday to Thursday 18 minutes, Friday 29 minutes. Staffing is the same every day.",
+            "Write a short note to the operations manager: what the numbers suggest, one question you would ask "
+            "before recommending anything, and one cheap test to try next month.",
+            "A note of 100-150 words: finding, one question, one test",
+            [
+                ("Reads the data", "Spots that Monday and Friday are the problem, not the whole week.", 4),
+                (
+                    "Asks before solving",
+                    "Asks a question that could change the answer (for example appointment volume).",
+                    4,
+                ),
+                ("Testable next step", "Proposes a small, measurable test with a clear success signal.", 4),
+            ],
+        ),
+    ),
+]
 
 
 class DemoWriter:
@@ -486,8 +571,9 @@ class DemoWriter:
     async def practice(
         self, *, candidate: Candidate, career: Career, task_title: str, task_deliverable: str
     ) -> PracticeDraft:
-        if _LEARNING_ROLE.search(career.title):
-            return _ID_PRACTICE
+        for pattern, draft in _ROLE_PRACTICES:
+            if pattern.search(career.title):
+                return draft
         return PracticeDraft(
             scenario=f"{NOTE}. In your first week as a {career.title}, your manager asks for a short note on one "
             "process from your old job that the new team could learn from.",

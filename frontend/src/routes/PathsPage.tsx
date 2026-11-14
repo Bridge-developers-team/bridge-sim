@@ -10,7 +10,9 @@ import { Lozenge } from "../components/ui/Lozenge";
 import { ModeBanner } from "../components/ui/ModeBanner";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
-import { chooseCareer, withCareers } from "../lib/journey";
+import { TastingPanel } from "../components/TastingPanel";
+import { chooseCareer, type Tasting, withCareers } from "../lib/journey";
+import { ENERGY_LABELS } from "../lib/tasting";
 import { EFFORT } from "../lib/labels";
 import { getJourney, memory, updateJourney, useJourney } from "../state/journey";
 
@@ -109,9 +111,18 @@ export function PathsPage() {
         </p>
       </header>
 
+      <TastingPanel onChoose={choose} />
+
       <div className="card-grid">
         {paths.map((career) => (
-          <CareerCard key={career.id} career={career} chosen={journey.careerId === career.id} onChoose={() => choose(career)} />
+          <CareerCard
+            key={career.id}
+            career={career}
+            tasting={journey.tastings[career.id]}
+            chosen={journey.careerId === career.id}
+            onTaste={() => navigate(`/taste/${career.id}`)}
+            onChoose={() => choose(career)}
+          />
         ))}
       </div>
 
@@ -146,8 +157,21 @@ export function PathsPage() {
   );
 }
 
-function CareerCard({ career, chosen, onChoose }: { career: Career; chosen: boolean; onChoose: () => void }) {
+function CareerCard({
+  career,
+  tasting,
+  chosen,
+  onTaste,
+  onChoose,
+}: {
+  career: Career;
+  tasting: Tasting | undefined;
+  chosen: boolean;
+  onTaste: () => void;
+  onChoose: () => void;
+}) {
   const effort = EFFORT[career.relativeEffort];
+  const tasted = tasting?.evaluation;
   return (
     <article className={`panel career ${chosen ? "career--chosen" : ""}`}>
       <div className="career__head">
@@ -181,9 +205,20 @@ function CareerCard({ career, chosen, onChoose }: { career: Career; chosen: bool
       {career.assumptions.length > 0 && <p className="muted small">{career.assumptions.join(" ")}</p>}
 
       <div className="career__action">
-        <Button variant={chosen ? "primary" : "default"} onClick={onChoose}>
-          {chosen ? "Open my 30-day plan" : "Build my 30-day plan"}
-        </Button>
+        {tasted && (
+          <p className="small tabular">
+            <span className="strong">Your taste:</span> {tasted.totalScore}/{tasted.maxTotal}
+            {tasting.energy !== undefined && <> · "{ENERGY_LABELS[tasting.energy]}"</>}
+          </p>
+        )}
+        <div className="row">
+          <Button variant={tasted ? "subtle" : "default"} onClick={onTaste}>
+            {tasted ? (tasting.energy === undefined ? "Finish the taste" : "Open my taste") : "Taste it · 10 min"}
+          </Button>
+          <Button variant={chosen ? "primary" : "default"} onClick={onChoose}>
+            {chosen ? "Open my 30-day plan" : "Build my 30-day plan"}
+          </Button>
+        </div>
       </div>
     </article>
   );
