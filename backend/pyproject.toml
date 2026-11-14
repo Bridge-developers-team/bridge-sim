@@ -13,6 +13,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.43",
     "psycopg[binary]>=3.2",
     "aiosqlite>=0.21",
+    "httpx>=0.28",
 ]
 
 [dependency-groups]

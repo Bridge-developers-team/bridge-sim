@@ -10,16 +10,19 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import anthropic
+from anthropic.types import WebSearchTool20250305Param
 from pydantic import BaseModel
 
 from bridge.domain.drafts import (
     CareersDraft,
     EvaluationDraft,
     PracticeDraft,
+    ResourcePicksDraft,
     RoadmapDraft,
     SampleAnswerDraft,
 )
 from bridge.domain.models import Candidate, Career, Practice, Track
+from bridge.domain.resources import Found, Resource, domain, harvest, pick, search_links
 from bridge.llm import prompts
 from bridge.llm.base import LlmError
 
@@ -39,6 +42,45 @@ def make_client(api_key: str) -> anthropic.AsyncAnthropic:
     # 120 s per attempt and 1 retry keeps a request well under the browser's
     # patience and the server's socket timeout.
     return anthropic.AsyncAnthropic(api_key=api_key, timeout=120.0, max_retries=1)
+
+
+WEB_SEARCH_TOOL: WebSearchTool20250305Param = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
+
+
+def _as_llm_error(err: Exception, model: str) -> LlmError:
+    """SDK failure -> a message the user can act on. Most specific first."""
+    if isinstance(err, anthropic.APITimeoutError):
+        log.warning("Claude timeout (%s): %s", model, err)
+        return LlmError("The AI took too long to answer. Please try again.", 504)
+    if isinstance(err, anthropic.AuthenticationError):
+        log.error("Claude rejected the API key (%s)", model)
+        return LlmError("The AI service rejected the server's key. Tell the team; try demo mode meanwhile.", 503)
+    if isinstance(err, anthropic.RateLimitError):
+        return LlmError("Too many requests right now. Try again in a minute.", 429)
+    if isinstance(err, anthropic.APIConnectionError):
+        log.warning("Claude unreachable (%s): %s", model, err)
+        return LlmError("Could not reach the AI service. Try again.", 503)
+    if isinstance(err, anthropic.APIStatusError):
+        log.error("Claude error %s (%s): %s", err.status_code, model, err)
+        return LlmError(f"AI service error ({err.status_code}). Try again.", 502)
+    raise err
+
+
+def search_results(content: list[Any]) -> list[Found]:
+    """Every result the web search tool returned, in order. An error block (a
+    dict-like object instead of a list) contributes nothing."""
+    found: list[Found] = []
+    for block in content:
+        if getattr(block, "type", None) != "web_search_tool_result":
+            continue
+        results = getattr(block, "content", None)
+        if not isinstance(results, list):
+            continue
+        for r in results:
+            url = getattr(r, "url", None)
+            if isinstance(url, str):
+                found.append(Found(url=url, title=getattr(r, "title", "") or "", age=getattr(r, "page_age", "") or ""))
+    return found
 
 
 def _fallback_args(model: str) -> dict[str, Any]:
@@ -74,22 +116,8 @@ class ClaudeWriter:
                 output_format=schema,
                 **_fallback_args(model),
             )
-        except anthropic.APITimeoutError as err:
-            log.warning("Claude timeout (%s): %s", model, err)
-            raise LlmError("The AI took too long to answer. Please try again.", 504) from err
-        except anthropic.AuthenticationError as err:
-            log.error("Claude rejected the API key (%s)", model)
-            raise LlmError(
-                "The AI service rejected the server's key. Tell the team; try demo mode meanwhile.", 503
-            ) from err
-        except anthropic.RateLimitError as err:
-            raise LlmError("Too many requests right now. Try again in a minute.", 429) from err
-        except anthropic.APIConnectionError as err:
-            log.warning("Claude unreachable (%s): %s", model, err)
-            raise LlmError("Could not reach the AI service. Try again.", 503) from err
-        except anthropic.APIStatusError as err:
-            log.error("Claude error %s (%s): %s", err.status_code, model, err)
-            raise LlmError(f"AI service error ({err.status_code}). Try again.", 502) from err
+        except anthropic.APIError as err:
+            raise _as_llm_error(err, model) from err
 
         if response.stop_reason == "refusal":
             raise LlmError("The AI declined this request. Try different text.", 422)
@@ -150,3 +178,33 @@ class ClaudeWriter:
             max_tokens=3000,
         )
         return draft.answer
+
+    async def resources(self, *, topic: str, role: str) -> list[Resource]:
+        """Search the web (fast model), keep only the results the search engine
+        returned, then let the model pick among them by number."""
+        model = self.models.fast
+        try:
+            search = await self._client.messages.create(
+                model=model,
+                max_tokens=2000,
+                system=prompts.RESOURCES_SEARCH_SYSTEM,
+                messages=[{"role": "user", "content": prompts.resources_search_user(topic, role)}],
+                tools=[WEB_SEARCH_TOOL],
+            )
+        except anthropic.APIError as err:
+            raise _as_llm_error(err, model) from err
+        found = harvest(search_results(search.content))[:20]
+        if not found:
+            return search_links(f"{topic} for beginners")
+        numbered = "\n".join(
+            f"[{i}] {r.title} ({domain(r.url)}{', ' + r.age if r.age else ''})" for i, r in enumerate(found)
+        )
+        draft = await self._call(
+            system=prompts.RESOURCES_PICK_SYSTEM,
+            user=prompts.resources_pick_user(topic, role, numbered),
+            schema=ResourcePicksDraft,
+            effort="low",
+            model=model,
+            max_tokens=2000,
+        )
+        return pick(found, [(p.index, p.why) for p in draft.picks]) or search_links(f"{topic} for beginners")

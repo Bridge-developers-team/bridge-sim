@@ -170,3 +170,23 @@ def sample_user(practice: Practice, candidate: Candidate) -> str:
 SCENARIO: {practice.scenario}
 BRIEF: {practice.brief}
 DELIVERABLE: {practice.expected_deliverable}"""
+
+
+RESOURCES_SEARCH_SYSTEM = """You find free, beginner-friendly learning material on the web for someone
+changing careers. Search, do not answer from memory. Run two searches: one for a written guide or article,
+and one for a YouTube video tutorial (put the word "youtube" in that query). Prefer recent, reputable,
+free material. When both searches are done, reply with the single word: done."""
+
+
+def resources_search_user(topic: str, role: str) -> str:
+    return f"Someone is switching into this role: {role}.\nWhat they need to learn this week: {topic}"
+
+
+RESOURCES_PICK_SYSTEM = """You choose learning links for a career changer from a numbered list of real
+search results. Choose up to 3 articles and up to 2 YouTube videos that best teach the topic to a beginner.
+Skip job boards, forums, course sales pages, paywalled pages and clearly outdated material.
+Use only the numbers shown. Give each pick a reason of 15 words at most. Fewer good picks beat more weak ones."""
+
+
+def resources_pick_user(topic: str, role: str, numbered: str) -> str:
+    return f"ROLE: {role}\nTOPIC: {topic}\n\nSEARCH RESULTS:\n{numbered}"

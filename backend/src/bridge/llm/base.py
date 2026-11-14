@@ -8,6 +8,7 @@ from typing import Protocol
 
 from bridge.domain.drafts import CareersDraft, EvaluationDraft, PracticeDraft, RoadmapDraft
 from bridge.domain.models import Candidate, Career, Practice, Track
+from bridge.domain.resources import Resource
 
 
 class LlmError(Exception):
@@ -33,3 +34,5 @@ class Writer(Protocol):
     async def evaluate(self, *, practice: Practice, answer: str) -> EvaluationDraft: ...
 
     async def sample_answer(self, *, practice: Practice, candidate: Candidate) -> str: ...
+
+    async def resources(self, *, topic: str, role: str) -> list[Resource]: ...

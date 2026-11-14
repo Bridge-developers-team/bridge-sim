@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     ai_window_seconds: int = 600
     ai_calls_per_day: int = 400
     proofs_per_client_per_hour: int = 10
+    jobs_per_client: int = 30  # per 10 minutes
+
+    # Optional: live job listings from Adzuna (free developer keys). Without
+    # them the jobs panel still links to LinkedIn, Indeed and Google Jobs.
+    adzuna_app_id: str | None = None
+    adzuna_app_key: SecretStr | None = None
 
     # Set by Render on every deploy: the commit that is running. Shown by
     # /healthz so anyone can check what production runs. None locally.

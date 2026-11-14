@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from bridge.api import errors
-from bridge.api.routers import journey, meta, proofs
+from bridge.api.routers import extras, journey, meta, proofs
 from bridge.api.state import AppState
 from bridge.config import Settings
 from bridge.db.engine import create_tables, make_engine, make_sessions
@@ -26,6 +26,7 @@ from bridge.db.repository import ProofRepository
 from bridge.llm.base import Writer
 from bridge.llm.claude import ClaudeWriter, Models, make_client
 from bridge.llm.demo import DemoWriter
+from bridge.services.jobs import Fetch, JobsService, http_fetch
 from bridge.services.limits import DailyBudget, SlidingWindow
 from bridge.services.signing import Signer
 
@@ -48,8 +49,10 @@ def _secret(settings: Settings) -> str:
     return secrets.token_urlsafe(32)
 
 
-def create_app(settings: Settings | None = None, *, live_writer: Writer | None = None) -> FastAPI:
-    """`live_writer` lets tests inject a fake AI; otherwise it comes from settings."""
+def create_app(
+    settings: Settings | None = None, *, live_writer: Writer | None = None, jobs_fetch: Fetch = http_fetch
+) -> FastAPI:
+    """`live_writer` and `jobs_fetch` let tests inject fakes; otherwise they come from settings."""
     settings = settings or Settings()
     engine = make_engine(settings.database_url)
 
@@ -70,12 +73,19 @@ def create_app(settings: Settings | None = None, *, live_writer: Writer | None =
         ai_per_client=SlidingWindow(settings.ai_calls_per_client, settings.ai_window_seconds),
         ai_per_day=DailyBudget(settings.ai_calls_per_day),
         proofs_per_client=SlidingWindow(settings.proofs_per_client_per_hour, 3600),
+        jobs=JobsService(
+            settings.adzuna_app_id,
+            settings.adzuna_app_key.get_secret_value() if settings.adzuna_app_key else None,
+            fetch=jobs_fetch,
+        ),
+        jobs_per_client=SlidingWindow(settings.jobs_per_client, 600),
     )
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     errors.install(app)
     app.include_router(meta.router)
     app.include_router(journey.router)
     app.include_router(proofs.router)
+    app.include_router(extras.router)
     _serve_front_end(app, settings.static_dir)
     log.info("Bridge ready (%s mode)", "demo" if writer is None else "live")
     return app

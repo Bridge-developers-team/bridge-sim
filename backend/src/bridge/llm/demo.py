@@ -26,6 +26,7 @@ from bridge.domain.drafts import (
     WeekDraft,
 )
 from bridge.domain.models import Candidate, Career, Effort, Practice, TaskType, Track
+from bridge.domain.resources import Resource, search_links
 from bridge.domain.roadmap import TRACKS, clamp_hours
 
 NOTE = "Sample data (not AI)"
@@ -635,3 +636,7 @@ class DemoWriter:
             "For this team of 6, I would add it to the first 5 minutes of the weekly meeting for one month, with no "
             "new tools. We would track how many blockers are solved within the week."
         )
+
+    async def resources(self, *, topic: str, role: str) -> list[Resource]:
+        # No AI search without a key: honest search links, labeled as such.
+        return search_links(f"{topic} for beginners")

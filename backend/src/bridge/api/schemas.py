@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from bridge.domain.models import CamelModel, Career, Evaluation, Mode, Practice, Proof, Roadmap, Track
+from bridge.domain.resources import Resource
 
 MAX_RESUME = 15_000
 MIN_RESUME = 80
@@ -129,3 +130,14 @@ class ConfigResponse(CamelModel):
     demo_persona: dict[str, Any]
     tracks: list[TrackOut]
     limits: Limits
+
+
+class ResourcesRequest(CamelModel):
+    role: str
+    topic: str
+    sample: bool = False
+
+
+class ResourcesResponse(CamelModel):
+    resources: list[Resource]
+    mode: Mode
