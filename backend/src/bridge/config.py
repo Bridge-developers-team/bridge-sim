@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     ai_calls_per_day: int = 400
     proofs_per_client_per_hour: int = 10
 
+    # Set by Render on every deploy: the commit that is running. Shown by
+    # /healthz so anyone can check what production runs. None locally.
+    render_git_commit: str | None = None
+
     # The built front end. In the Docker image it is copied to /app/static.
     static_dir: Path = _REPO / "frontend" / "dist"
 

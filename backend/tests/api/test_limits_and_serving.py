@@ -51,9 +51,11 @@ def test_daily_budget_resets_on_a_new_day():
     assert budget.take()
 
 
-def test_health_check_reports_mode(demo, live):
-    assert demo.get("/healthz").json() == {"ok": True, "mode": "demo"}
-    assert live.get("/healthz").json() == {"ok": True, "mode": "live"}
+def test_health_check_reports_mode_and_the_running_commit(demo, live, make_client):
+    assert demo.get("/healthz").json() == {"ok": True, "mode": "demo", "commit": "local"}
+    assert live.get("/healthz").json()["mode"] == "live"
+    deployed = make_client(render_git_commit="f2dd44408929d7254c5fd9fdd682fb4899d7f132")
+    assert deployed.get("/healthz").json()["commit"] == "f2dd444"
 
 
 def test_config_lists_samples_tracks_and_limits(demo):

@@ -17,7 +17,8 @@ State = Annotated[AppState, Depends(get_state)]
 async def healthz(state: State) -> dict[str, object]:
     # Deliberately no database query: this is hit every few minutes, and
     # touching Neon would keep its free compute awake around the clock.
-    return {"ok": True, "mode": "demo" if state.demo_mode else "live"}
+    commit = state.settings.render_git_commit
+    return {"ok": True, "mode": "demo" if state.demo_mode else "live", "commit": commit[:7] if commit else "local"}
 
 
 @router.get("/api/config", summary="Samples, tracks and limits the front end needs")
