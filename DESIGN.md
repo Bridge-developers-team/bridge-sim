@@ -189,7 +189,12 @@ A single centred column, max 980px, 16px side gutter. Panels stack with 16px bet
 
 ## Elevation & Depth
 
-Flat by default: panels separate by 1px rules, not shadows. The only shadow is under the landing page's sample plan, which lifts the one example artifact off the page. It is soft and layered (a 1px contact shadow, a short mid shadow, a long faint one, all navy-tinted), never one heavy blur: `--shadow-sample` in `tokens.css`.
+Three layered, navy-tinted elevations, each a short contact shadow plus a soft long one (never one heavy blur). Dark mode uses deeper black versions of the same three.
+- **1, resting** (`--shadow-1`): panels and default buttons sit just above the ivory page.
+- **2, raised** (`--shadow-2`): a hovered button or chip, the segmented control's thumb, primary buttons.
+- **3, floating** (`--shadow-3`): things above the page: option sheets and popovers, the final action bar.
+
+Depth follows interaction: a button lifts one level on hover and presses back down on click.
 
 ## Shapes
 
@@ -198,13 +203,22 @@ Bars 3px, small tags 4px, controls 8px, panels 12px, the span band 14px, pills a
 ## Components
 
 ### Buttons
-Primary: navy, white text, 8px radius, 8×16 padding at 40px tall, 1px press. **The One Primary Rule:** a screen has one primary button, the thing the screen is for. Everything else is secondary, subtle or a text link. Secondary: white with a 1px strong rule, navy border on hover. Icons are inline SVG strokes (2px, round caps) placed before or after the label.
+Every button has depth: it rests at elevation 1, lifts 1px to elevation 2 on hover, and presses down (scale 0.98) on click. Primary: navy (gold in dark mode), white text, a 1px inner top highlight, 8px radius, 8×16 padding at 40px tall. **Final action** (`btn--cta`): the one button that finishes a form; 56px tall, 12px radius, 20px bold label, an arrow in a round chip that leans forward on hover, inside a floating action bar that sticks to the bottom of the screen and shows a one-line summary of the answers. It never greys out: with something missing, clicking it scrolls to the missing part and says what to add. **The One Primary Rule:** a screen has one primary button, the thing the screen is for. Everything else is secondary, subtle or a text link. Secondary: white with a 1px strong rule, navy border on hover. Icons are inline SVG strokes (2px, round caps) placed before or after the label.
 
 ### Chips (choices)
 Fully round pills with a 1px rule. Selected: filled navy, bold. Single- or multi-select via `aria-pressed`. On phones a row scrolls sideways with snap.
 
 ### Cards / Containers
 White panel, 1px warm rule, 12px radius, 24px padding (16px on phones). Never nested. The next-action panel is the one panel with a 2px navy border.
+
+### Settings rows and option sheets
+Answers on the start form are rows, not open text boxes: label on the left, current value on the right, a chevron that nudges right on hover, 56px tall, 1px dividers. Tapping a row opens an **option sheet**: a popover that grows out of the row on a wide screen, a bottom sheet that slides up on a phone (with a grip bar). Long lists get a search box, and a typed value that is not in the list can be used as is. Multi-choice sheets show "n of max" and a Done button. Built on `<dialog>` (Escape, focus trap, focus returns to the row).
+
+### Segmented control
+Three to four mutually exclusive options (pace) in one sunken track; a raised white thumb glides to the choice, and the choice's one-line explanation fades in below.
+
+### CV card
+Empty: one Upload CV button plus two text links (paste text instead, try a sample). Loaded: a compact file row (icon, name, word count, Replace) and a "Check the text" link that unfolds the editable text. Dropping a file anywhere on the card works.
 
 ### Inputs / Fields
 Scroll lists (native select) and the CV dropzone: a dashed 1.5px rule, round navy icon, bold navy label; it turns soft ivory on hover or drag.
@@ -213,7 +227,10 @@ Scroll lists (native select) and the CV dropzone: a dashed 1.5px rule, round nav
 The logo left, text links right; the active link sits on a white pill.
 
 ### Motion
-Short, ease-out (`--ease`, expo-out), and it starts where the user acted. Task details unfold from their own summary line (180ms, opening slower than closing; closing is instant). Ticking a task fills its bar. Errors and notices drop in from the top edge of the place they belong to. Pages do not fade everything up on arrival: content is simply there. Reduced motion turns all of it off.
+Smooth, short and purposeful: it either answers an action or leads the eye down the page, never loops (except loaders). Tokens: `--dur-quick` 140ms (hover, press), `--dur-base` 220ms (popovers, fades), `--dur-slow` 380ms (sheets, sliding thumbs); `--ease` (expo-out) for most things, `--ease-settle` (ease-out-quint, a softer landing, no overshoot) for things that settle into place.
+- **Answers to actions:** sheets slide up or grow from their row and leave faster than they came; task details unfold from their summary line; a chosen option's check pops in; ticking a task fills its bar; a missing field nudges sideways; errors and notices drop in from the top edge.
+- **Reading guide:** on arrival a page settles in from just below (380ms). As you scroll, each panel and card rises into place once (a scroll-linked 24px rise), so the eye moves top to bottom with the content. Content is visible by default; browsers without scroll timelines skip it.
+- Reduced motion turns all of it off.
 
 ### Growing Calendar (signature)
 Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label and a deep-navy track whose full width is the user's weekly hours, with one hairline per hour. Each task is a bar with flex-basis = its minutes ÷ weekly minutes, a 1.5px border in its kind colour, filled when done. The next bar gets a gold ring and a gold "Next" pin. Ticking a task animates its fill once (0.7s, expo-out); with reduced motion it fills instantly. Bars are buttons that jump to their task.
@@ -235,5 +252,6 @@ Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label an
 - **Don't** use gold for small text on ivory, or for anything but the logo and the next step.
 - **Don't** use emoji or text glyphs as icons.
 - **Don't** set two buttons of equal weight side by side; the second becomes subtle or a link.
-- **Don't** fade or stagger whole pages in; motion answers an action.
+- **Don't** animate for decoration or in a loop; every motion answers an action or guides the reading order.
+- **Don't** grey out the final action; let it explain what is missing.
 - **Don't** invent salaries, prices, durations or success scores to fill a panel.

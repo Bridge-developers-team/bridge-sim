@@ -1,10 +1,11 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useJourney } from "../state/journey";
 import { BridgeLogo } from "./Icons";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout() {
   const journey = useJourney();
+  const { pathname } = useLocation();
   return (
     <>
       <header className="top">
@@ -20,7 +21,7 @@ export function Layout() {
           <ThemeToggle />
         </div>
       </header>
-      <main className="page">
+      <main className="page page-enter" key={pathname}>
         <Outlet />
       </main>
       <footer className="foot">

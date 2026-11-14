@@ -3,10 +3,11 @@
 // Fails on console errors, failed requests or sideways page scroll.
 //   BASE=http://localhost:8000 npm run e2e      (screenshots: e2e/out/)
 // CHROME=/path/to/chrome uses an existing browser instead of Playwright's.
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const BASE = process.env.BASE ?? "http://localhost:8000";
-const OUT = new URL("./out/", import.meta.url).pathname;
+const OUT = fileURLToPath(new URL("./out/", import.meta.url));
 await import("node:fs").then((fs) => fs.mkdirSync(OUT, { recursive: true }));
 const problems = [];
 
@@ -100,10 +101,22 @@ async function startForm() {
   page.on("pageerror", (e) => problems.push(`start-form page error: ${e.message}`));
   await page.goto(BASE + "/start");
   const submit = page.getByRole("button", { name: "Find my 3 paths" });
-  if (await submit.isEnabled()) problems.push("start-form: submit enabled with an empty CV");
-  await page.getByRole("button", { name: /ICU nurse/ }).click();
-  await page.getByRole("radio", { name: "8 h" }).click();
-  await page.getByRole("button", { name: "Less stress" }).click();
+  // With no CV, submitting points at the CV card instead of leaving the page.
+  await submit.click();
+  await page.getByRole("alert").filter({ hasText: "Add your CV first" }).waitFor();
+  if (!page.url().endsWith("/start")) problems.push("start-form: left /start with an empty CV");
+  // Sample CV, then the settings rows open scrollable lists.
+  await page.getByRole("button", { name: "Try a sample CV" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: /ICU nurse/ }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.getByRole("button", { name: /^Free time/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "8 hours a week" }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.getByRole("button", { name: /^Why change/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Less stress" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.getByRole("radio", { name: "Fast" }).click();
   await noSideScroll(page, "start-form");
   await page.screenshot({ path: `${OUT}start-form.png`, fullPage: true });
   await submit.click();
