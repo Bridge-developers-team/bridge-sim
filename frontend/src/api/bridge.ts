@@ -6,10 +6,12 @@ import type {
   Career,
   CareersResponse,
   Evaluation,
+  JobsResult,
   Mode,
   Practice,
   Profile,
   Proof,
+  Resource,
   Roadmap,
   Task,
   Track,
@@ -58,6 +60,12 @@ export const bridgeApi = {
     reflection: string;
     displayName: string;
   }) => api.post<{ proof: Proof; deleteKey: string }>("/api/proofs", body),
+
+  resources: (role: string, topic: string, sample = false) =>
+    api.post<{ resources: Resource[]; mode: Mode }>("/api/resources", { role, topic, sample }),
+
+  jobs: (role: string, city: string, country: string) =>
+    api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country })}`),
 
   proof: (id: string) => api.get<Proof>(`/api/proofs/${encodeURIComponent(id)}`),
 

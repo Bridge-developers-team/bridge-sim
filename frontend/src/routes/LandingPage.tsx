@@ -50,7 +50,7 @@ export function LandingPage() {
     if (!data) return;
     const { sampleId, ...persona } = data.demoPersona;
     memory.resumeText = data.samples.find((s) => s.id === sampleId)?.resume ?? "";
-    updateJourney((j) => ({ ...j, profile: persona }));
+    updateJourney((j) => ({ ...j, profile: { ...j.profile, ...persona } }));
     // Sample data answers instantly; the paths page then offers a live AI run.
     navigate("/paths", { state: { run: true, sample: data.mode !== "demo" } });
   };

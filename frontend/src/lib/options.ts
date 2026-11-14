@@ -90,3 +90,57 @@ export const MOTIVATIONS = [
   "Job security",
   "Room to grow",
 ];
+
+/** Large US metros first (the hackathon market), then other big job markets.
+ * Any other city can be typed into the search box. */
+export const CITIES = list([
+  "New York, NY",
+  "Los Angeles, CA",
+  "Chicago, IL",
+  "Houston, TX",
+  "Dallas, TX",
+  "Austin, TX",
+  "Phoenix, AZ",
+  "Philadelphia, PA",
+  "San Diego, CA",
+  "San Francisco, CA",
+  "San Jose, CA",
+  "Seattle, WA",
+  "Denver, CO",
+  "Boston, MA",
+  "Atlanta, GA",
+  "Miami, FL",
+  "Orlando, FL",
+  "Washington, DC",
+  "Nashville, TN",
+  "Charlotte, NC",
+  "Raleigh, NC",
+  "Minneapolis, MN",
+  "Detroit, MI",
+  "Columbus, OH",
+  "Portland, OR",
+  "Salt Lake City, UT",
+  "Las Vegas, NV",
+  "Remote",
+  "London",
+  "Toronto",
+  "Sydney",
+  "Berlin",
+  "Almaty",
+  "Astana",
+]);
+
+/** Country for job searches. Live listings exist for the first group; any
+ * country still gets LinkedIn, Indeed and Google Jobs links. */
+export const COUNTRIES: Option[] = [
+  { value: "us", label: "United States" },
+  { value: "gb", label: "United Kingdom" },
+  { value: "ca", label: "Canada" },
+  { value: "au", label: "Australia" },
+  { value: "de", label: "Germany" },
+  { value: "fr", label: "France" },
+  { value: "nl", label: "Netherlands" },
+  { value: "in", label: "India" },
+  { value: "sg", label: "Singapore" },
+  { value: "kz", label: "Kazakhstan" },
+];

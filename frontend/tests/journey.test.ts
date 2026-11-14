@@ -85,3 +85,12 @@ test("tastings survive choosing a path and rebuilding the plan, and reset with n
   assert.deepEqual(withCareers(j, paths).tastings, {});
   assert.deepEqual(parseJourney(JSON.stringify({ ...emptyJourney(), tastings: undefined })).tastings, {});
 });
+
+test("new career paths also clear saved learning links", () => {
+  const paths = { profile: {}, careers: [], mode: "live" } as unknown as CareersResponse;
+  const j = { ...emptyJourney(), resources: { "r1:1": { items: [], mode: "live" as const } } };
+
+  assert.deepEqual(withCareers(j, paths).resources, {});
+  assert.deepEqual(parseJourney(JSON.stringify({ ...emptyJourney(), resources: undefined })).resources, {});
+  assert.equal(emptyJourney().profile.country, "us");
+});

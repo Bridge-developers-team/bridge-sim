@@ -15,7 +15,10 @@ export interface Profile {
   hoursPerWeek: number;
   monthlyLearningBudget: number;
   currency: string;
+  /** City for local job openings, e.g. "Austin, TX". Optional. */
   location: string;
+  /** Two-letter country code for job searches, lowercase. */
+  country: string;
   interestedRoles: string[];
   transitionPreference: Track;
 }
@@ -150,4 +153,31 @@ export interface AppConfig {
   demoPersona: Profile & { sampleId: string };
   tracks: TrackInfo[];
   limits: { maxResume: number; minResume: number; maxAnswer: number; minHours: number; maxHours: number };
+}
+
+export interface Resource {
+  /** "search": a labeled search link, used when no AI picked real pages. */
+  kind: "article" | "video" | "search";
+  title: string;
+  url: string;
+  source: string;
+  why: string;
+}
+
+export interface JobListing {
+  title: string;
+  company: string;
+  location: string;
+  url: string;
+  salary: string;
+  posted: string;
+}
+
+export interface JobsResult {
+  role: string;
+  city: string;
+  country: string;
+  source: "adzuna" | "links";
+  listings: JobListing[];
+  links: { site: string; url: string }[];
 }

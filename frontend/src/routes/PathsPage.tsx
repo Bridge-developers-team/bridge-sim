@@ -8,11 +8,12 @@ import { Button } from "../components/ui/Button";
 import { ErrorBox } from "../components/ui/ErrorBox";
 import { Lozenge } from "../components/ui/Lozenge";
 import { ModeBanner } from "../components/ui/ModeBanner";
-import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
+import { Panel, PanelBody } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
 import { TastingPanel } from "../components/TastingPanel";
 import { chooseCareer, type Tasting, withCareers } from "../lib/journey";
 import { ENERGY_LABELS } from "../lib/tasting";
+import { CheckIcon } from "../components/Icons";
 import { EFFORT } from "../lib/labels";
 import { getJourney, memory, updateJourney, useJourney } from "../state/journey";
 
@@ -103,11 +104,11 @@ export function PathsPage() {
       />
       <header className="page-head">
         <h1>You're not starting from zero.</h1>
-        <p className="lead">Here's what your experience already gives you: three paths that reuse it.</p>
-        <p className="muted">
-          We read you as <strong>{profile.currentRole}</strong>
-          {profile.yearsExperience !== null && <>, {profile.yearsExperience} years</>}
-          {profile.industry && <> in {profile.industry}</>}. {profile.evidenceNote}
+        <p className="lead">Three paths that reuse what you already do. Taste them, then pick one.</p>
+        <p className="muted small">
+          Read as {profile.currentRole}
+          {profile.yearsExperience !== null && <> · {profile.yearsExperience} years</>}
+          {profile.industry && <> · {profile.industry}</>}
         </p>
       </header>
 
@@ -126,33 +127,6 @@ export function PathsPage() {
         ))}
       </div>
 
-      <Panel>
-        <PanelHeader title="Side by side" />
-        <div className="table-scroll">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Path</th>
-                <th>Effort</th>
-                <th>Proof you already have</th>
-                <th>Trade-off</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paths.map((c) => (
-                <tr key={c.id}>
-                  <td className="strong">{c.title}</td>
-                  <td>
-                    <Lozenge tone={EFFORT[c.relativeEffort].tone}>{EFFORT[c.relativeEffort].label}</Lozenge>
-                  </td>
-                  <td>{c.transferableSkills.filter((s) => s.verified).length} quoted skills</td>
-                  <td>{c.keyTradeoff}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
     </div>
   );
 }
@@ -178,31 +152,54 @@ function CareerCard({
         <h2 className="career__title">{career.title}</h2>
         <Lozenge tone={effort.tone}>{effort.label}</Lozenge>
       </div>
-      <p className="muted">{career.roleSummary}</p>
-      <p>{career.fitExplanation}</p>
+      <p className="career__summary">{career.roleSummary}</p>
 
-      <h3 className="label">You already have</h3>
-      <ul className="skills">
-        {career.transferableSkills.map((s) => (
-          <li key={s.skill}>
-            <span className="strong">{s.skill}</span>{" "}
-            {s.verified ? <Lozenge tone="ok">Quoted from your CV</Lozenge> : <Lozenge tone="warn">AI inference</Lozenge>}
-            {s.verified && <q className="quote">{s.evidence}</q>}
-          </li>
-        ))}
-      </ul>
+      {career.transferableSkills.length > 0 && (
+        <div className="career__tags">
+          <span className="label">Your edge</span>
+          <ul className="tags">
+            {career.transferableSkills.map((s) => (
+              <li key={s.skill} className={`tag ${s.verified ? "tag--proven" : ""}`} title={s.verified ? `From your CV: "${s.evidence}"` : "AI inference, not quoted from your CV"}>
+                {s.verified && <CheckIcon />}
+                {s.skill}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      <h3 className="label">To build</h3>
-      <ul className="plain">
-        {career.missingSkills.map((s) => (
-          <li key={s}>{s}</li>
-        ))}
-      </ul>
+      {career.missingSkills.length > 0 && (
+        <div className="career__tags">
+          <span className="label">To learn</span>
+          <ul className="tags">
+            {career.missingSkills.map((s) => (
+              <li key={s} className="tag tag--learn">
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      <p className="small">
-        <span className="strong">Trade-off:</span> {career.keyTradeoff}
-      </p>
-      {career.assumptions.length > 0 && <p className="muted small">{career.assumptions.join(" ")}</p>}
+      <details className="career__more">
+        <summary>Why it fits you</summary>
+        <p>{career.fitExplanation}</p>
+        {career.transferableSkills.some((s) => s.verified) && (
+          <ul className="plain small">
+            {career.transferableSkills
+              .filter((s) => s.verified)
+              .map((s) => (
+                <li key={s.skill}>
+                  <span className="strong">{s.skill}:</span> <q className="quote">{s.evidence}</q>
+                </li>
+              ))}
+          </ul>
+        )}
+        <p className="small">
+          <span className="strong">Trade-off:</span> {career.keyTradeoff}
+        </p>
+        {career.assumptions.length > 0 && <p className="muted small">{career.assumptions.join(" ")}</p>}
+      </details>
 
       <div className="career__action">
         {tasted && (

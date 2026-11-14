@@ -96,7 +96,8 @@ DEMO_PERSONA: dict[str, object] = {
     "hoursPerWeek": 5,
     "monthlyLearningBudget": 0,
     "currency": "USD",
-    "location": "",
+    "location": "Austin, TX",
+    "country": "us",
     "interestedRoles": [],
     "transitionPreference": "balanced",
 }

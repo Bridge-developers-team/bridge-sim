@@ -12,7 +12,9 @@ import { ModeBanner } from "../components/ui/ModeBanner";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
 import { GrowingCalendar } from "../components/GrowingCalendar";
+import { JobsPanel } from "../components/JobsPanel";
 import { MoneyCheck } from "../components/MoneyCheck";
+import { WeekResources } from "../components/WeekResources";
 import { selectedCareer, setDone, withPractice, withRoadmap } from "../lib/journey";
 import { TASK_TYPE, WEEK_STATUS, hoursText, minutesText } from "../lib/labels";
 import { nextAction, progress, weekMinutes, weekStatus } from "../lib/progress";
@@ -188,10 +190,13 @@ export function PlanPage() {
                   <TaskRow key={task.id} task={task} onTick={tick} onOpen={() => navigate(`/practice/${task.id}`)} />
                 ))}
               </ul>
+              <WeekResources roadmapId={plan.id} week={week} role={plan.targetRole} sample={journey.roadmapMode !== "live"} />
             </PanelBody>
           </Panel>
         );
       })}
+
+      <JobsPanel role={plan.targetRole} />
 
       {(plan.cautions.length > 0 || plan.assumptions.length > 0) && (
         <Panel>

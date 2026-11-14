@@ -153,3 +153,74 @@ async def test_real_sdk_sends_our_schema_and_parses_the_reply():
     assert "careers" in body["output_config"]["format"]["schema"]["properties"]
     assert body["fallbacks"] == "default"
     assert FALLBACK_BETA in seen["beta"]
+
+
+async def test_resources_come_only_from_real_search_results_picked_by_number():
+    """Real SDK, mocked transport: first the web search turn, then the pick."""
+    import json
+
+    from bridge.llm.claude import make_client
+
+    bodies: list[dict] = []
+
+    def message(content):
+        return {
+            "id": "msg",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-5-5",
+            "content": content,
+            "stop_reason": "end_turn",
+            "stop_sequence": None,
+            "usage": {"input_tokens": 1, "output_tokens": 1},
+        }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        bodies.append(json.loads(request.content))
+        if len(bodies) == 1:
+            return httpx.Response(
+                200,
+                json=message(
+                    [
+                        {"type": "server_tool_use", "id": "srvtoolu_1", "name": "web_search", "input": {"query": "q"}},
+                        {
+                            "type": "web_search_tool_result",
+                            "tool_use_id": "srvtoolu_1",
+                            "content": [
+                                {
+                                    "type": "web_search_result",
+                                    "url": "https://example.org/storyboards",
+                                    "title": "Storyboards 101",
+                                    "encrypted_content": "x",
+                                    "page_age": "2025",
+                                },
+                                {
+                                    "type": "web_search_result",
+                                    "url": "https://www.youtube.com/watch?v=abc",
+                                    "title": "Storyboarding tutorial",
+                                    "encrypted_content": "y",
+                                    "page_age": None,
+                                },
+                            ],
+                        },
+                        {"type": "text", "text": "done"},
+                    ]
+                ),
+            )
+        picks = {
+            "picks": [{"index": 7, "why": "invented"}, {"index": 1, "why": "Clear demo"}, {"index": 0, "why": "Basics"}]
+        }
+        return httpx.Response(200, json=message([{"type": "text", "text": json.dumps(picks)}]))
+
+    client = make_client("test-key").with_options(
+        http_client=anthropic.DefaultAsyncHttpxClient(transport=httpx.MockTransport(handler))
+    )
+    found = await ClaudeWriter(client).resources(topic="Storyboarding", role="Instructional Designer")
+
+    assert [(r.kind, r.url) for r in found] == [
+        ("article", "https://example.org/storyboards"),
+        ("video", "https://www.youtube.com/watch?v=abc"),
+    ]
+    assert bodies[0]["tools"][0]["type"] == "web_search_20250305"
+    assert bodies[0]["model"] == "claude-haiku-5-5"
+    assert "[0] Storyboards 101 (example.org, 2025)" in bodies[1]["messages"][0]["content"]

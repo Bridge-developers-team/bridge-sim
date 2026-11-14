@@ -60,6 +60,11 @@ async function run(name, viewport, colorScheme) {
 
   await page.getByRole("button", { name: "Build my 30-day plan" }).first().click();
   await page.locator("#packet-role").waitFor();
+  // Learning links for week 2 and job openings for the role.
+  await page.getByRole("button", { name: "Find articles and videos for this week" }).nth(1).click();
+  await page.getByText(/^(Learn|Search for) this week$/).first().waitFor();
+  const boards = await page.locator(".jobs__where ~ .stack a.btn").allTextContents();
+  if (!boards.join(" ").includes("LinkedIn")) problems.push(`${name}: jobs panel has no board links (${boards})`);
   await noSideScroll(page, `${name} plan`);
   await shot("3-plan");
 

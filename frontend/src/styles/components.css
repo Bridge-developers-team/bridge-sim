@@ -1833,3 +1833,136 @@ button.gc-bar:hover {
   padding: 0;
   list-style: none;
 }
+
+/* --- Paths: compact career cards ---
+   One line of summary, skills as tags, everything else behind "Why it fits
+   you". A card should scan in five seconds. */
+
+.career__summary {
+  color: var(--text-subtle);
+}
+
+.career__tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-050);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-050);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-050);
+  padding: 3px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  font-size: var(--type-sm);
+  line-height: 1.4;
+}
+
+.tag .icon {
+  width: 0.95em;
+  height: 0.95em;
+}
+
+.tag--proven {
+  border-color: transparent;
+  background: var(--ok-bg);
+  color: var(--ok-fg);
+}
+
+.tag--learn {
+  border-style: dashed;
+  color: var(--text-subtle);
+}
+
+.career__more summary {
+  cursor: pointer;
+  color: var(--text-subtle);
+  font-size: var(--type-sm);
+  font-weight: 600;
+}
+
+.career__more[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+}
+
+.career__more[open] summary {
+  color: var(--text);
+}
+
+/* --- Plan: learning links per week and jobs near you --- */
+
+.resources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+  padding-top: var(--space-150);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.resources__list,
+.jobs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resource,
+.job {
+  display: flex;
+  gap: var(--space-150);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.resource__icon,
+.job__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
+}
+
+.resource--video .resource__icon {
+  color: var(--danger-fg);
+}
+
+.resource__text,
+.job__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resource__text a,
+.job__text a {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.jobs__where {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}

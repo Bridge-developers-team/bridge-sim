@@ -7,7 +7,7 @@ import { OptionSheet, Picker } from "../components/ui/Picker";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { ArrowRightIcon, ChevronDownIcon, FileIcon, UploadIcon } from "../components/Icons";
 import { readCvFile } from "../lib/pdf";
-import { BUDGETS, CURRENCIES, CURRENT_ROLES, HOURS, MOTIVATIONS, TARGET_ROLES } from "../lib/options";
+import { BUDGETS, CITIES, COUNTRIES, CURRENCIES, CURRENT_ROLES, HOURS, MOTIVATIONS, TARGET_ROLES } from "../lib/options";
 import { memory, updateJourney, useJourney } from "../state/journey";
 
 type Source = { kind: "file" | "sample" | "paste"; name: string } | null;
@@ -23,7 +23,7 @@ export function StartPage() {
   const [resume, setResume] = useState(memory.resumeText);
   const [source, setSource] = useState<Source>(memory.resumeText ? { kind: "paste", name: "Your CV text" } : null);
   const [showText, setShowText] = useState(false);
-  const [profile, setProfile] = useState<Profile>(journey.profile);
+  const [profile, setProfile] = useState<Profile>({ ...journey.profile, country: journey.profile.country || "us" });
   const [fileError, setFileError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -233,6 +233,17 @@ export function StartPage() {
             onChange={(v) => set("monthlyLearningBudget", Number(v))}
           />
           <Picker label="Currency" title="Currency" options={currencyOptions} value={profile.currency} onChange={(v) => set("currency", v)} />
+          <Picker
+            label="City"
+            title="Your city, for local job openings"
+            placeholder="Optional"
+            options={CITIES}
+            searchable
+            allowCustom
+            value={profile.location}
+            onChange={(v) => set("location", v)}
+          />
+          <Picker label="Country" title="Country" options={COUNTRIES} value={profile.country} onChange={(v) => set("country", v)} />
           <Picker
             label="Why change"
             title="Why change?"

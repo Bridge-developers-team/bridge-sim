@@ -38,10 +38,7 @@ export function TastingPanel({ onChoose }: { onChoose: (career: Career) => void 
         />
         <PanelBody className="stack">
           {tastes.length === 0 ? (
-            <p>
-              Do a 10-minute task from each path, set in your own field. Then say how it would feel to do it every
-              week. Bridge maps where your skill meets your energy, and recommends a path from what you actually did.
-            </p>
+            <p>Try a 10-minute task from each path. Bridge maps your skill against how much you'd enjoy it.</p>
           ) : (
             <div className="taste">
               <TasteMap tastes={ranked} skillHigh={SKILL_HIGH} energyHigh={ENERGY_HIGH} />
@@ -79,10 +76,7 @@ export function TastingPanel({ onChoose }: { onChoose: (career: Career) => void 
                     </li>
                   ))}
                 </ul>
-                <p className="fine">
-                  Ten minutes is a small sample: treat this as an experiment, not a verdict. Scores are AI practice
-                  feedback against the rubric; how it felt is your own answer.
-                </p>
+                <p className="fine">A 10-minute sample: an experiment, not a verdict.</p>
               </div>
             </div>
           )}

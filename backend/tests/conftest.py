@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -57,7 +58,13 @@ def _db_url(tmp_path: Path) -> str:
 def make_client(tmp_path: Path) -> Iterator[Callable[..., TestClient]]:
     opened: list[TestClient] = []
 
-    def build(*, writer: FakeWriter | None = None, static_dir: Path | None = None, **overrides: object) -> TestClient:
+    def build(
+        *,
+        writer: FakeWriter | None = None,
+        static_dir: Path | None = None,
+        jobs_fetch: Any = None,
+        **overrides: object,
+    ) -> TestClient:
         settings = Settings(
             _env_file=None,  # type: ignore[call-arg]  # never read a developer's .env in tests
             llm_provider="demo" if writer is None else "anthropic",
@@ -67,7 +74,8 @@ def make_client(tmp_path: Path) -> Iterator[Callable[..., TestClient]]:
             static_dir=static_dir or tmp_path / "no-front-end",
             **overrides,  # type: ignore[arg-type]
         )
-        client = TestClient(create_app(settings, live_writer=writer), raise_server_exceptions=False)
+        extra = {"jobs_fetch": jobs_fetch} if jobs_fetch else {}
+        client = TestClient(create_app(settings, live_writer=writer, **extra), raise_server_exceptions=False)
         client.__enter__()  # runs the lifespan: creates tables
         opened.append(client)
         return client
