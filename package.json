@@ -1,0 +1,22 @@
+{
+  "name": "bridge-sim",
+  "version": "0.1.0",
+  "description": "Test-drive a new career with AI work tasks built from your own background",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --watch --env-file-if-exists=.env server.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "express": "^5.3.0",
+    "zod": "^4.6.7"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}
