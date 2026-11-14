@@ -6,26 +6,27 @@ export const SAMPLES = [
     id: "teacher",
     track: "changer",
     interests: "",
-    label: "Sample: Middle-school teacher",
+    label: "Sample: School teacher, 7 years",
     suggestedRole: "instructional-designer",
-    resume: `Maria Lopez (SAMPLE)
-Middle-school science teacher, 8 years
-Riverside, CA
+    resume: `SAMPLE PROFILE (fictitious person, no real identifiers)
+Middle-school English teacher, 7 years
 
 Experience
-- 7th and 8th grade science teacher, Lincoln Middle School (fictional) (2018-present)
-  - Teach 5 classes (~140 students) per year; rewrote the district's 7th grade ecology unit around hands-on labs.
-  - Built a Google Classroom course library used by 6 teachers during remote learning.
-  - Lead new-teacher mentoring for the science department (3 mentees per year).
-  - Analyze state test results each fall and plan reteaching for weak standards.
-- Substitute teacher, local school district (2016-2018)
+- English teacher, grades 6-8, a public middle school (2019-present)
+  - Teach 5 classes (about 130 students) a year; plan every unit from state standards to final assessment.
+  - Redesigned the 7th grade persuasive-writing unit into short self-paced lessons with checklists; the share of students meeting the standard on the unit essay rose from 58% to 71% in one year.
+  - Built and maintain the department's shared Google Classroom library of 40+ lessons, used by 5 teachers.
+  - Write rubrics and quick formative checks; review results every two weeks and reteach where students struggle.
+  - Lead two 45-minute professional-development sessions per year for colleagues on giving feedback.
+  - Coordinate the yearly 8th grade showcase: schedule, volunteers, communication with 120 families.
+- Long-term substitute teacher, a public school district (2018-2019)
 
 Education
-- B.S. Biology, UC Riverside
-- California Single Subject Teaching Credential, Science
+- B.A. English
+- State teaching license, English Language Arts 6-12
 
 Skills
-- Lesson and unit design, formative assessment, classroom technology (Google Classroom, Kahoot, Canva), parent communication`,
+- Lesson and unit design, rubric writing, formative assessment, Google Classroom, Google Slides, Canva, presenting to groups, family communication`,
   },
   {
     id: "nurse",
@@ -133,3 +134,18 @@ Experience
 Skills: R, Excel, experimental design, scientific writing, basic SQL (one online course).`,
   },
 ];
+
+// The fictitious "Try Demo" persona from the product brief: 7-year teacher,
+// 5 free hours a week, no learning budget. No real personal identifiers.
+export const DEMO_PERSONA = {
+  sampleId: "teacher",
+  currentRole: "Middle-school English teacher",
+  yearsExperience: 7,
+  changeMotivation: ["Less stress", "Better work-life balance"],
+  hoursPerWeek: 5,
+  monthlyLearningBudget: 0,
+  currency: "USD",
+  location: "",
+  interestedRoles: [],
+  transitionPreference: "balanced",
+};

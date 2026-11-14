@@ -1,13 +1,10 @@
-# Bridge Sim
+# Bridge
 
-Test-drive a new career before you pay to switch. Built for two kinds of people:
+**Your next career, without starting over.**
 
-- **Career changers**: working adults who have wanted to switch for over a year but don't know which field.
-- **Recent graduates**: people with a degree who can't find work in their field, or want to point it somewhere new (for example political science to credit risk or machine learning, using the statistics from their thesis).
+Bridge is an AI career-transition navigator for working adults (about 25–45) who have wanted to change careers for a while but don't know where to go. It turns a résumé and real-life constraints into three realistic career paths, a side-by-side comparison, and an **interactive 30-day roadmap**: weekly tasks that fit your free hours, with progress that survives a reload, starting with a 10-minute practice task you do inside the app.
 
-Paste a resume, or describe your degree, thesis and projects. Bridge Sim builds a **Bridge Map**: the skills you already have, each proven by a quote from your own text, and the roles they reach, ranked by fit. Pick a role and the AI writes three realistic work tasks built from your background. It grades your answers with a fixed hiring-manager rubric and quotes your answer as evidence. You get a shareable portfolio page, resume lines, and a plan in months and dollars.
-
-Prototype for Business Cup </2.0> (AIESEC × Zimran × Nazarbayev University), Nov 2026. Market research and competitors: [`docs/research-graduates.md`](docs/research-graduates.md).
+Prototype for Business Cup </2.0> (AIESEC × Zimran × Nazarbayev University), Nov 2026.
 
 ## Run it
 
@@ -17,36 +14,66 @@ Needs Node.js 20.6 or newer.
 npm install
 cp .env.example .env      # then paste an Anthropic API key into .env
 npm start                 # http://localhost:3000
-npm test                  # unit tests: fit, scoring, switch cost, share links
+npm test                  # unit tests: roadmap rules, quote checks, scoring, money check
 ```
 
-AI provider: `ANTHROPIC_API_KEY` uses Claude (`claude-opus-5-5`). `DEEPSEEK_API_KEY` also works (`deepseek-flash`). If both are set, Claude wins unless `LLM_PROVIDER=deepseek`.
+### Environment variables (names only)
 
-With no key, or with `LLM_PROVIDER=demo`, the app runs in **demo mode**. The skill map is keyword matching, and tasks and grades are fixed sample output, not AI. Every page shows a banner saying so.
+| Name | Required | Purpose |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | for live AI | Claude: Sonnet 5.5 (`claude-sonnet-5-5`) for career paths, roadmap, practice task and feedback; Haiku 5.5 (`claude-haiku-5-5`) for sample answers and scanned-PDF reading |
+| `LLM_PROVIDER` | no | `anthropic`, `deepseek` or `demo`. Default: whichever key is set, else `demo` |
+| `DEEPSEEK_API_KEY` | no | Alternative provider (JSON mode + schema validation in code) |
+| `BRIDGE_MODEL`, `BRIDGE_MODEL_FAST` | no | Override the two model ids |
+| `PORT` | no | Default 3000 |
 
-## Flow
+With no key (or `LLM_PROVIDER=demo`) the app runs in **demo mode**: career paths come from a hand-written set for the sample teacher or from keyword matching, roadmaps and practice tasks from fixed templates, and feedback from answer length. Every screen shows a banner saying it is sample data, not AI. In live mode, if an AI call fails, the user gets **Try again** and **Use labeled sample data instead**.
 
-1. **You**: career changer or recent graduate.
-2. **Profile**: upload a PDF resume, paste it, or write out degree + thesis + courses + projects, plus an optional "curious about" field. PDFs are read in the browser with pdf.js (`public/pdf.js`); the file never leaves the device and only the text fills the box. For a scanned PDF with no selectable text, the user can click "Let the AI read it": the file goes to `POST /api/pdf-text`, Claude Haiku transcribes it in memory, and nothing is stored.
-3. **Bridge Map** (`POST /api/map`): the AI picks skills only from a fixed list of 19 (`data/skills.js`), each with a level from 1 to 3 and a quote. Code checks every quote against the user's text; an unproven skill counts only as level 1. Code then scores 13 roles (`data/roles.js`) on weighted entry-level needs and adds up the study hours for each gap.
-4. **Test-drive** (`POST /api/tasks`): 3 tasks for the chosen role, built on the person's industry (changers) or degree methods (graduates). At least one task exercises a gap skill.
-5. **Grade** (`POST /api/grade`): the AI gives a level from 0 to 4 for each rubric criterion, with quotes and a resume line. Code checks the quotes, applies the weights and the band.
-6. **Portfolio** (`/p.html#…`): scores with evidence, skill evidence, resume lines, and a launch or switch plan (gap hours × sim-score factor ÷ hours per week, course cost, pay change).
+## The journey
+
+1. **Landing** (`#/`): "Change careers without starting over." **Build My Career Roadmap** or **Try Demo** (a fictitious 7-year teacher, 5 h/week, $0 budget).
+2. **Background** (`#/start`): paste or upload a PDF résumé (read in the browser with pdf.js), optional current role and years. Inline validation.
+3. **Constraints** (`#/start/2`): hours per week, monthly learning budget + currency, motivations, Safe / Balanced / Fast track, roles you're curious about, location, and optional money details that are never sent or saved.
+4. **Career explorer + compare** (`#/explore`): 3 distinct paths, each with why it fits, transferable skills (each backed by a quote from the résumé, checked by code), skills to build, a qualitative effort level, a trade-off and assumptions; then a comparison table. The user can correct the inferred role and years.
+5. **Roadmap** (`#/roadmap`), the hero: `Current role → Target role`, hours and track, a progress bar (`completed ÷ total`), **next action** card ("Your next 10-minute step"), four week cards with status (Not started / In progress / Completed), tasks with type, minutes, deliverable, why it matters, steps and "Done when". Checkboxes update progress instantly and persist. Change hours or track and regenerate, with a confirmation that says which ticks are kept. Optional money check. Delete-my-data control.
+6. **Practice** (`#/practice/<task>`): one realistic 10-minute task from week 1, set in the user's past industry, with the rubric shown **before** writing. Submitting marks the roadmap task done. **AI-generated practice feedback** per criterion: score, a quote from the answer, strengths, improvements, a next revision step. Revise and resubmit.
+7. **Case study** (`#/case-study/<task>`): challenge → task → the user's response (labeled "Written by me", or "Sample answer generated by AI") → skills demonstrated (labeled as AI feedback) → the user's own reflection. **Download as Markdown** or **Print / Save as PDF**. No public link.
 
 ## Architecture
 
-1. `server.js` (Express) serves `public/` and the JSON endpoints `/api/config`, `/api/map`, `/api/tasks`, `/api/grade`, `/api/demo-answer`.
-2. `server/llm.js`: Claude with structured outputs (zod schemas in `server/schemas.js`). The AI only reads text, writes tasks, grades and drafts.
-3. `lib/`: plain-code logic shared by the server, the browser and the tests: `fit.js` (skill quote check, role fit, gap hours, interest match), `scoring.js` (rubric scoring, quote check), `switchCost.js` (plan arithmetic), `shareState.js` (share link).
-4. Nothing the AI says is trusted as a number: every level needs a quote found in the user's own text, and every score, rank and plan is computed in code.
-5. No database. Results live in the share link's `#hash`, which browsers never send to the server. Drafts stay in the browser tab (sessionStorage).
+- `server.js` (Express): static front end and JSON endpoints:
+  - `POST /api/career-recommendations`: 3 career paths
+  - `POST /api/roadmap`: the 4-week plan
+  - `POST /api/simulation`: one practice task for a roadmap task
+  - `POST /api/simulation/evaluate`: rubric feedback
+  - `POST /api/simulation/sample-answer`: labeled sample answer for demos
+  - `POST /api/pdf-text`: scanned-PDF transcription, only on explicit opt-in
+  - `GET /api/config`, `GET /healthz`
+  
+  AI endpoints have an in-memory rate limit (40 calls per 10 min per client).
+- `server/llm.js`: Claude structured outputs (zod schemas in `server/schemas.js`). The résumé, profile and answers are fenced as untrusted data in every prompt. Income numbers are never sent.
+- `lib/` is plain code shared by the server, the browser and the tests. **The AI writes text; code owns every rule:**
+  - `roadmap.js`:
+    - exactly 4 weeks of 1–4 tasks, and every task needs a deliverable and success criteria
+    - weekly minutes ≤ hours × 60: tasks that don't fit are dropped, and the drop is reported as a caution
+    - week 1 starts with an in-app practice task of ≤ 10 minutes
+    - stable task ids, so progress can merge on regenerate
+    - progress, next action and week status
+  - `careers.js`: exactly 3 distinct paths (near-duplicate titles removed). Each "skill you already have" must quote the résumé; quotes that don't match are labeled as AI inference.
+  - `simulation.js`: rubric ids and max scores are set by code. A feedback score above 1 needs a quote that really appears in the answer.
+  - `finance.js`: `cost = learning budget × months + months at reduced income × monthly shortfall`, computed only from numbers the user typed; otherwise "Not enough information for a meaningful estimate".
+- Storage: browser `localStorage` (`bridge-v1`) holds career paths, the roadmap, ticks and practice work. The résumé and income figures stay in memory only. No database, no accounts.
 
-## What is sample data
+## Honesty rules built in
 
-- `data/samples.js`: six fictional profiles (3 career changers, 3 graduates), labeled SAMPLE.
-- `data/roles.js` and `data/skills.js`: pay, course prices, skill needs per role and study hours per skill level are **placeholders, not yet verified**. Replace them with sourced figures (BLS Occupational Outlook Handbook, provider pricing pages) and review the skill needs with people in each role before using them in a pitch.
-- "Fill a sample answer" writes an AI draft answer, labeled as a sample on the task and portfolio pages.
+- No salaries, course prices, job listings, hiring dates or external links are generated or shown. Tasks name search keywords instead of URLs.
+- Effort is qualitative (lower / medium / higher / unknown), not a fake percentage.
+- "A roadmap, not a promise": 30 days is a first step.
+- Practice feedback is labeled as AI practice feedback, not a hiring decision.
+- `data/samples.js`: fictional profiles. `data/roles.js`: a curated role list used only in demo mode, with no pay or price data.
 
-## Privacy
+## Not done yet
 
-The profile text is sent to the AI provider's API to map skills and write tasks. Bridge Sim does not store it. The portfolio link contains tasks, answers, grades and the verified skill quotes, not the full resume. Not career, financial, medical or tax advice.
+- Live job-market, salary or course data (O*NET / ESCO integration).
+- Server-side storage and accounts, so there is no public portfolio link (by design until consent and storage exist).
+- Practice tasks beyond week 1 open the same practice engine but are not specially tuned.

@@ -1,14 +1,11 @@
-// Target roles for both tracks (career changers and recent graduates).
+// Curated target roles.
 // `needs`: skills the role expects at entry level, with target level (1-3) and
-// weight. Used by lib/fit.js for the Bridge Map and gap hours.
+// weight. Scored by lib/fit.js.
 // `tags`: words matched against the user's "curious about" text (plain code).
 //
-// WARNING: entryPay, medianPay and course prices are SAMPLE PLACEHOLDERS for the
-// prototype. They are NOT verified. Before using any number in a pitch, replace
-// it with a sourced figure (pay: BLS Occupational Outlook Handbook,
-// https://www.bls.gov/ooh/ ; courses: the provider's pricing page) and set
-// verified: true. The skill needs are a first draft to review with people in
-// each role.
+// Used only in demo mode (no API key) to pick 3 paths with plain code. No pay,
+// course prices or durations live here: Bridge never shows invented figures.
+// The skill needs are a first draft to review with people in each role.
 
 export const ROLES = [
   {
@@ -25,11 +22,6 @@ export const ROLES = [
       { skill: "writing", level: 2, weight: 1 },
       { skill: "presenting", level: 2, weight: 1 },
     ],
-    entryPay: 65000,
-    medianPay: 99000,
-    baseHours: 260,
-    courses: [{ name: "Financial modeling course (example)", price: 300, billing: "once" }],
-    verified: false,
   },
   {
     id: "risk-analyst",
@@ -44,11 +36,6 @@ export const ROLES = [
       { skill: "programming", level: 1, weight: 1 },
       { skill: "writing", level: 2, weight: 1 },
     ],
-    entryPay: 62000,
-    medianPay: 90000,
-    baseHours: 260,
-    courses: [{ name: "Credit risk analysis course (example)", price: 400, billing: "once" }],
-    verified: false,
   },
   {
     id: "data-scientist",
@@ -64,13 +51,6 @@ export const ROLES = [
       { skill: "research_design", level: 2, weight: 1 },
       { skill: "presenting", level: 1, weight: 1 },
     ],
-    entryPay: 75000,
-    medianPay: 110000,
-    baseHours: 400,
-    courses: [
-      { name: "Machine learning specialization, subscription (example)", price: 49, billing: "monthly" },
-    ],
-    verified: false,
   },
   {
     id: "data-analyst",
@@ -85,11 +65,6 @@ export const ROLES = [
       { skill: "visualization", level: 2, weight: 2 },
       { skill: "presenting", level: 2, weight: 1 },
     ],
-    entryPay: 60000,
-    medianPay: 85000,
-    baseHours: 300,
-    courses: [{ name: "Data analytics certificate, subscription (example)", price: 49, billing: "monthly" }],
-    verified: false,
   },
   {
     id: "policy-analyst",
@@ -104,11 +79,6 @@ export const ROLES = [
       { skill: "statistics", level: 1, weight: 1 },
       { skill: "presenting", level: 2, weight: 1 },
     ],
-    entryPay: 52000,
-    medianPay: 80000,
-    baseHours: 180,
-    courses: [{ name: "Policy analysis short course (example)", price: 250, billing: "once" }],
-    verified: false,
   },
   {
     id: "market-research-analyst",
@@ -123,11 +93,6 @@ export const ROLES = [
       { skill: "presenting", level: 2, weight: 2 },
       { skill: "spreadsheet_modeling", level: 1, weight: 1 },
     ],
-    entryPay: 55000,
-    medianPay: 76000,
-    baseHours: 200,
-    courses: [{ name: "Market research certificate (example)", price: 350, billing: "once" }],
-    verified: false,
   },
   {
     id: "ux-researcher",
@@ -142,11 +107,6 @@ export const ROLES = [
       { skill: "presenting", level: 2, weight: 2 },
       { skill: "statistics", level: 1, weight: 1 },
     ],
-    entryPay: 70000,
-    medianPay: 100000,
-    baseHours: 250,
-    courses: [{ name: "UX research course (example)", price: 500, billing: "once" }],
-    verified: false,
   },
   {
     id: "instructional-designer",
@@ -161,11 +121,6 @@ export const ROLES = [
       { skill: "presenting", level: 2, weight: 1 },
       { skill: "research_design", level: 1, weight: 1 },
     ],
-    entryPay: 55000,
-    medianPay: 70000,
-    baseHours: 220,
-    courses: [{ name: "Online instructional design certificate (example)", price: 600, billing: "once" }],
-    verified: false,
   },
   {
     id: "health-data-analyst",
@@ -180,11 +135,6 @@ export const ROLES = [
       { skill: "programming", level: 1, weight: 1 },
       { skill: "visualization", level: 2, weight: 1 },
     ],
-    entryPay: 62000,
-    medianPay: 85000,
-    baseHours: 320,
-    courses: [{ name: "Data analytics certificate, subscription (example)", price: 49, billing: "monthly" }],
-    verified: false,
   },
   {
     id: "project-manager",
@@ -199,11 +149,6 @@ export const ROLES = [
       { skill: "writing", level: 2, weight: 1 },
       { skill: "spreadsheet_modeling", level: 1, weight: 1 },
     ],
-    entryPay: 60000,
-    medianPay: 98000,
-    baseHours: 200,
-    courses: [{ name: "Project management certificate, subscription (example)", price: 49, billing: "monthly" }],
-    verified: false,
   },
   {
     id: "hr-specialist",
@@ -217,11 +162,6 @@ export const ROLES = [
       { skill: "policy_institutions", level: 1, weight: 1 },
       { skill: "project_coordination", level: 2, weight: 1 },
     ],
-    entryPay: 48000,
-    medianPay: 67000,
-    baseHours: 160,
-    courses: [{ name: "HR fundamentals certificate (example)", price: 400, billing: "once" }],
-    verified: false,
   },
   {
     id: "operations-analyst",
@@ -236,11 +176,6 @@ export const ROLES = [
       { skill: "statistics", level: 1, weight: 1 },
       { skill: "presenting", level: 2, weight: 1 },
     ],
-    entryPay: 58000,
-    medianPay: 83000,
-    baseHours: 240,
-    courses: [{ name: "Business analytics certificate, subscription (example)", price: 49, billing: "monthly" }],
-    verified: false,
   },
   {
     id: "customer-success-manager",
@@ -254,11 +189,6 @@ export const ROLES = [
       { skill: "project_coordination", level: 2, weight: 1 },
       { skill: "data_wrangling", level: 1, weight: 1 },
     ],
-    entryPay: 55000,
-    medianPay: 80000,
-    baseHours: 120,
-    courses: [{ name: "Customer success course (example)", price: 300, billing: "once" }],
-    verified: false,
   },
 ];
 

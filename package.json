@@ -1,7 +1,7 @@
 {
   "name": "bridge-sim",
   "version": "0.1.0",
-  "description": "Test-drive a new career with AI work tasks built from your own background",
+  "description": "Bridge: AI career-transition navigator with a personalized 30-day roadmap",
   "main": "server.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env server.js",

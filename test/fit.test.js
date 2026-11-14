@@ -1,7 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { verifySkills, levelMap, roleFit, interestMatch, rankRoles } from "../lib/fit.js";
-import { planSwitch } from "../lib/switchCost.js";
 import { SKILLS, SKILL_IDS } from "../data/skills.js";
 import { ROLES, getRole } from "../data/roles.js";
 
@@ -77,17 +76,6 @@ test("rankRoles: a quant poli-sci profile ranks policy/quant roles above HR", ()
   assert.ok(pos("policy-analyst") < pos("customer-success-manager"));
   assert.equal(ranked.find((r) => r.roleId === "risk-analyst").curious, true);
   for (let i = 1; i < ranked.length; i++) assert.ok(ranked[i - 1].fit >= ranked[i].fit);
-});
-
-test("planSwitch uses Bridge Map gap hours when given; unemployed graduate has no pay cut", () => {
-  const role = getRole("data-analyst");
-  const p = planSwitch({ role, currentSalary: 0, hoursPerWeek: 10, simScore: 50, gapHours: 120 });
-  assert.equal(p.hoursNeeded, 120);
-  assert.equal(p.months, 3); // 120 / 43.3 = 2.8 -> 3
-  assert.equal(p.monthlyGap, 0);
-  assert.equal(p.firstYearChange, role.entryPay);
-  const p0 = planSwitch({ role, currentSalary: 0, hoursPerWeek: 10, gapHours: 0 });
-  assert.equal(p0.months, 0);
 });
 
 test("every role need points at a real skill with a sane level", () => {

@@ -44,7 +44,7 @@ async function fetchWithRetry(path, init) {
       return await fetch(path, { ...init, signal: ctrl.signal });
     } catch (err) {
       if (err?.name === "AbortError") throw new Error("The AI took too long to answer. Please try again.");
-      if (attempt >= 2) throw new Error("Lost connection to the Bridge Sim server. Check that it is running, then try again.");
+      if (attempt >= 2) throw new Error("Lost connection to the Bridge server. Check that it is running, then try again.");
       await sleep(1500);
     } finally {
       clearTimeout(timer);
@@ -77,12 +77,23 @@ export function wordCount(text) {
   return String(text).trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function demoBanner(mode) {
-  if (mode !== "demo") return null;
-  return el(
-    "div",
-    { class: "banner", role: "status" },
-    el("strong", {}, "Demo mode. "),
-    "No API key is set on the server, so tasks and grades are fixed sample output, not AI. Add ANTHROPIC_API_KEY or DEEPSEEK_API_KEY to .env and restart to use the real thing.",
-  );
+// Labels any content that did not come from the live AI.
+export function modeBanner(mode) {
+  if (mode === "demo") {
+    return el(
+      "div",
+      { class: "banner", role: "status" },
+      el("strong", {}, "Demo mode: sample data, not AI. "),
+      "No API key is set on the server, so career paths, plans, practice tasks and feedback come from fixed templates and keyword matching. Add ANTHROPIC_API_KEY to .env and restart for real AI output.",
+    );
+  }
+  if (mode === "sample") {
+    return el(
+      "div",
+      { class: "banner", role: "status" },
+      el("strong", {}, "Sample data, not AI. "),
+      "You chose labeled sample data because the AI was unavailable. It comes from fixed templates, not from reading your profile.",
+    );
+  }
+  return null;
 }
