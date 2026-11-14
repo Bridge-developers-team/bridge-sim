@@ -31,8 +31,29 @@ export function mount(node, ...children) {
   return node;
 }
 
+const API_TIMEOUT_MS = 4 * 60 * 1000; // longer than the server's worst case (2 AI attempts x 120 s)
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// One fetch with a timeout. A dropped connection (server restarting, Wi-Fi
+// blip) is retried once; all our endpoints are safe to repeat.
+async function fetchWithRetry(path, init) {
+  for (let attempt = 1; ; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), API_TIMEOUT_MS);
+    try {
+      return await fetch(path, { ...init, signal: ctrl.signal });
+    } catch (err) {
+      if (err?.name === "AbortError") throw new Error("The AI took too long to answer. Please try again.");
+      if (attempt >= 2) throw new Error("Lost connection to the Bridge Sim server. Check that it is running, then try again.");
+      await sleep(1500);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+}
+
 export async function api(path, body) {
-  const res = await fetch(path, {
+  const res = await fetchWithRetry(path, {
     method: body ? "POST" : "GET",
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,

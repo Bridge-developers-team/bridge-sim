@@ -43,7 +43,9 @@ const DEEPSEEK_URL = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com
 
 let client = null;
 function getClient() {
-  if (!client) client = new Anthropic();
+  // Bounded calls: 120 s per attempt, 1 retry, so a request never outlives the
+  // browser (4 min) or the HTTP server socket timeout.
+  if (!client) client = new Anthropic({ timeout: 120_000, maxRetries: 1 });
   return client;
 }
 
@@ -138,6 +140,8 @@ async function callClaude({ system, user, schema, effort = "medium", maxTokens =
       messages: [{ role: "user", content: user }],
     });
   } catch (err) {
+    console.error(`Anthropic call failed (${model}):`, err?.status ?? "", err?.name ?? "", err?.message ?? err);
+    if (err instanceof Anthropic.APIConnectionTimeoutError) throw new LlmError("The AI took too long to answer. Please try again.", 504);
     if (err instanceof Anthropic.AuthenticationError) throw new LlmError("API key rejected. Check ANTHROPIC_API_KEY.", 500);
     if (err instanceof Anthropic.RateLimitError) throw new LlmError("Too many requests right now. Try again in a minute.", 429);
     if (err instanceof Anthropic.APIConnectionError) throw new LlmError("Could not reach the AI service. Try again.", 503);

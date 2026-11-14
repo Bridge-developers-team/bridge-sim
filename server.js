@@ -19,6 +19,21 @@ const MAX_ANSWER = 8000;
 
 const app = express();
 app.disable("x-powered-by");
+
+// Request log: method, path, status, time. "aborted" = the browser hung up first.
+app.use((req, res, next) => {
+  if (!req.path.startsWith("/api/")) return next();
+  const t0 = Date.now();
+  let done = false;
+  res.on("finish", () => {
+    done = true;
+    console.log(`${new Date().toISOString()} ${req.method} ${req.path} ${res.statusCode} ${Date.now() - t0}ms`);
+  });
+  res.on("close", () => {
+    if (!done) console.log(`${new Date().toISOString()} ${req.method} ${req.path} aborted by client after ${Date.now() - t0}ms`);
+  });
+  next();
+});
 // Small JSON bodies everywhere, except the PDF route, which has its own limit.
 const smallJson = express.json({ limit: "100kb" });
 app.use((req, res, next) => (req.path === "/api/pdf-text" ? next() : smallJson(req, res, next)));
@@ -172,10 +187,13 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = Number(process.env.PORT) || 3000;
-app.listen(port, (err) => {
+const server = app.listen(port, (err) => {
   if (err) {
     console.error(`Could not start on port ${port}: ${err.code ?? err.message}. Is another server already running?`);
     process.exit(1);
   }
   console.log(`Bridge Sim on http://localhost:${port} (${DEMO_MODE ? "DEMO MODE: no API key, fixed sample output" : `live, ${PROVIDER}: ${MODELS.main} + ${MODELS.fast}`})`);
 });
+
+// AI calls are bounded at ~4 min worst case; keep sockets open longer than that.
+server.requestTimeout = 6 * 60 * 1000;
