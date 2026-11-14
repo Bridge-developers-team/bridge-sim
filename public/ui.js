@@ -52,6 +52,6 @@ export function demoBanner(mode) {
     "div",
     { class: "banner", role: "status" },
     el("strong", {}, "Demo mode. "),
-    "No API key is set on the server, so tasks and grades are fixed sample output, not AI. Add ANTHROPIC_API_KEY to .env and restart to use the real thing.",
+    "No API key is set on the server, so tasks and grades are fixed sample output, not AI. Add ANTHROPIC_API_KEY or DEEPSEEK_API_KEY to .env and restart to use the real thing.",
   );
 }

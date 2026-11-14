@@ -10,17 +10,19 @@ Needs Node.js 20.6 or newer.
 
 ```bash
 npm install
-cp .env.example .env      # then paste your Anthropic API key into .env
+cp .env.example .env      # then paste an Anthropic OR DeepSeek API key into .env
 npm start                 # http://localhost:3000
 npm test                  # unit tests for scoring, switch cost, share links
 ```
 
-Without `ANTHROPIC_API_KEY` the app runs in **demo mode**: tasks and grades are fixed sample output, not AI, and every page shows a banner saying so.
+AI provider: `ANTHROPIC_API_KEY` uses Claude (`claude-opus-5-5`); `DEEPSEEK_API_KEY` uses DeepSeek (`deepseek-flash`, change with `BRIDGE_MODEL`). If both are set, Claude wins unless `LLM_PROVIDER=deepseek`.
+
+With no key the app runs in **demo mode**: tasks and grades are fixed sample output, not AI, and every page shows a banner saying so.
 
 ## Architecture
 
 1. `server.js` (Express) serves the static front end in `public/` and 3 JSON endpoints: `/api/tasks`, `/api/grade`, `/api/demo-answer`.
-2. `server/llm.js` calls Claude (`claude-opus-5-5`) with structured outputs (zod schemas in `server/schemas.js`). The AI is used only to read the resume, write tasks, grade against the rubric and draft labeled sample answers.
+2. `server/llm.js` calls Claude with structured outputs, or DeepSeek in JSON mode; both are checked against the zod schemas in `server/schemas.js` (DeepSeek replies are validated in code and retried once). The AI is used only to read the resume, write tasks, grade against the rubric and draft labeled sample answers.
 3. `lib/` holds the plain-code logic, shared by server, browser and tests: rubric (`rubric.js`), weighted scoring and evidence-quote checks (`scoring.js`), switch-cost arithmetic (`switchCost.js`), share-link encoding (`shareState.js`).
 4. Grading is checked in code: every level must come with a quote that really appears in the answer, or it is capped at 1.
 5. No database. Results live in the share link's `#hash`, which browsers never send to the server.
@@ -33,4 +35,4 @@ Without `ANTHROPIC_API_KEY` the app runs in **demo mode**: tasks and grades are 
 
 ## Privacy
 
-The resume is sent to the Anthropic API to write tasks and is not stored by Bridge Sim. The portfolio link contains the tasks, answers and grades, not the resume. Not career, financial, medical or tax advice.
+The resume is sent to the chosen AI provider's API (Anthropic or DeepSeek) to write tasks and is not stored by Bridge Sim. The portfolio link contains the tasks, answers and grades, not the resume. Not career, financial, medical or tax advice.

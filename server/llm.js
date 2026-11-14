@@ -1,12 +1,35 @@
-// All Claude calls. The model is used only for judgment and text:
+// All LLM calls. The model is used only for judgment and text:
 // writing tasks from a resume, grading against the fixed rubric, and drafting
 // a labeled demo answer. Scores and costs are computed in lib/.
+//
+// Two providers:
+// - anthropic: Claude with structured outputs (schema enforced by the API).
+// - deepseek: DeepSeek JSON mode (valid JSON only, schema NOT enforced by the
+//   API), so the reply is validated against the same zod schema in code and
+//   retried once if it does not match.
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import { z } from "zod";
 import { RUBRIC, RUBRIC_IDS } from "../lib/rubric.js";
 import { TasksResponseSchema, GradeResponseSchema, DemoAnswerSchema } from "./schemas.js";
 
-export const MODEL = process.env.BRIDGE_MODEL || "claude-opus-5-5";
+function pickProvider() {
+  const forced = (process.env.LLM_PROVIDER || "").toLowerCase();
+  if (forced) return forced;
+  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
+  if (process.env.DEEPSEEK_API_KEY) return "deepseek";
+  return "demo";
+}
+
+export const PROVIDER = pickProvider();
+if (!["anthropic", "deepseek", "demo"].includes(PROVIDER)) {
+  throw new Error(`LLM_PROVIDER must be anthropic, deepseek or demo (got "${PROVIDER}")`);
+}
+
+const DEFAULT_MODELS = { anthropic: "claude-opus-5-5", deepseek: "deepseek-flash", demo: null };
+export const MODEL = process.env.BRIDGE_MODEL || DEFAULT_MODELS[PROVIDER];
+
+const DEEPSEEK_URL = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com") + "/chat/completions";
 
 let client = null;
 function getClient() {
@@ -21,7 +44,74 @@ export class LlmError extends Error {
   }
 }
 
-async function callStructured({ system, user, schema, effort = "medium", maxTokens = 16000 }) {
+async function callStructured(args) {
+  return PROVIDER === "deepseek" ? callDeepSeek(args) : callClaude(args);
+}
+
+// ---------- DeepSeek (JSON mode + zod validation in code) ----------
+
+async function deepSeekRequest(messages, maxTokens) {
+  let res;
+  try {
+    res = await fetch(DEEPSEEK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}` },
+      body: JSON.stringify({
+        model: MODEL,
+        messages,
+        response_format: { type: "json_object" },
+        max_tokens: maxTokens,
+      }),
+      signal: AbortSignal.timeout(180_000),
+    });
+  } catch {
+    throw new LlmError("Could not reach the AI service. Try again.", 503);
+  }
+  if (res.status === 401) throw new LlmError("API key rejected. Check DEEPSEEK_API_KEY.", 500);
+  if (res.status === 402) throw new LlmError("The DeepSeek account has no balance left.", 500);
+  if (res.status === 429) throw new LlmError("Too many requests right now. Try again in a minute.", 429);
+  if (!res.ok) throw new LlmError(`AI service error (${res.status}).`, 502);
+  const data = await res.json();
+  const choice = data.choices?.[0];
+  if (choice?.finish_reason === "length") throw new LlmError("The AI response was cut off. Try a shorter resume.", 502);
+  return choice?.message?.content ?? "";
+}
+
+async function callDeepSeek({ system, user, schema, maxTokens = 16000 }) {
+  const jsonSchema = JSON.stringify(z.toJSONSchema(schema));
+  const messages = [
+    {
+      role: "system",
+      content: `${system}\n\nOUTPUT FORMAT: reply with one json object only, no prose, matching this JSON Schema exactly (all fields required):\n${jsonSchema}`,
+    },
+    { role: "user", content: user },
+  ];
+  let lastError = "";
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const content = await deepSeekRequest(messages, maxTokens);
+    // JSON mode can return blank content; treat it like invalid output and retry.
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      lastError = content.trim() ? "Reply was not valid JSON." : "Reply was empty.";
+      continue;
+    }
+    const check = schema.safeParse(parsed);
+    if (check.success) return check.data;
+    lastError = check.error.issues.slice(0, 5).map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ");
+    messages.push(
+      { role: "assistant", content },
+      { role: "user", content: `That json does not match the schema: ${lastError}. Reply again with the corrected json object only.` },
+    );
+  }
+  console.error("DeepSeek output failed validation:", lastError);
+  throw new LlmError("The AI returned an unreadable answer. Try again.", 502);
+}
+
+// ---------- Claude (structured outputs) ----------
+
+async function callClaude({ system, user, schema, effort = "medium", maxTokens = 16000 }) {
   let response;
   try {
     response = await getClient().beta.messages.parse({

@@ -7,11 +7,11 @@ import { ROLES, getRole } from "./data/roles.js";
 import { SAMPLES } from "./data/samples.js";
 import { RUBRIC } from "./lib/rubric.js";
 import { scoreTask } from "./lib/scoring.js";
-import { generateTasks, gradeAnswer, demoAnswer, LlmError, MODEL } from "./server/llm.js";
+import { generateTasks, gradeAnswer, demoAnswer, LlmError, MODEL, PROVIDER } from "./server/llm.js";
 import * as demo from "./server/demo.js";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const DEMO_MODE = !process.env.ANTHROPIC_API_KEY;
+const DEMO_MODE = PROVIDER === "demo";
 const MAX_RESUME = 15000;
 const MAX_ANSWER = 8000;
 
@@ -105,5 +105,5 @@ app.use((err, _req, res, _next) => {
 
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {
-  console.log(`Bridge Sim on http://localhost:${port} (${DEMO_MODE ? "DEMO MODE: no API key, fixed sample output" : `live, model ${MODEL}`})`);
+  console.log(`Bridge Sim on http://localhost:${port} (${DEMO_MODE ? "DEMO MODE: no API key, fixed sample output" : `live, ${PROVIDER} model ${MODEL}`})`);
 });
