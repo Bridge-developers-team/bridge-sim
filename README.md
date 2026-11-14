@@ -1,85 +1,87 @@
 # Bridge
 
-**Your next career, without starting over.**
+**Change careers without starting over.**
 
-Bridge is an AI career-transition navigator for working adults (about 25–45) who have wanted to change careers for a while but don't know where to go. It turns a résumé and real-life constraints into three realistic career paths, a side-by-side comparison, and an **interactive 30-day roadmap**: weekly tasks that fit your free hours, with progress that survives a reload, starting with a 10-minute practice task you do inside the app.
+Bridge is for working adults (about 25-45) who want to change careers but do not
+know where to go. From a CV and a real week, it gives:
 
-Prototype for Business Cup </2.0> (AIESEC × Zimran × Nazarbayev University), Nov 2026.
+1. **Three realistic paths.** Each one reuses what the person already does, and
+   every "skill you already have" quotes their own CV. Code checks each quote.
+2. **A 30-day plan that fits their hours.** Four weeks of concrete tasks. The
+   weekly total never exceeds the hours they said they have, and ticks are
+   saved as they go.
+3. **A try of the actual job.** A 10-minute practice task from the new role,
+   graded against a rubric shown before writing. A score the AI cannot back
+   with a quote from the answer is capped.
+4. **Proof.** One click publishes the graded task as a public work sample. The
+   page can only show scores the server signed.
 
-## Run it
+Prototype for Business Cup 2.0 (AIESEC Astana × Zimran), November 2026.
 
-Needs Node.js 20.6 or newer.
+## Run locally
+
+Needs [uv](https://docs.astral.sh/uv/) and Node 24.
 
 ```bash
-npm install
-cp .env.example .env      # then paste an Anthropic API key into .env
-npm start                 # http://localhost:3000
-npm test                  # unit tests: roadmap rules, quote checks, scoring, money check
+cd backend && uv sync && cp .env.example .env     # add ANTHROPIC_API_KEY, or leave empty for demo mode
+uv run uvicorn bridge.main:create_app --factory --reload --port 8000
+cd ../frontend && npm ci && npm run dev           # http://localhost:5173
 ```
 
-### Environment variables (names only)
+Without an API key the app runs in **demo mode**: hand-written paths for the
+sample CVs, template plans and a length-based score, labeled on every screen.
 
-| Name | Required | Purpose |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | for live AI | Claude: Sonnet 5.5 (`claude-sonnet-5-5`) for career paths, roadmap, practice task and feedback; Haiku 5.5 (`claude-haiku-5-5`) for sample answers and scanned-PDF reading |
-| `LLM_PROVIDER` | no | `anthropic`, `deepseek` or `demo`. Default: whichever key is set, else `demo` |
-| `DEEPSEEK_API_KEY` | no | Alternative provider (JSON mode + schema validation in code) |
-| `BRIDGE_MODEL`, `BRIDGE_MODEL_FAST` | no | Override the two model ids |
-| `PORT` | no | Default 3000 |
+## Tests
 
-With no key (or `LLM_PROVIDER=demo`) the app runs in **demo mode**: career paths come from a hand-written set for the sample teacher or from keyword matching, roadmaps and practice tasks from fixed templates, and feedback from answer length. Every screen shows a banner saying it is sample data, not AI. In live mode, if an AI call fails, the user gets **Try again** and **Use labeled sample data instead**.
+```bash
+cd backend && uv run pytest            # rules, AI client (mocked SDK), full API flow
+cd frontend && npm test                # progress, money check, saved state
+cd frontend && npm run build && BASE=http://localhost:8000 npm run e2e   # real browser, phone + desktop
+```
 
-## The journey
+CI (`.github/workflows/ci.yml`) also runs ruff, ty, import-linter, the API
+tests on Postgres, an npm audit and a Docker build smoke test.
 
-1. **Landing** (`#/`): "Change careers without starting over." **Build My Career Roadmap** or **Try Demo** (a fictitious 7-year teacher, 5 h/week, $0 budget).
-2. **CV** (`#/start`): an **Upload your CV** button (PDF or .txt, read in the browser with pdf.js; scanned PDFs can be read by the AI on request) or a sample CV. The extracted text is shown folded, for checking only.
-3. **Constraints** (`#/start/2`): everything is tap-to-choose (button rows that scroll sideways on phones, or scroll lists): hours per week, currency, learning budget, motivations, Safe / Balanced / Fast track, up to 3 roles you are curious about, country, and optional income ranges that are never sent or saved.
-4. **Career explorer + compare** (`#/explore`): 3 distinct paths, each with why it fits, transferable skills (each backed by a quote from the résumé, checked by code), skills to build, a qualitative effort level, a trade-off and assumptions; then a comparison table. The user can correct the inferred role and years.
-5. **Roadmap** (`#/roadmap`), the hero: `Current role → Target role`, hours and track, a progress bar (`completed ÷ total`), **next action** card ("Your next 10-minute step"), four week cards with status (Not started / In progress / Completed), tasks with type, minutes, deliverable, why it matters, steps and "Done when". Checkboxes update progress instantly and persist. Change hours or track and regenerate, with a confirmation that says which ticks are kept. **Plan it in Google Calendar**: pick study days, a start time and a start date; each week's unfinished tasks are spread over those days. One **Add to Google Calendar** button per task (prefilled event, no sign-in) or one `.ics` file with all tasks (Google Calendar → Settings → Import). Optional money check. Delete-my-data control.
-6. **Practice** (`#/practice/<task>`): one realistic 10-minute task from week 1, set in the user's past industry, with the rubric shown **before** writing. Submitting marks the roadmap task done. **AI-generated practice feedback** per criterion: score, a quote from the answer, strengths, improvements, a next revision step. Revise and resubmit.
-7. **Case study** (`#/case-study/<task>`): challenge → task → the user's response (labeled "Written by me", or "Sample answer generated by AI") → skills demonstrated (labeled as AI feedback) → the user's own reflection. **Download as Markdown** or **Print / Save as PDF**. No public link.
+## Deploy
+
+- **App:** Render free web service, built from the `Dockerfile`, configured in
+  `render.yaml`. Production deploys from the `preprod` branch, only after
+  every CI check passes. Change it through a PR into `preprod`.
+- **Database:** Neon free Postgres. Only published proof pages are stored.
+
+Environment variables (names only, set in Render):
+
+| Name | Purpose |
+|---|---|
+| `ANTHROPIC_API_KEY` | Live AI. Without it: demo mode |
+| `DATABASE_URL` | Neon connection string (`postgresql://...?sslmode=require`) |
+| `SECRET_KEY` | Signs practice tasks and results (Render generates it) |
+| `AI_CALLS_PER_DAY` | Hard daily cap on live AI calls (default 400) |
+| `AI_CALLS_PER_CLIENT` | Per visitor per 10 minutes (default 40) |
+| `LLM_PROVIDER`, `BRIDGE_MODEL`, `BRIDGE_MODEL_FAST` | Optional overrides |
+
+Models: Claude Sonnet 5.5 (`claude-sonnet-5-5`) for paths, plans, practice
+tasks and feedback; Claude Haiku 5.5 (`claude-haiku-5-5`) for sample answers.
 
 ## Design
 
-Visual system: **Seed Packet Calendar**. The roadmap reads like a planting calendar: each week is a row of task bars sized by minutes, coloured by kind and filled when done. See [`DESIGN.md`](DESIGN.md) for tokens and rules, and [`PRODUCT.md`](PRODUCT.md) for product facts. Display font: Archivo (self-hosted via `@fontsource-variable/archivo`).
+Visual system: **Seed Packet Calendar**. The roadmap reads like a planting
+calendar: each week is a row of task bars sized by minutes, coloured by kind
+and filled when done. See [`DESIGN.md`](DESIGN.md) for tokens and rules and
+[`PRODUCT.md`](PRODUCT.md) for product facts.
 
-## Architecture
+## How it is built
 
-- `server.js` (Express): static front end and JSON endpoints:
-  - `POST /api/career-recommendations`: 3 career paths
-  - `POST /api/roadmap`: the 4-week plan
-  - `POST /api/simulation`: one practice task for a roadmap task
-  - `POST /api/simulation/evaluate`: rubric feedback
-  - `POST /api/simulation/sample-answer`: labeled sample answer for demos
-  - `POST /api/pdf-text`: scanned-PDF transcription, only on explicit opt-in
-  - `GET /api/config`, `GET /healthz`
-  
-  AI endpoints have an in-memory rate limit (40 calls per 10 min per client).
-- `server/llm.js`: Claude structured outputs (zod schemas in `server/schemas.js`). The résumé, profile and answers are fenced as untrusted data in every prompt. Income numbers are never sent.
-- `lib/` is plain code shared by the server, the browser and the tests. **The AI writes text; code owns every rule:**
-  - `roadmap.js`:
-    - exactly 4 weeks of 1–4 tasks, and every task needs a deliverable and success criteria
-    - weekly minutes ≤ hours × 60: tasks that don't fit are dropped, and the drop is reported as a caution
-    - week 1 starts with an in-app practice task of ≤ 10 minutes
-    - stable task ids, so progress can merge on regenerate
-    - progress, next action and week status
-  - `careers.js`: exactly 3 distinct paths (near-duplicate titles removed). Each "skill you already have" must quote the résumé; quotes that don't match are labeled as AI inference.
-  - `simulation.js`: rubric ids and max scores are set by code. A feedback score above 1 needs a quote that really appears in the answer.
-  - `calendar.js`: spreads tasks over the chosen study days of each week without overlaps, builds Google Calendar links and an RFC 5545 `.ics` file with floating local times.
-  - `finance.js`: `cost = learning budget × months + months at reduced income × monthly shortfall`, computed only from numbers the user typed; otherwise "Not enough information for a meaningful estimate".
-- Storage: browser `localStorage` (`bridge-v1`) holds career paths, the roadmap, ticks and practice work. The résumé and income figures stay in memory only. No database, no accounts.
+See `CLAUDE.md` for the layout and the rules.
 
-## Honesty rules built in
-
-- No salaries, course prices, job listings, hiring dates or external links are generated or shown. Tasks name search keywords instead of URLs.
-- Effort is qualitative (lower / medium / higher / unknown), not a fake percentage.
-- "A roadmap, not a promise": 30 days is a first step.
-- Practice feedback is labeled as AI practice feedback, not a hiring decision.
-- `data/samples.js`: fictional profiles. `data/roles.js`: a curated role list used only in demo mode, with no pay or price data.
-
-## Not done yet
-
-- Live job-market, salary or course data (O*NET / ESCO integration).
-- Two-way Google Calendar sync (needs a Google OAuth client and sign-in). Today it is one-way: prefilled events or an `.ics` import.
-- Server-side storage and accounts, so there is no public portfolio link (by design until consent and storage exist).
-- Practice tasks beyond week 1 open the same practice engine but are not specially tuned.
+- **The AI writes text; code owns every rule.** This covers time caps, task
+  ids, rubric ids, score caps and quote checks. Each rule is a pure function in
+  `backend/src/bridge/domain/` with a test.
+- **Privacy.** The CV is used for one request and never stored. Income never
+  leaves the browser. Only published proof pages are kept, and the author gets
+  a delete key.
+- **Not done yet:**
+  - live job-market or wage data (O\*NET / BLS);
+  - accounts and cross-device sync;
+  - payments;
+  - practice tasks beyond week 1 use the same engine without special tuning.

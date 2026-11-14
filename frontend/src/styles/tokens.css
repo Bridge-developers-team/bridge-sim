@@ -1,0 +1,343 @@
+/* ============================================================================
+   tokens.css: the Seed Packet Calendar (DESIGN.md at the repo root is the
+   source of truth; .impeccable/ records the direction). Leaf-paper ground,
+   white packet-stock panels ruled at 1px, one packet-green band per screen,
+   fixed "variety" colours per task kind. Archivo condensed is the variety-name
+   voice; the system sans carries everything read at length.
+
+   Token NAMES are the facerec set (so components read --text, --brand, ...);
+   VALUES are DESIGN.md's. Dark mode is the `dark` class on <html> (set by
+   lib/theme.ts and before first paint by index.html), never a media query in
+   CSS, so the user's choice always wins over the OS.
+   No component styles here; those live in components.css.
+   ========================================================================= */
+
+:root {
+  /* Neutrals: Leaf Paper, Packet Stock, Seed Ink, Stem, Rule */
+  --background: #edf1e8;
+  --surface: #ffffff;
+  --surface-sunken: #f4f7f1;
+  --surface-hover: #e1ecdd;
+  --border-subtle: #d3dccd;
+  --border: #b8c6b2;
+  --text: #17241b;
+  --text-subtle: #4e5e53;
+  --text-faint: #6b7a6f;
+
+  /* Packet Green: action, shell, selection, focus */
+  --brand: #1f5134;
+  --brand-hover: #163e27;
+  --on-brand: #ffffff;
+  --accent-soft: #e1ecdd;
+  --ring: #2f7a4c;
+  --focus-halo: color-mix(in srgb, #2f7a4c 22%, transparent);
+
+  /* The packet band: the one green band per screen */
+  --band: #1f5134;
+  --band-deep: #163e27;
+  --band-ink: #f3f7ef;
+  --band-muted: #c2d6c6;
+
+  /* State. Amber and red mean state; nothing else uses them. */
+  --ok-bg: #dcefdf;
+  --ok-fg: #1d5631;
+  --warn-bg: #fbf0d6;
+  --warn-fg: #6e4a00;
+  --danger-bg: #fbe4df;
+  --danger-fg: #8f2416;
+  --info-bg: #e1ecdd;
+  --info-fg: #1f5134;
+  --neutral-bg: #f4f7f1;
+  --neutral-fg: #4e5e53;
+
+  /* Task kinds, like seed varieties: deep on white (k-), bright on the band (kb-) */
+  --k-research: #b5790f;
+  --k-learning: #6b4fa0;
+  --k-simulation: #c23c24;
+  --k-portfolio: #2f7a4c;
+  --k-networking: #1e7590;
+  --k-application: #a3345f;
+  --kb-research: #f2c14e;
+  --kb-learning: #c3b0ef;
+  --kb-simulation: #ff8a6e;
+  --kb-portfolio: #9fdcad;
+  --kb-networking: #86d2e6;
+  --kb-application: #ef9cc1;
+
+  /* Flat by default. The one shadow lifts the landing's sample plan. */
+  --shadow-sample: 0 18px 40px -18px rgba(18, 52, 32, 0.45);
+
+  color-scheme: light;
+  accent-color: var(--brand);
+}
+
+:root.dark {
+  --background: #101712;
+  --surface: #18211b;
+  --surface-sunken: #1d2921;
+  --surface-hover: #213528;
+  --border-subtle: #2b3a30;
+  --border: #3d5044;
+  --text: #e5ede5;
+  --text-subtle: #a5b5a9;
+  --text-faint: #8a9a8e;
+
+  /* Sprout: buttons stay legible on dark green ground */
+  --brand: #9fdcad;
+  --brand-hover: #b9e8c4;
+  --on-brand: #0d2316;
+  --accent-soft: #213528;
+  --ring: #9fdcad;
+  --focus-halo: color-mix(in srgb, #9fdcad 28%, transparent);
+
+  --band: #1d4a30;
+  --band-deep: #133322;
+
+  --ok-bg: #1d3a26;
+  --ok-fg: #a9e0b8;
+  --warn-bg: #3a3015;
+  --warn-fg: #f2d38c;
+  --danger-bg: #3d1e1a;
+  --danger-fg: #f7b7aa;
+  --info-bg: #213528;
+  --info-fg: #9fdcad;
+  --neutral-bg: #1d2921;
+  --neutral-fg: #a5b5a9;
+
+  --k-research: var(--kb-research);
+  --k-learning: var(--kb-learning);
+  --k-simulation: var(--kb-simulation);
+  --k-portfolio: var(--kb-portfolio);
+  --k-networking: var(--kb-networking);
+  --k-application: var(--kb-application);
+
+  color-scheme: dark;
+}
+
+/* Scales: theme-independent */
+:root {
+  --space-025: 2px;
+  --space-050: 4px;
+  --space-075: 6px;
+  --space-100: 8px;
+  --space-125: 10px;
+  --space-150: 12px;
+  --space-200: 16px;
+  --space-250: 20px;
+  --space-300: 24px;
+  --space-400: 32px;
+  --space-500: 40px;
+  --space-600: 48px;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Archivo Variable", "Archivo", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Body is 17px for evening reading; one size in lists, rank from weight. */
+  --type-body-size: 17px;
+  --type-body-line: 1.55;
+  --type-small-size: 0.88rem;
+  --type-small-line: 1.45;
+  --type-label-size: 0.8rem;
+  --type-input-touch: 16px;
+  --tracking-label: 0.06em;
+
+  --radius-bar: 3px;
+  --radius-control: 8px;
+  --radius-panel: 10px;
+  --radius-band: 14px;
+  --radius-full: 999px;
+
+  --header-h: 60px;
+  --tap-target: 44px;
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --page-max: 980px;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fade: 200ms;
+  --dur-fade-up: 280ms;
+  --dur-fill: 700ms;
+}
+
+/* Resets and element defaults */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scrollbar-color: var(--border) var(--background);
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  caret-color: var(--brand);
+  font-family: var(--font-sans);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+/* The variety-name voice: condensed Archivo, sentence case unless a short name. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-stretch: 78%;
+  font-weight: 760;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  color: var(--text);
+}
+
+h1 {
+  font-size: clamp(2rem, 4.2vw, 3rem);
+  line-height: 1.02;
+}
+
+h2 {
+  font-size: 1.55rem;
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+a {
+  color: var(--brand);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--band);
+  color: var(--band-ink);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Motion: short and one-directional. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up var(--dur-fade-up) var(--ease) both;
+}
+
+.animate-fade {
+  animation: fade var(--dur-fade) ease-out both;
+}
+
+.stagger > * {
+  animation: fade-up 300ms var(--ease) both;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 45ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+.stagger > *:nth-child(n + 4) {
+  animation-delay: 135ms;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:not(:disabled):active {
+    transform: none;
+  }
+}
