@@ -6,8 +6,8 @@ colors:
   surface: "#ffffff"
   surface-2: "#fbf8f2"
   ink: "#0b1a3a"
-  muted: "#4a4d57"
-  faint: "#63656d"
+  muted: "#46506a"
+  faint: "#5d667e"
   rule: "#dad6cd"
   rule-strong: "#c4beb1"
   band: "#0b1a3a"
@@ -71,29 +71,30 @@ rounded:
   band: "14px"
   pill: "999px"
 spacing:
-  xs: "6px"
-  sm: "10px"
+  xs: "4px"
+  sm: "8px"
   md: "16px"
   lg: "24px"
-  xl: "40px"
+  xl: "32px"
+  2xl: "48px"
 components:
   button-primary:
     backgroundColor: "{colors.action}"
     textColor: "{colors.surface}"
     rounded: "{rounded.control}"
-    padding: "10px 16px"
+    padding: "8px 16px"
   button-primary-hover:
     backgroundColor: "{colors.action-hover}"
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
-    padding: "10px 16px"
+    padding: "8px 16px"
   choice:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.pill}"
-    padding: "8px 15px"
+    padding: "8px 16px"
   choice-selected:
     backgroundColor: "{colors.action}"
     textColor: "{colors.surface}"
@@ -105,7 +106,7 @@ components:
     backgroundColor: "{colors.band}"
     textColor: "{colors.band-ink}"
     rounded: "{rounded.band}"
-    padding: "26px"
+    padding: "24px"
 ---
 
 # Design System: Bridge
@@ -140,7 +141,7 @@ The interface is a calm workspace for evenings after work: ivory ground, white p
 - **Kind colours**, one per task kind, used for the calendar bars, legend swatches and the small square on type pills. Deep values on white (`kind-*`), bright values on the navy band and in dark mode (`band-*`): research marigold, learning violet, practice tomato, portfolio leaf, networking teal, application plum.
 
 ### Neutral
-- **Ivory** (`#f6f1e6`) ground, **White** (`#ffffff`) panels, **Midnight Navy** (`#0b1a3a`) text, **Slate** (`#4a4d57`) secondary text, **Muted** (`#63656d`) faint text, **Warm Border** (`#dad6cd`) hairlines. **Stone** (`#3b332b`) is the kit's editorial secondary; the app does not use it yet. Dark mode: `#0a1124` ground, `#111a30` panels, `#15284f` band.
+- **Ivory** (`#f6f1e6`) ground, **White** (`#ffffff`) panels, **Midnight Navy** (`#0b1a3a`) text, **Slate** (`#46506a`) secondary text and **Muted** (`#5d667e`) faint text, both tinted toward navy so the greys belong to the brand, **Warm Border** (`#dad6cd`) hairlines. **Stone** (`#3b332b`) is the kit's editorial secondary; the app does not use it yet. Dark mode: `#0a1124` ground, `#111a30` panels, `#15284f` band.
 
 ### Named Rules
 **The One Band Rule.** Each screen has at most one navy band, and it holds the identity (the target role, or the sample plan on the landing page). Everything else sits on white panels.
@@ -149,6 +150,8 @@ The interface is a calm workspace for evenings after work: ivory ground, white p
 
 **The Colour Has A Job Rule.** Navy means "act here" or "this is the shell". Kind colours mean a task kind. Amber and red mean state. A colour that only decorates is removed.
 
+**The Tinted Grey Rule.** Every grey leans toward navy. A neutral grey (equal R, G and B) looks borrowed from another product.
+
 ## Typography
 
 **UI and heading font:** Inter Variable (self-hosted from `@fontsource-variable/inter`).
@@ -156,11 +159,14 @@ The interface is a calm workspace for evenings after work: ivory ground, white p
 
 **Character:** a confident modern sans for work, with one serif line that names where you are going.
 
+### Scale
+Six sizes, nothing in between (rem = 16px): **xs** 0.75rem (12px), **sm** 0.875rem (14px), **md** 1rem (16px), **body** 17px, **lg** 1.25rem (20px), **xl** 1.5rem (24px), plus the display sizes for page headings, the role title and the landing headline. Tokens: `--type-xs` to `--type-xl` in `tokens.css`.
+
 ### Hierarchy
 - **Role title** (Literata 600, up to 3rem, line-height 1.05): the target role in the span band; the sample plan's role at 1.6rem.
 - **Landing headline** (Literata 600, up to 4rem).
 - **Display** (Inter 700, up to 3rem, -0.02em): page headings.
-- **Heading** (Inter 700, 1.55rem / 1.2rem): section and week headings, sentence case; career-card titles at 1.3rem.
+- **Heading** (Inter 700, xl 1.5rem / lg 1.25rem): section and week headings, sentence case; career-card titles at lg.
 - **Body** (Inter 400, 17px, line-height 1.55): all reading text, kept under 70ch for long prose.
 - **Label** (Inter 700, 0.8rem, uppercase, tracked 0.06em): small headings inside cards, table headers, week tags.
 
@@ -169,26 +175,30 @@ The interface is a calm workspace for evenings after work: ivory ground, white p
 
 **The One Size In Lists Rule.** Task lists use one text size; rank comes from weight, never from size jumps.
 
+**The Weight Not Size Rule.** Hierarchy comes from weight and colour first: a title is only a step larger than its body, but heavier and darker; supporting text is Slate. A card never carries more than three sizes.
+
 ## Logo
 
 The header shows the kit's horizontal logo drawn inline (`BridgeLogo` in `frontend/src/components/Icons.tsx`) from `brand/bridge_logo_vector_flat.svg`: flat colours, navy parts on `currentColor` so dark mode turns them ivory, gold parts on `--gold`. The favicon is the flat rounded-square icon (`frontend/public/favicon.svg`, `favicon.ico`), the home-screen icon the metallic one (`apple-touch-icon.png`). Change a logo in `brand/` first, then copy it here. The metallic logo files are for decks, social and app stores, not the product UI.
 
 ## Layout
 
-A single centred column, max 980px, 16px side gutter. Panels stack with 16px between them; more space above a heading than below it. Grids use `auto-fit` minmax columns: career paths at 270px, form pairs at 240px. Under 600px, choice rows scroll sideways inside their card, the rubric table stacks, and task details lose their indent; the page itself never scrolls sideways.
+A single centred column, max 980px, 16px side gutter. Panels stack with 16px between them; more space above a heading than below it.
+
+**The Four-Point Rule.** Every gap, padding and margin is a multiple of 4px from the scale (4, 8, 12, 16, 20, 24, 32, 40, 48, 64), set through `--space-*` tokens, never a loose pixel value. Spacing does the grouping: a label sits closer to its input than fields sit to each other, and items inside a section sit closer than sections do. 1px is for borders only. Grids use `auto-fit` minmax columns: career paths at 270px, form pairs at 240px. Under 600px, choice rows scroll sideways inside their card, the rubric table stacks, and task details lose their indent; the page itself never scrolls sideways.
 
 ## Elevation & Depth
 
-Flat by default: panels separate by 1px rules, not shadows. The only shadow is under the landing page's sample plan (`0 18px 40px -18px rgba(11,26,58,.45)`), which lifts the one example artifact off the page.
+Flat by default: panels separate by 1px rules, not shadows. The only shadow is under the landing page's sample plan, which lifts the one example artifact off the page. It is soft and layered (a 1px contact shadow, a short mid shadow, a long faint one, all navy-tinted), never one heavy blur: `--shadow-sample` in `tokens.css`.
 
 ## Shapes
 
-Bars 3px, controls 8px, panels 12px, the span band 14px, pills and choices fully round. Checkboxes are native, tinted with `accent-color`.
+Bars 3px, small tags 4px, controls 8px, panels 12px, the span band 14px, pills and choices fully round. **The Nested Radius Rule:** an element inside a container gets a smaller radius than the container (band 14 > track 8 > bar 3; panel 12 > control 8 > tag 4), so the curves line up. Borders are 1px and use the warm rule colour. Checkboxes are native, tinted with `accent-color`.
 
 ## Components
 
 ### Buttons
-Primary: navy, white text, 8px radius, 10×16 padding, 1px press. Secondary: white with a 1px strong rule, navy border on hover. Icons are inline SVG strokes (2px, round caps) placed before or after the label.
+Primary: navy, white text, 8px radius, 8×16 padding at 40px tall, 1px press. **The One Primary Rule:** a screen has one primary button, the thing the screen is for. Everything else is secondary, subtle or a text link. Secondary: white with a 1px strong rule, navy border on hover. Icons are inline SVG strokes (2px, round caps) placed before or after the label.
 
 ### Chips (choices)
 Fully round pills with a 1px rule. Selected: filled navy, bold. Single- or multi-select via `aria-pressed`. On phones a row scrolls sideways with snap.
@@ -202,6 +212,9 @@ Scroll lists (native select) and the CV dropzone: a dashed 1.5px rule, round nav
 ### Navigation
 The logo left, text links right; the active link sits on a white pill.
 
+### Motion
+Short, ease-out (`--ease`, expo-out), and it starts where the user acted. Task details unfold from their own summary line (180ms, opening slower than closing; closing is instant). Ticking a task fills its bar. Errors and notices drop in from the top edge of the place they belong to. Pages do not fade everything up on arrival: content is simply there. Reduced motion turns all of it off.
+
 ### Growing Calendar (signature)
 Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label and a deep-navy track whose full width is the user's weekly hours, with one hairline per hour. Each task is a bar with flex-basis = its minutes ÷ weekly minutes, a 1.5px border in its kind colour, filled when done. The next bar gets a gold ring and a gold "Next" pin. Ticking a task animates its fill once (0.7s, expo-out); with reduced motion it fills instantly. Bars are buttons that jump to their task.
 
@@ -213,6 +226,7 @@ Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label an
 - **Do** carry state by form first (outline, filled, ringed), colour second.
 - **Do** label sample or AI-generated content where a visitor could mistake it.
 - **Do** use the logo files from `brand/`; never redraw or retype the logo in CSS or a font.
+- **Do** ask of every screen: what is the one thing it is for, and is that the most obvious thing on it?
 
 ### Don't:
 - **Don't** put a small label or kicker above a heading; put the context inline or below.
@@ -220,4 +234,6 @@ Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label an
 - **Don't** use gradients, metallic gold, glass, glow or decorative stripes in the UI; gridlines must measure something.
 - **Don't** use gold for small text on ivory, or for anything but the logo and the next step.
 - **Don't** use emoji or text glyphs as icons.
+- **Don't** set two buttons of equal weight side by side; the second becomes subtle or a link.
+- **Don't** fade or stagger whole pages in; motion answers an action.
 - **Don't** invent salaries, prices, durations or success scores to fill a panel.

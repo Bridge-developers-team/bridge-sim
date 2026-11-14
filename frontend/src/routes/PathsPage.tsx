@@ -93,7 +93,7 @@ export function PathsPage() {
         mode={mode}
         action={
           mode === "sample" && memory.resumeText ? (
-            <Button size="sm" variant="primary" onClick={() => careers.mutate(false)}>
+            <Button size="sm" onClick={() => careers.mutate(false)}>
               Run live AI on this CV
             </Button>
           ) : undefined
@@ -109,7 +109,7 @@ export function PathsPage() {
         </p>
       </header>
 
-      <div className="card-grid stagger">
+      <div className="card-grid">
         {paths.map((career) => (
           <CareerCard key={career.id} career={career} chosen={journey.careerId === career.id} onChoose={() => choose(career)} />
         ))}
@@ -181,7 +181,7 @@ function CareerCard({ career, chosen, onChoose }: { career: Career; chosen: bool
       {career.assumptions.length > 0 && <p className="muted small">{career.assumptions.join(" ")}</p>}
 
       <div className="career__action">
-        <Button variant="primary" onClick={onChoose}>
+        <Button variant={chosen ? "primary" : "default"} onClick={onChoose}>
           {chosen ? "Open my 30-day plan" : "Build my 30-day plan"}
         </Button>
       </div>

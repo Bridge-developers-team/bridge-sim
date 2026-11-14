@@ -12,7 +12,7 @@ export function ErrorBox({
   onSample?: () => void;
 }) {
   return (
-    <div className="error-box animate-fade" role="alert">
+    <div className="error-box animate-drop" role="alert">
       <p className="error-box__text">{message}</p>
       {(onRetry || onSample) && (
         <div className="row">
