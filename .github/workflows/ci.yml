@@ -1,0 +1,132 @@
+# CI: every push and pull request. Render deploys main only after all of these
+# pass (render.yaml: autoDeployTrigger: checksPass), so a red check never
+# reaches production. CD itself is Render: no deploy keys live in GitHub.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (lint, types, layers, tests on Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bridge_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run ty check src
+      - run: uv run lint-imports
+      - name: Tests (SQLite)
+        run: uv run pytest
+      - name: Tests (Postgres, as in production)
+        run: uv run pytest
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/bridge_test
+
+  frontend:
+    name: Frontend (types, unit tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=moderate
+
+  e2e:
+    name: End to end (real browser, demo mode)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build front end
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          npx playwright install --with-deps chromium
+      - name: Start server (demo mode)
+        working-directory: backend
+        env:
+          LLM_PROVIDER: demo
+          SECRET_KEY: ci-only-secret-0123456789
+          DATABASE_URL: sqlite+aiosqlite:////tmp/e2e.db
+        run: |
+          uv sync --frozen --no-dev
+          nohup uv run --no-dev uvicorn bridge.main:create_app --factory --port 8000 > /tmp/server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:8000/healthz && exit 0; sleep 1; done
+          cat /tmp/server.log; exit 1
+      - name: Walk the judge path
+        working-directory: frontend
+        run: BASE=http://localhost:8000 npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: frontend/e2e/out/
+      - if: failure()
+        run: cat /tmp/server.log
+
+  docker:
+    name: Docker image (build + smoke test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t bridge:ci .
+      - name: Run the image the way Render does
+        run: |
+          docker run -d --name bridge -p 8000:10000 -e PORT=10000 -e LLM_PROVIDER=demo bridge:ci
+          for i in $(seq 1 30); do curl -sf localhost:8000/healthz && break; sleep 1; done
+          curl -sf localhost:8000/healthz | grep '"ok":true'
+          curl -sf localhost:8000/ | grep -q '<div id="root">'
+          curl -sf localhost:8000/p/any-proof-id | grep -q '<div id="root">'
+          curl -sf localhost:8000/api/config | grep -q '"samples"'
+      - if: failure()
+        run: docker logs bridge

@@ -1,0 +1,21 @@
+# Render Blueprint: one free web service built from the Dockerfile.
+# Deploys main only after every GitHub check passes (CI must be green).
+services:
+  - type: web
+    name: bridge
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false # paste in the Render dashboard; never in git
+      - key: DATABASE_URL
+        sync: false # Neon connection string
+      - key: SECRET_KEY
+        generateValue: true
+      - key: AI_CALLS_PER_DAY
+        value: "400"
