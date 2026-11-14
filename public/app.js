@@ -27,6 +27,7 @@ import {
   MAX_HOURS,
 } from "/lib/roadmap.js";
 import { transitionCost, belowMinimum, amount } from "/lib/finance.js";
+import { scheduleTasks, startDateFor, googleCalendarUrl, buildIcs, WEEKDAYS } from "/lib/calendar.js";
 
 const app = document.getElementById("app");
 const nav = document.getElementById("nav");
@@ -51,8 +52,9 @@ function emptyForm() {
     monthlyLearningBudget: 0,
     currency: "USD",
     location: "",
-    interestedRoles: "",
+    interestedRoles: [],
     transitionPreference: "balanced",
+    cvSource: null, // { kind: "file" | "sample", name, pages }
     // Sensitive: memory only, never sent to the server or saved.
     currentMonthlyIncome: "",
     minimumAcceptableIncome: "",
@@ -76,6 +78,7 @@ function blankSaved() {
     selectedCareerId: null,
     roadmap: null,
     roadmapMode: null,
+    calendar: null, // { days: [0-6], hour, start: "today" | "tomorrow" | "monday" }
     practice: {}, // taskId -> { simulation, mode, answer, sampleUsed, evaluation, evalMode, attempts, submitted, reflection }
   };
 }
@@ -211,7 +214,8 @@ function startDemo() {
     ...p,
     resumeText: sample?.resume ?? "",
     yearsExperience: p.yearsExperience ?? "",
-    interestedRoles: (p.interestedRoles ?? []).join(", "),
+    interestedRoles: [...(p.interestedRoles ?? [])],
+    cvSource: { kind: "sample", name: sample?.label.replace(/^Sample: /, "") ?? "Demo teacher" },
   };
   memory.demoLoaded = true;
   go("#/start");
@@ -285,27 +289,98 @@ function fieldError(id, msg) {
   return msg ? el("p", { id, class: "field-error", role: "alert" }, msg) : null;
 }
 
-// Typing in a field clears its old error message.
-function clearErrorOnInput(input) {
-  input.addEventListener("input", () => {
-    input.removeAttribute("aria-invalid");
-    input.closest(".field")?.querySelector(".field-error")?.remove();
+// ---- choice controls: buttons in a scrollable row, or a scroll list ----
+let groupSeq = 0;
+
+// Single or multi choice as a row of buttons. options: [{ value, label }].
+function choiceGroup({ label, hint, options, value, onChange, multi = false, max = Infinity, error }) {
+  const id = `cg-${++groupSeq}`;
+  const selected = () => (multi ? value : [value]);
+  const row = el("div", { class: "choice-row", role: "group", "aria-labelledby": id });
+  const draw = () =>
+    mount(
+      row,
+      options.map((o) => {
+        const on = selected().includes(o.value);
+        return el(
+          "button",
+          {
+            type: "button",
+            class: "choice",
+            "aria-pressed": on ? "true" : "false",
+            onclick: () => {
+              if (multi) {
+                if (on) value = value.filter((v) => v !== o.value);
+                else if (value.length < max) value = [...value, o.value];
+                else value = [...value.slice(1), o.value];
+              } else value = o.value;
+              onChange(value);
+              draw();
+            },
+          },
+          o.label,
+        );
+      }),
+    );
+  draw();
+  return el(
+    "div",
+    { class: "choice-field" },
+    el("p", { id, class: "label flush" }, label, hint ? el("span", { class: "muted small" }, " " + hint) : null),
+    row,
+    error ? el("p", { class: "field-error", role: "alert" }, error) : null,
+  );
+}
+
+// Scroll list (native select). options: [{ value, label }].
+function choiceSelect({ id, label, options, value, onChange }) {
+  const select = el(
+    "select",
+    { id },
+    options.map((o) => el("option", { value: o.value, selected: String(o.value) === String(value) }, o.label)),
+  );
+  select.addEventListener("change", () => onChange(select.value));
+  return el("label", { class: "field", for: id }, label, select);
+}
+
+const HOURS_CHOICES = [1, 2, 3, 4, 5, 6, 8, 10, 15, 20];
+const ROLE_IDEAS = [
+  "Instructional designer",
+  "Corporate trainer",
+  "Project coordinator",
+  "Program manager",
+  "Customer success manager",
+  "Operations specialist",
+  "HR / recruiting",
+  "Data analyst",
+  "UX researcher",
+  "Marketing specialist",
+  "Content writer",
+  "Account manager",
+];
+const COUNTRIES = ["Kazakhstan", "Uzbekistan", "Kyrgyzstan", "Russia", "United States", "United Kingdom", "Canada", "Germany", "India", "Other"];
+
+// Picker steps per currency. These are only steps in a list the user picks
+// from, never conversions or estimates.
+const CURRENCY_STEP = { KZT: 500, INR: 80 };
+function amountOptions(currency, base) {
+  const f = CURRENCY_STEP[currency] ?? 1;
+  return base.map((n) => n * f);
+}
+function fmtAmount(n, currency) {
+  return currency === "USD" ? money(n) : `${Math.round(n).toLocaleString("en-US")} ${currency}`;
+}
+const BUDGET_STEPS = [0, 10, 25, 50, 100, 200, 500];
+const INCOME_STEPS = [250, 500, 750, 1000, 1250, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 10000, 12500, 15000, 20000];
+
+function incomeSelect(id, label, currency, value, onChange) {
+  return choiceSelect({
+    id,
+    label,
+    value,
+    onChange,
+    options: [{ value: "", label: "Prefer not to say" }, ...amountOptions(currency, INCOME_STEPS).map((n) => ({ value: n, label: `about ${fmtAmount(n, currency)}` }))],
   });
-  return input;
-}
-
-function textInput(key, attrs = {}) {
-  const input = el("input", { type: "text", id: `f-${key}`, ...attrs });
-  input.value = memory.form[key] ?? "";
-  input.addEventListener("input", () => (memory.form[key] = input.value));
-  return clearErrorOnInput(input);
-}
-
-function numberInput(key, attrs = {}) {
-  const input = el("input", { type: "number", id: `f-${key}`, inputmode: "decimal", ...attrs });
-  input.value = memory.form[key] ?? "";
-  input.addEventListener("input", () => (memory.form[key] = input.value));
-  return clearErrorOnInput(input);
 }
 
 function renderOnboarding(step, errors = {}) {
@@ -314,47 +389,43 @@ function renderOnboarding(step, errors = {}) {
   return step === 1 ? renderBackground(errors) : renderConstraints(errors);
 }
 
+// ---- step 1: CV upload ----
 function renderBackground(errors) {
   const f = memory.form;
-  const textarea = el("textarea", {
-    id: "f-resume",
-    rows: 14,
-    placeholder: "Paste your résumé here, or describe your work in a few lines: your role, years, what you do, what you're proud of…",
-    "aria-describedby": "resume-help" + (errors.resume ? " err-resume" : ""),
-    "aria-invalid": errors.resume ? "true" : null,
-  });
-  textarea.value = f.resumeText;
-  textarea.addEventListener("input", () => (f.resumeText = textarea.value));
-
-  // PDF upload: read in the browser; scanned PDFs go to the AI only on request.
   const status = el("div", { class: "upload-status", role: "status", "aria-live": "polite" });
   const showStatus = (kind, ...parts) => mount(status, el("div", { class: kind === "error" ? "error" : kind === "warn" ? "warn" : "callout" }, ...parts));
-  const fileInput = el("input", { type: "file", accept: ".pdf,application/pdf", id: "pdf-file", class: "visually-hidden" });
-  const useText = (text, note) => {
-    f.resumeText = text;
-    textarea.value = text;
-    showStatus("ok", note, " Check the text below and fix anything that came out wrong.");
+  const fileInput = el("input", { type: "file", accept: ".pdf,application/pdf,.txt,text/plain", id: "cv-file", class: "visually-hidden" });
+
+  const useText = (text, source) => {
+    f.resumeText = text.slice(0, config.limits.maxResume);
+    f.cvSource = source;
+    renderOnboarding(1);
   };
+
   async function handleFile(file) {
     if (!file) return;
     showStatus("ok", `Reading ${file.name}…`);
     try {
+      if (/\.txt$/i.test(file.name) || file.type === "text/plain") {
+        const text = (await file.text()).trim();
+        if (text.length < 80) return showStatus("error", "That file has almost no text. Upload your CV as a PDF.");
+        return useText(text, { kind: "file", name: file.name });
+      }
       const { extractPdfText, fileToBase64 } = await import("/pdf.js");
       const { text, pages, totalPages } = await extractPdfText(file);
-      const pageNote = totalPages > pages ? ` (first ${pages} of ${totalPages} pages)` : ` (${pages} page${pages === 1 ? "" : "s"})`;
-      if (text.length >= 80) return useText(text.slice(0, config.limits.maxResume), `Loaded ${file.name}${pageNote}.`);
-      if (config.mode !== "live") return showStatus("warn", `${file.name} has no selectable text (it looks scanned). Paste the text instead.`);
+      if (text.length >= 80) return useText(text, { kind: "file", name: file.name, pages, totalPages });
+      if (config.mode !== "live") return showStatus("warn", `${file.name} has no selectable text (it looks scanned). Try a different PDF export.`);
       const askBtn = el(
         "button",
         {
           type: "button",
-          class: "secondary",
+          class: "primary",
           onclick: async () => {
             askBtn.disabled = true;
             askBtn.textContent = "Reading with AI…";
             try {
               const out = await api("/api/pdf-text", { data: await fileToBase64(file) });
-              useText(out.text, `AI transcribed ${file.name}.`);
+              useText(out.text, { kind: "file", name: file.name, scanned: true });
             } catch (err) {
               showStatus("error", err.message);
             }
@@ -362,7 +433,7 @@ function renderBackground(errors) {
         },
         "Let the AI read it",
       );
-      showStatus("warn", `${file.name} has no selectable text (it looks like a scan). The AI can read it: the file is sent to Anthropic for this one request and not stored. `, el("div", { class: "actions" }, askBtn));
+      showStatus("warn", `${file.name} looks like a scan (no selectable text). The AI can read it: the file is sent to Anthropic for this one request and not stored. `, el("div", { class: "actions" }, askBtn));
     } catch (err) {
       showStatus("error", err.message);
     } finally {
@@ -370,16 +441,45 @@ function renderBackground(errors) {
     }
   }
   fileInput.addEventListener("change", () => handleFile(fileInput.files?.[0]));
-  textarea.addEventListener("dragover", (e) => (e.preventDefault(), textarea.classList.add("dragging")));
-  textarea.addEventListener("dragleave", () => textarea.classList.remove("dragging"));
-  textarea.addEventListener("drop", (e) => {
+
+  const drop = el(
+    "label",
+    { for: "cv-file", class: "dropzone" + (errors.resume ? " invalid" : "") },
+    el("span", { class: "drop-icon", "aria-hidden": "true" }, "⇪"),
+    el("strong", {}, "Upload your CV"),
+    el("span", { class: "small muted" }, "PDF or .txt · up to 5 MB · or drop it here"),
+  );
+  drop.addEventListener("dragover", (e) => (e.preventDefault(), drop.classList.add("dragging")));
+  drop.addEventListener("dragleave", () => drop.classList.remove("dragging"));
+  drop.addEventListener("drop", (e) => {
     e.preventDefault();
-    textarea.classList.remove("dragging");
+    drop.classList.remove("dragging");
     handleFile(e.dataTransfer?.files?.[0]);
   });
 
+  const loaded = f.resumeText.trim().length >= 80;
+  const src = f.cvSource ?? {};
+  const loadedCard = loaded
+    ? (() => {
+        const check = el("textarea", { id: "cv-text", rows: 10, "aria-label": "Text read from your CV" });
+        check.value = f.resumeText;
+        check.addEventListener("input", () => (f.resumeText = check.value));
+        const name = src.kind === "sample" ? `Sample CV: ${src.name}` : src.name ?? "Your CV";
+        const meta = [
+          src.pages ? `${src.totalPages > src.pages ? `first ${src.pages} of ${src.totalPages}` : src.pages} page${src.pages === 1 ? "" : "s"}` : null,
+          `${f.resumeText.trim().split(/\s+/).length.toLocaleString("en-US")} words`,
+          src.scanned ? "read by AI" : null,
+        ].filter(Boolean);
+        return el(
+          "div",
+          { class: "cv-loaded" },
+          el("div", { class: "row space" }, el("div", {}, el("strong", {}, "✓ " + name), el("p", { class: "small muted flush" }, meta.join(" · "))), el("div", { class: "row tight" }, el("label", { for: "cv-file", class: "button secondary small-btn" }, "Replace"), el("button", { type: "button", class: "secondary small-btn", onclick: () => ((f.resumeText = ""), (f.cvSource = null), (memory.demoLoaded = false), renderOnboarding(1)) }, "Remove"))),
+          el("details", {}, el("summary", { class: "small" }, "Check the text we read"), el("p", { class: "small muted" }, "Fix anything that came out garbled. Only this text is used."), check),
+        );
+      })()
+    : null;
+
   const samples = config.samples.filter((s) => s.track === "changer");
-  const years = numberInput("yearsExperience", { min: 0, max: 60, step: 1, placeholder: "e.g. 7" });
 
   mount(
     app,
@@ -392,101 +492,62 @@ function renderBackground(errors) {
         novalidate: true,
         onsubmit: (e) => {
           e.preventDefault();
-          const errs = {};
-          if (f.resumeText.trim().length < 80) errs.resume = "Paste your résumé, or describe your work in at least a few lines (80+ characters). No résumé at hand? Use Try Demo.";
-          if (f.resumeText.length > config.limits.maxResume) errs.resume = `That's too long. Keep it under ${config.limits.maxResume.toLocaleString("en-US")} characters.`;
-          const y = f.yearsExperience;
-          if (y !== "" && (!(Number(y) >= 0) || Number(y) > 60)) errs.years = "Enter a number of years from 0 to 60, or leave it blank.";
-          if (Object.keys(errs).length) return renderOnboarding(1, errs);
+          if (f.resumeText.trim().length < 80) return renderOnboarding(1, { resume: "Upload your CV first, or pick a sample CV below." });
           go("#/start/2");
         },
       },
-      memory.demoLoaded ? el("p", { class: "callout" }, el("strong", {}, "Demo profile loaded. "), "A fictitious teacher with 7 years of experience. Look it over, then continue.") : null,
-      !f.resumeText && saved.recs ? el("p", { class: "callout" }, "For your privacy, your résumé is not saved. Paste it again to get new career paths.") : null,
-      el("h2", {}, "Your background"),
-      el("p", { id: "resume-help", class: "muted" }, "Upload or paste your résumé. Bridge reads it to find skills that already count in a new career."),
-      el(
-        "div",
-        { class: "upload-row" },
-        fileInput,
-        el("label", { for: "pdf-file", class: "button secondary upload-btn" }, "Upload PDF résumé"),
-        el("span", { class: "small muted" }, "Read in your browser; only the text is used."),
-      ),
+      memory.demoLoaded ? el("p", { class: "callout" }, el("strong", {}, "Demo CV loaded. "), "A fictitious teacher with 7 years of experience. Continue when ready.") : null,
+      !loaded && saved.recs ? el("p", { class: "callout" }, "For your privacy, your CV is not saved. Upload it again to get new career paths.") : null,
+      el("h2", {}, "Your CV"),
+      el("p", { class: "muted" }, "Bridge reads your CV to find skills that already count in a new career. PDFs are read in your browser."),
+      fileInput,
+      loadedCard ?? drop,
       status,
-      el("label", { for: "f-resume", class: "label" }, "Résumé or work description"),
-      textarea,
       fieldError("err-resume", errors.resume),
       el(
         "div",
-        { class: "chips" },
-        el("span", { class: "small muted" }, "Or try a sample:"),
-        samples.map((s) =>
-          el("button", { type: "button", class: "chip", onclick: () => ((f.resumeText = s.resume), renderOnboarding(1)) }, s.label.replace(/^Sample: /, "")),
+        { class: "choice-field" },
+        el("p", { class: "small muted flush" }, "No CV at hand? Try a sample:"),
+        el(
+          "div",
+          { class: "choice-row" },
+          samples.map((s) => {
+            const label = s.label.replace(/^Sample: /, "");
+            return el("button", { type: "button", class: "choice", "aria-pressed": src.kind === "sample" && src.name === label ? "true" : "false", onclick: () => useText(s.resume, { kind: "sample", name: label }) }, label);
+          }),
         ),
       ),
-      el(
-        "div",
-        { class: "grid2" },
-        el("label", { class: "field" }, "Current role ", el("span", { class: "muted small" }, "(optional: we can read it from your résumé)"), textInput("currentRole", { placeholder: "e.g. Middle-school teacher" })),
-        el("label", { class: "field" }, "Years in this career ", el("span", { class: "muted small" }, "(optional)"), years, fieldError("err-years", errors.years)),
-      ),
       el("div", { class: "actions split" }, el("a", { href: "#/", class: "button secondary" }, "Back"), el("button", { type: "submit", class: "primary" }, "Next: your constraints")),
-      el("p", { class: "fine" }, "Privacy: your résumé is never published or saved by Bridge. It is sent to the AI once to suggest career paths and is forgotten when you close or reload this page."),
+      el("p", { class: "fine" }, "Privacy: your CV is never published or saved by Bridge. Its text is sent to the AI once to suggest career paths and is forgotten when you reload this page."),
     ),
   );
 }
 
+// ---- step 2: constraints, all choices ----
 function renderConstraints(errors, failure) {
   const f = memory.form;
-  const motivation = el(
-    "div",
-    { class: "chips", role: "group", "aria-label": "Why do you want to change?" },
-    MOTIVATIONS.map((m) => {
-      const b = el("button", { type: "button", class: "chip toggle", "aria-pressed": f.changeMotivation.includes(m) ? "true" : "false" }, m);
-      b.addEventListener("click", () => {
-        f.changeMotivation = f.changeMotivation.includes(m) ? f.changeMotivation.filter((x) => x !== m) : [...f.changeMotivation, m];
-        b.setAttribute("aria-pressed", f.changeMotivation.includes(m) ? "true" : "false");
-      });
-      return b;
-    }),
-  );
-  const currency = el("select", { id: "f-currency", "aria-label": "Currency" }, CURRENCIES.map((c) => el("option", { value: c, selected: c === f.currency }, c)));
-  currency.addEventListener("change", () => (f.currency = currency.value));
-
-  const trackRadios = el(
-    "fieldset",
-    { class: "tracks" },
-    el("legend", {}, "How fast do you want to move?"),
-    TRACKS.map((t) => {
-      const input = el("input", { type: "radio", name: "track", value: t, checked: f.transitionPreference === t });
-      input.addEventListener("change", () => (f.transitionPreference = t));
-      return el("label", { class: "track-option" }, input, el("span", {}, el("strong", {}, TRACK_INFO[t].label), el("span", { class: "small muted" }, TRACK_INFO[t].summary)));
-    }),
-  );
-
-  const moneyOpen = Boolean(f.currentMonthlyIncome || f.minimumAcceptableIncome);
+  const set = (key) => (v) => (f[key] = v);
 
   async function submit(sample = false) {
     const errs = {};
     const h = Number(f.hoursPerWeek);
-    if (!(h >= MIN_HOURS && h <= MAX_HOURS)) errs.hours = `Enter between ${MIN_HOURS} and ${MAX_HOURS} hours per week.`;
-    const b = f.monthlyLearningBudget;
-    if (b === "" || !(Number(b) >= 0)) errs.budget = "Enter 0 or more. Use 0 for free resources only.";
-    for (const k of ["currentMonthlyIncome", "minimumAcceptableIncome"]) if (f[k] !== "" && amount(f[k]) === null) errs[k] = "Enter a number of 0 or more, or leave it blank.";
+    if (!(h >= MIN_HOURS && h <= MAX_HOURS)) errs.hours = "Pick how many hours you have each week.";
+    if (!(Number(f.monthlyLearningBudget) >= 0)) errs.budget = "Pick a learning budget (0 = free resources only).";
     if (Object.keys(errs).length) return renderConstraints(errs);
     loading("Reading your experience and finding 3 realistic career paths…", "Usually 15–30 seconds. Your answers are kept if anything goes wrong.");
     try {
       const out = await api("/api/career-recommendations", { resumeText: f.resumeText, profile: apiProfile(), sample });
       saved.profile = { ...apiProfile(), currentRole: out.profile.currentRole, yearsExperience: out.profile.yearsExperience, industry: out.profile.industry };
       saved.recs = out;
-      if (!f.currentRole) f.currentRole = out.profile.currentRole;
-      if (f.yearsExperience === "" && out.profile.yearsExperience !== null) f.yearsExperience = out.profile.yearsExperience;
       save();
       go("#/explore");
     } catch (err) {
       renderConstraints({}, { message: err.message, retry: () => submit(sample), sample: () => submit(true) });
     }
   }
+
+  const currency = f.currency;
+  const moneyOpen = Boolean(f.currentMonthlyIncome || f.minimumAcceptableIncome);
 
   mount(
     app,
@@ -496,51 +557,87 @@ function renderConstraints(errors, failure) {
       "form",
       { class: "card", novalidate: true, onsubmit: (e) => (e.preventDefault(), submit()) },
       el("h2", {}, "Your constraints"),
-      el("p", { class: "muted" }, "Your plan has to fit your real life. These answers shape every week of it."),
+      el("p", { class: "muted" }, "Tap to choose. Your plan has to fit your real life."),
+      choiceGroup({
+        label: "Free hours per week for the switch",
+        options: HOURS_CHOICES.map((n) => ({ value: n, label: `${n} h` })),
+        value: Number(f.hoursPerWeek),
+        onChange: set("hoursPerWeek"),
+        error: errors.hours,
+      }),
+      choiceGroup({
+        label: "Currency",
+        options: CURRENCIES.map((c) => ({ value: c, label: c })),
+        value: f.currency,
+        onChange: (v) => {
+          // Amount steps depend on the currency, so reset picked amounts.
+          if (v !== f.currency) Object.assign(f, { currency: v, monthlyLearningBudget: 0, currentMonthlyIncome: "", minimumAcceptableIncome: "" });
+          renderConstraints({});
+        },
+      }),
+      choiceGroup({
+        label: "Monthly learning budget",
+        hint: "(0 = free resources only)",
+        options: amountOptions(currency, BUDGET_STEPS).map((n) => ({ value: n, label: n === 0 ? "Free only" : fmtAmount(n, currency) })),
+        value: Number(f.monthlyLearningBudget),
+        onChange: set("monthlyLearningBudget"),
+        error: errors.budget,
+      }),
+      choiceGroup({
+        label: "Why do you want to change?",
+        hint: "(optional, pick any)",
+        options: MOTIVATIONS.map((m) => ({ value: m, label: m })),
+        value: f.changeMotivation,
+        onChange: set("changeMotivation"),
+        multi: true,
+      }),
+      choiceGroup({
+        label: "How fast do you want to move?",
+        options: TRACKS.map((t) => ({ value: t, label: TRACK_INFO[t].label })),
+        value: f.transitionPreference,
+        onChange: (v) => {
+          f.transitionPreference = v;
+          trackHelp.textContent = TRACK_INFO[v].summary;
+        },
+      }),
+      el("p", { class: "small muted track-help" }, TRACK_INFO[f.transitionPreference].summary),
+      choiceGroup({
+        label: "Roles you're curious about",
+        hint: "(optional, up to 3)",
+        options: ROLE_IDEAS.map((r) => ({ value: r, label: r })),
+        value: f.interestedRoles,
+        onChange: set("interestedRoles"),
+        multi: true,
+        max: 3,
+      }),
       el(
         "div",
         { class: "grid2" },
-        el(
-          "label",
-          { class: "field" },
-          "Free hours per week for the switch",
-          numberInput("hoursPerWeek", { min: MIN_HOURS, max: MAX_HOURS, step: 0.5, required: true, "aria-invalid": errors.hours ? "true" : null }),
-          fieldError("err-hours", errors.hours),
-        ),
-        el(
-          "div",
-          { class: "field" },
-          el("label", { for: "f-monthlyLearningBudget" }, "Monthly learning budget"),
-          el("div", { class: "row tight nowrap" }, numberInput("monthlyLearningBudget", { min: 0, step: 1, required: true, "aria-invalid": errors.budget ? "true" : null }), currency),
-          el("span", { class: "small muted" }, "0 = free resources only."),
-          fieldError("err-budget", errors.budget),
-        ),
-      ),
-      el("p", { class: "label" }, "Why do you want to change? ", el("span", { class: "muted small" }, "(optional, pick any)")),
-      motivation,
-      trackRadios,
-      el(
-        "div",
-        { class: "grid2" },
-        el("label", { class: "field" }, "Roles you're curious about ", el("span", { class: "muted small" }, "(optional, comma-separated)"), textInput("interestedRoles", { placeholder: "e.g. instructional designer" })),
-        el("label", { class: "field" }, "Country or city ", el("span", { class: "muted small" }, "(optional)"), textInput("location", { placeholder: "e.g. Kazakhstan" })),
+        choiceSelect({
+          id: "f-location",
+          label: "Where do you live? (optional)",
+          value: f.location,
+          onChange: set("location"),
+          options: [{ value: "", label: "Prefer not to say" }, ...COUNTRIES.map((c) => ({ value: c, label: c }))],
+        }),
       ),
       el(
         "details",
-        { open: moneyOpen || errors.currentMonthlyIncome || errors.minimumAcceptableIncome ? true : null },
+        { open: moneyOpen ? true : null },
         el("summary", {}, "Add money details (optional)"),
-        el("p", { class: "small muted" }, `Only used for your own money check on the roadmap page. Never sent to the server or saved: these numbers are gone when you reload. Amounts in ${f.currency} per month.`),
+        el("p", { class: "small muted" }, `Only for your own money check on the roadmap page. Never sent to the server or saved; gone when you reload. Amounts in ${currency} per month.`),
         el(
           "div",
           { class: "grid2" },
-          el("label", { class: "field" }, "Current monthly income", numberInput("currentMonthlyIncome", { min: 0, step: 1 }), fieldError("err-cmi", errors.currentMonthlyIncome)),
-          el("label", { class: "field" }, "Lowest monthly income you could accept", numberInput("minimumAcceptableIncome", { min: 0, step: 1 }), fieldError("err-mai", errors.minimumAcceptableIncome)),
+          incomeSelect("f-cmi", "Current monthly income", currency, f.currentMonthlyIncome, set("currentMonthlyIncome")),
+          incomeSelect("f-mai", "Lowest monthly income you could accept", currency, f.minimumAcceptableIncome, set("minimumAcceptableIncome")),
         ),
       ),
       failure ? errorPanel(failure.message, { onRetry: failure.retry, onSample: failure.sample }) : null,
       el("div", { class: "actions split" }, el("a", { href: "#/start", class: "button secondary" }, "Back"), el("button", { type: "submit", class: "primary" }, "Find my career paths")),
     ),
   );
+  const trackHelp = app.querySelector(".track-help");
 }
 
 // ---------- C/D. Career explorer + comparison ----------
@@ -622,7 +719,12 @@ function renderExplore(failure) {
   const who = memory.ui.explorerEdit
     ? (() => {
         const role = el("input", { type: "text", id: "edit-role", value: p.currentRole });
-        const yrs = el("input", { type: "number", id: "edit-years", min: 0, max: 60, value: p.yearsExperience ?? "" });
+        const yrs = el(
+          "select",
+          { id: "edit-years" },
+          el("option", { value: "", selected: p.yearsExperience === null || p.yearsExperience === undefined }, "Not sure"),
+          Array.from({ length: 41 }, (_, n) => el("option", { value: n, selected: p.yearsExperience === n }, n === 40 ? "40+ years" : `${n} year${n === 1 ? "" : "s"}`)),
+        );
         return el(
           "form",
           {
@@ -870,33 +972,25 @@ function nextActionCard(r) {
 }
 
 function planSettings(r) {
-  const hours = el("input", { type: "number", id: "plan-hours", min: MIN_HOURS, max: MAX_HOURS, step: 0.5, value: r.hoursPerWeek });
-  const track = el("select", { id: "plan-track" }, TRACKS.map((t) => el("option", { value: t, selected: t === r.track }, TRACK_INFO[t].label)));
-  const trackHelp = el("p", { class: "small muted", id: "track-help" }, TRACK_INFO[r.track].summary);
+  const pick = { hours: r.hoursPerWeek, track: r.track };
+  const trackHelp = el("p", { class: "small muted" }, TRACK_INFO[r.track].summary);
   const warn = el("p", { class: "small warn-text", role: "status" });
   const updateHelp = () => {
-    trackHelp.textContent = TRACK_INFO[track.value].summary;
+    trackHelp.textContent = TRACK_INFO[pick.track].summary;
     const budget = saved.profile?.monthlyLearningBudget ?? 0;
     warn.textContent =
-      track.value === "fast" && budget === 0
+      pick.track === "fast" && budget === 0
         ? "Fast Track usually means more hours or paid learning. Your budget is 0, so the plan stays on free resources and uses all your weekly hours."
-        : track.value === "fast" && Number(hours.value) < 5
+        : pick.track === "fast" && pick.hours < 5
           ? "Fast Track with under 5 hours a week is still slow. Consider adding hours if you can."
           : "";
   };
-  track.addEventListener("change", updateHelp);
-  hours.addEventListener("input", updateHelp);
   updateHelp();
-  const err = el("p", { class: "field-error", role: "alert" });
   const pr = progress(r);
+  const hourOptions = [...new Set([...HOURS_CHOICES, r.hoursPerWeek])].sort((a, b) => a - b);
 
   const askRegenerate = () => {
-    const h = Number(hours.value);
-    if (!(h >= MIN_HOURS && h <= MAX_HOURS)) {
-      err.textContent = `Enter between ${MIN_HOURS} and ${MAX_HOURS} hours per week.`;
-      return;
-    }
-    memory.ui.confirm = { kind: "regenerate", hoursPerWeek: h, track: track.value };
+    memory.ui.confirm = { kind: "regenerate", hoursPerWeek: pick.hours, track: pick.track };
     renderRoadmap();
     app.querySelector(".confirm")?.scrollIntoView({ block: "center" });
   };
@@ -905,15 +999,20 @@ function planSettings(r) {
     "details",
     { class: "card settings", open: memory.ui.open.has("settings") ? true : null, ontoggle: (e) => (e.target.open ? memory.ui.open.add("settings") : memory.ui.open.delete("settings")) },
     el("summary", {}, "Change hours or track"),
-    el(
-      "div",
-      { class: "grid2" },
-      el("label", { class: "field" }, "Hours per week", hours),
-      el("label", { class: "field" }, "Track", track),
-    ),
+    choiceGroup({
+      label: "Hours per week",
+      options: hourOptions.map((n) => ({ value: n, label: `${n} h` })),
+      value: r.hoursPerWeek,
+      onChange: (v) => ((pick.hours = v), updateHelp()),
+    }),
+    choiceGroup({
+      label: "Track",
+      options: TRACKS.map((t) => ({ value: t, label: TRACK_INFO[t].label })),
+      value: r.track,
+      onChange: (v) => ((pick.track = v), updateHelp()),
+    }),
     trackHelp,
     warn,
-    err,
     el("div", { class: "actions" }, el("button", { type: "button", class: "secondary", onclick: askRegenerate }, "Regenerate my plan")),
     el("p", { class: "fine" }, pr.done ? `You have ${pr.done} completed task${pr.done === 1 ? "" : "s"}. You'll confirm before anything changes.` : "Your plan is replaced with one that fits the new hours and track."),
   );
@@ -940,24 +1039,112 @@ function regenerateConfirm(r) {
   );
 }
 
+// ---- calendar: Google Calendar links + one .ics file, no sign-in ----
+const HOUR_CHOICES = Array.from({ length: 17 }, (_, i) => i + 6); // 06:00-22:00
+function hourLabel(h) {
+  return `${String(h).padStart(2, "0")}:00`;
+}
+
+function calendarCard(r) {
+  if (!saved.calendar) saved.calendar = { days: [2, 4, 6], hour: 19, start: "tomorrow" };
+  const cal = saved.calendar;
+  const out = el("div", { role: "status", "aria-live": "polite" });
+  const dateFmt = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+
+  function events() {
+    return scheduleTasks(r, { startDate: startDateFor(cal.start), days: cal.days, startHour: cal.hour });
+  }
+
+  function draw() {
+    save();
+    if (!cal.days.length) return mount(out, el("p", { class: "field-error" }, "Pick at least one study day."));
+    const list = events();
+    if (!list.length) return mount(out, el("p", { class: "muted" }, "Every task is done. Nothing left to schedule."));
+    mount(
+      out,
+      el(
+        "div",
+        { class: "actions" },
+        el("button", { type: "button", class: "primary", onclick: downloadIcs }, `Add all ${list.length} tasks (.ics file)`),
+      ),
+      el(
+        "p",
+        { class: "small muted" },
+        "Google Calendar: open calendar.google.com → Settings → Import & export → Import, choose the file. It also works with Apple Calendar and Outlook. Or add tasks one by one below.",
+      ),
+      el(
+        "ul",
+        { class: "cal-list" },
+        list.map((e) =>
+          el(
+            "li",
+            {},
+            el("span", { class: "cal-when" }, `${dateFmt.format(e.start)} · ${timeFmt.format(e.start)}–${timeFmt.format(e.end)}`),
+            el("span", { class: "cal-title" }, e.title),
+            el("a", { class: "button secondary small-btn", href: googleCalendarUrl(e), target: "_blank", rel: "noopener noreferrer" }, "Add to Google Calendar"),
+          ),
+        ),
+      ),
+    );
+  }
+
+  function downloadIcs() {
+    const blob = new Blob([buildIcs(events(), { calendarId: r.id })], { type: "text/calendar" });
+    const a = el("a", { href: URL.createObjectURL(blob), download: "bridge-roadmap.ics" });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  draw();
+  return el(
+    "details",
+    { class: "card calendar", open: memory.ui.open.has("calendar") ? true : null, ontoggle: (e) => (e.target.open ? memory.ui.open.add("calendar") : memory.ui.open.delete("calendar")) },
+    el("summary", {}, "Plan it in Google Calendar"),
+    el("p", { class: "small muted" }, "Pick when you study. Bridge spreads each week's unfinished tasks over those days, one after another from your start time."),
+    choiceGroup({
+      label: "Study days",
+      options: [1, 2, 3, 4, 5, 6, 0].map((d) => ({ value: d, label: WEEKDAYS[d] })),
+      value: cal.days,
+      multi: true,
+      onChange: (v) => ((cal.days = v), draw()),
+    }),
+    choiceGroup({
+      label: "Start time",
+      options: HOUR_CHOICES.map((h) => ({ value: h, label: hourLabel(h) })),
+      value: cal.hour,
+      onChange: (v) => ((cal.hour = v), draw()),
+    }),
+    choiceGroup({
+      label: "Week 1 starts",
+      options: [
+        { value: "today", label: "Today" },
+        { value: "tomorrow", label: "Tomorrow" },
+        { value: "monday", label: "Next Monday" },
+      ],
+      value: cal.start,
+      onChange: (v) => ((cal.start = v), draw()),
+    }),
+    out,
+    el("p", { class: "fine" }, "No Google sign-in: each button opens Google Calendar with the task filled in, and nothing is added until you press Save there. Event text contains task titles and steps only, never your CV."),
+  );
+}
+
 function moneyCheck() {
   const cur = saved.profile?.currency ?? "USD";
   const m = memory.money;
   const f = memory.form;
   const out = el("div", { role: "status", "aria-live": "polite" });
-  const fields = [
-    ["currentMonthlyIncome", "Current monthly income", f],
-    ["minimumAcceptableIncome", "Lowest monthly income you could accept", f],
-    ["expectedMonthlyIncome", "Expected monthly income in the new role (your own research)", m],
-    ["monthsReduced", "Months you expect to earn less", m],
-    ["learningMonths", "Months you'll pay for learning", m],
-  ];
-  const inputs = fields.map(([key, label, src]) => {
-    const input = el("input", { type: "number", min: 0, step: 1, id: `m-${key}`, value: src[key] ?? "" });
-    input.addEventListener("input", () => ((src[key] = input.value), update()));
-    return el("label", { class: "field" }, label, input);
-  });
-  const fmt = (n) => (cur === "USD" ? money(n) : `${Math.round(n).toLocaleString("en-US")} ${cur}`);
+  const fmt = (n) => fmtAmount(n, cur);
+  const monthChoices = (key, label, values) =>
+    choiceGroup({
+      label,
+      options: values.map((n) => ({ value: String(n), label: `${n} mo` })),
+      value: String(m[key]),
+      onChange: (v) => ((m[key] = v), update()),
+    });
   function update() {
     const budget = saved.profile?.monthlyLearningBudget ?? 0;
     const res = transitionCost({
@@ -969,9 +1156,9 @@ function moneyCheck() {
     });
     const facts = [
       `Learning budget: ${fmt(budget)} per month`,
-      amount(f.currentMonthlyIncome) !== null ? `Current income: ${fmt(amount(f.currentMonthlyIncome))} per month` : "Current income: not given",
-      amount(f.minimumAcceptableIncome) !== null ? `Lowest acceptable income: ${fmt(amount(f.minimumAcceptableIncome))} per month` : "Lowest acceptable income: not given",
-      amount(m.expectedMonthlyIncome) !== null ? `Expected new-role income: ${fmt(amount(m.expectedMonthlyIncome))} per month (your estimate)` : "Expected new-role income: unknown",
+      amount(f.currentMonthlyIncome) !== null ? `Current income: about ${fmt(amount(f.currentMonthlyIncome))} per month` : "Current income: not given",
+      amount(f.minimumAcceptableIncome) !== null ? `Lowest acceptable income: about ${fmt(amount(f.minimumAcceptableIncome))} per month` : "Lowest acceptable income: not given",
+      amount(m.expectedMonthlyIncome) !== null ? `Expected new-role income: about ${fmt(amount(m.expectedMonthlyIncome))} per month (your estimate)` : "Expected new-role income: unknown",
     ];
     const below = belowMinimum(m.expectedMonthlyIncome, f.minimumAcceptableIncome);
     mount(
@@ -995,8 +1182,16 @@ function moneyCheck() {
     "details",
     { class: "card" },
     el("summary", {}, "Money check (optional)"),
-    el("p", { class: "small muted" }, "Estimated transition cost = learning expense + (months at reduced income × monthly income shortfall). Uses only numbers you type. Bridge does not know salaries in your area. These numbers stay in this tab and are not saved."),
-    el("div", { class: "grid2" }, inputs),
+    el("p", { class: "small muted" }, "Estimated transition cost = learning expense + (months at reduced income × monthly income shortfall). Uses only amounts you pick. Bridge does not know salaries in your area. These numbers stay in this tab and are not saved."),
+    el(
+      "div",
+      { class: "grid2" },
+      incomeSelect("m-cmi", "Current monthly income", cur, f.currentMonthlyIncome, (v) => ((f.currentMonthlyIncome = v), update())),
+      incomeSelect("m-mai", "Lowest monthly income you could accept", cur, f.minimumAcceptableIncome, (v) => ((f.minimumAcceptableIncome = v), update())),
+      incomeSelect("m-exp", "Expected income in the new role (your own research)", cur, m.expectedMonthlyIncome, (v) => ((m.expectedMonthlyIncome = v), update())),
+    ),
+    monthChoices("monthsReduced", "Months you expect to earn less", [0, 1, 2, 3, 6, 12]),
+    monthChoices("learningMonths", "Months you'll pay for learning", [1, 2, 3, 6, 12]),
     out,
   );
 }
@@ -1044,6 +1239,7 @@ function renderRoadmap(failure) {
     memory.ui.confirm?.kind === "regenerate" ? regenerateConfirm(r) : null,
     nextActionCard(r),
     r.weeks.map((w) => weekCard(w, budget)),
+    calendarCard(r),
     el(
       "section",
       { class: "card" },
@@ -1412,7 +1608,7 @@ function renderCaseStudy(taskId) {
   load();
   if (saved.profile) {
     // Bring back the non-sensitive answers so "Change my answers" is prefilled.
-    memory.form = { ...emptyForm(), ...saved.profile, interestedRoles: (saved.profile.interestedRoles ?? []).join(", "), yearsExperience: saved.profile.yearsExperience ?? "" };
+    memory.form = { ...emptyForm(), ...saved.profile, interestedRoles: [...(saved.profile.interestedRoles ?? [])], yearsExperience: saved.profile.yearsExperience ?? "" };
   }
   window.addEventListener("hashchange", route);
   route();

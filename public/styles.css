@@ -245,3 +245,42 @@ pre.answer { white-space: pre-wrap; font: inherit; background: var(--bg); paddin
   .actions.split { flex-direction: column-reverse; align-items: stretch; }
   .actions .button, .actions button { text-align: center; }
 }
+
+/* ---- choice buttons (tap to choose; rows scroll sideways on phones) ---- */
+.choice-field { margin-top: 18px; }
+.choice-field .label { margin-bottom: 8px; }
+.choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice {
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: 999px; padding: 8px 14px; font-size: 0.95rem; white-space: nowrap; flex: none;
+}
+.choice:hover { border-color: var(--accent); }
+.choice[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+.track-help { margin: 6px 0 0; }
+.small-btn { padding: 6px 12px; font-size: 0.88rem; }
+.calendar summary, .settings summary { font-size: 1.02rem; }
+
+/* ---- CV upload ---- */
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  border: 2px dashed var(--line); border-radius: var(--radius); padding: 32px 16px; cursor: pointer; background: var(--bg);
+}
+.dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--accent-soft); }
+.dropzone.invalid { border-color: var(--error-text); }
+.dropzone strong { font-size: 1.1rem; color: var(--accent); }
+.drop-icon { font-size: 1.8rem; color: var(--accent); line-height: 1; }
+#cv-file:focus-visible + .dropzone, #cv-file:focus-visible + .cv-loaded { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cv-loaded { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: var(--radius); padding: 14px 16px; }
+.cv-loaded textarea { margin-top: 6px; background: var(--surface); }
+
+/* ---- calendar list ---- */
+.cal-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.cal-list li { display: grid; grid-template-columns: 190px 1fr auto; gap: 6px 14px; align-items: center; border-top: 1px solid var(--line); padding: 10px 0; }
+.cal-when { font-size: 0.88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cal-title { font-weight: 500; }
+
+@media (max-width: 600px) {
+  .choice-row { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: thin; padding-bottom: 6px; margin-right: -16px; padding-right: 16px; }
+  .choice { scroll-snap-align: start; }
+  .cal-list li { grid-template-columns: 1fr; }
+}
