@@ -1,12 +1,15 @@
 # Render Blueprint: one free web service built from the Dockerfile.
-# Deploys main only after every GitHub check passes (CI must be green).
+# Production is the `preprod` branch: Render deploys it only after every
+# GitHub check passes (CI must be green). The live service (bridge-prod) was
+# created by hand with these same settings; this file documents them and can
+# recreate the service as a Blueprint.
 services:
   - type: web
-    name: bridge
+    name: bridge-prod
     runtime: docker
     plan: free
     region: frankfurt
-    branch: main
+    branch: preprod
     dockerfilePath: ./Dockerfile
     healthCheckPath: /healthz
     autoDeployTrigger: checksPass
@@ -18,4 +21,4 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: AI_CALLS_PER_DAY
-        value: "400"
+        value: "150"
