@@ -42,6 +42,7 @@ app.use("/lib", express.static(path.join(root, "lib")));
 app.use("/vendor/pdfjs", express.static(path.join(root, "node_modules/pdfjs-dist/build")));
 app.use("/vendor/pdfjs-fonts", express.static(path.join(root, "node_modules/pdfjs-dist/standard_fonts")));
 app.use("/vendor/pdfjs-cmaps", express.static(path.join(root, "node_modules/pdfjs-dist/cmaps")));
+app.use("/vendor/archivo", express.static(path.join(root, "node_modules/@fontsource-variable/archivo/files")));
 
 function bad(res, message) {
   return res.status(400).json({ error: message });

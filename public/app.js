@@ -9,7 +9,7 @@
 // Storage: non-sensitive structured progress goes to localStorage (career
 // paths, roadmap, ticks, practice answers). The resume text and any income
 // numbers stay in memory only and are gone after a reload, by design.
-import { el, mount, api, wordCount, modeBanner, money } from "/ui.js";
+import { el, mount, api, wordCount, modeBanner, money, icon } from "/ui.js";
 import {
   TRACKS,
   TRACK_INFO,
@@ -232,15 +232,17 @@ function renderLanding() {
       ? el(
           "section",
           { class: "card resume-card" },
-          el("p", { class: "eyebrow" }, "Welcome back"),
-          el("h2", { class: "flush" }, `${r.currentRole} → ${r.targetRole}`),
-          el("p", { class: "muted" }, `${pr.done} of ${pr.total} tasks done.`),
-          el("a", { class: "button primary", href: "#/roadmap" }, "Continue my roadmap"),
+          el("h2", { class: "flush" }, `Welcome back. Your ${r.targetRole} plan is waiting.`),
+          el("p", { class: "muted" }, `From ${r.currentRole} · ${pr.done} of ${pr.total} tasks done.`),
+          el("a", { class: "button primary", href: "#/roadmap" }, "Continue my roadmap", icon("arrowRight")),
         )
       : null,
     el(
       "section",
       { class: "hero" },
+      el(
+        "div",
+        {},
       el("h1", {}, "Change careers without starting over."),
       el("p", { class: "lead" }, "Upload your résumé, discover realistic career paths, and get a weekly plan you can actually follow."),
       el(
@@ -262,6 +264,15 @@ function renderLanding() {
         el("button", { type: "button", class: "secondary big", onclick: startDemo }, "Try Demo"),
       ),
       el("p", { class: "fine" }, "Try Demo loads a fictitious teacher with 7 years of experience, 5 free hours a week and no learning budget. No sign-up."),
+      ),
+      el(
+        "figure",
+        { class: "sample-plan", "aria-label": "Example of a Bridge 30-day plan" },
+        el("p", { class: "sp-role" }, SAMPLE_PLAN.targetRole),
+        el("p", { class: "sp-from" }, `from ${SAMPLE_PLAN.currentRole} · ${hoursText(SAMPLE_PLAN.hoursPerWeek)}`),
+        growingCalendar(SAMPLE_PLAN, { interactive: false }),
+        el("figcaption", { class: "sp-note" }, "Example plan with sample data. Each bar is a task, sized by its minutes; filled bars are done."),
+      ),
     ),
     el(
       "ul",
@@ -445,7 +456,7 @@ function renderBackground(errors) {
   const drop = el(
     "label",
     { for: "cv-file", class: "dropzone" + (errors.resume ? " invalid" : "") },
-    el("span", { class: "drop-icon", "aria-hidden": "true" }, "⇪"),
+    el("span", { class: "drop-icon", "aria-hidden": "true" }, icon("upload")),
     el("strong", {}, "Upload your CV"),
     el("span", { class: "small muted" }, "PDF or .txt · up to 5 MB · or drop it here"),
   );
@@ -473,7 +484,7 @@ function renderBackground(errors) {
         return el(
           "div",
           { class: "cv-loaded" },
-          el("div", { class: "row space" }, el("div", {}, el("strong", {}, "✓ " + name), el("p", { class: "small muted flush" }, meta.join(" · "))), el("div", { class: "row tight" }, el("label", { for: "cv-file", class: "button secondary small-btn" }, "Replace"), el("button", { type: "button", class: "secondary small-btn", onclick: () => ((f.resumeText = ""), (f.cvSource = null), (memory.demoLoaded = false), renderOnboarding(1)) }, "Remove"))),
+          el("div", { class: "row space" }, el("div", {}, el("strong", { class: "cv-name" }, icon("check"), name), el("p", { class: "small muted flush" }, meta.join(" · "))), el("div", { class: "row tight" }, el("label", { for: "cv-file", class: "button secondary small-btn" }, "Replace"), el("button", { type: "button", class: "secondary small-btn", onclick: () => ((f.resumeText = ""), (f.cvSource = null), (memory.demoLoaded = false), renderOnboarding(1)) }, "Remove"))),
           el("details", {}, el("summary", { class: "small" }, "Check the text we read"), el("p", { class: "small muted" }, "Fix anything that came out garbled. Only this text is used."), check),
         );
       })()
@@ -870,11 +881,83 @@ async function buildRoadmapFor(careerId, { merge, sample = false, hoursPerWeek, 
 function toggleTask(taskId, done, focusId) {
   saved.roadmap = setTaskCompleted(saved.roadmap, taskId, done);
   save();
+  memory.ui.justFilled = done ? taskId : null;
   // Re-render in place: keep the scroll position and the keyboard focus.
   const y = window.scrollY;
   renderRoadmap();
   window.scrollTo(0, y);
   if (focusId) document.getElementById(focusId)?.focus({ preventScroll: true });
+}
+
+// The growing calendar: one row per week, one bar per task. Bar length is the
+// task's share of the weekly hours; colour is its kind; form is its state
+// (outline = not started, filled = done, ringed + pin = next).
+const SAMPLE_PLAN = {
+  currentRole: "Middle-school teacher",
+  targetRole: "Instructional Designer",
+  hoursPerWeek: 5,
+  weeks: [
+    ["simulation", 10, true], ["research", 30, true], ["research", 30, true], ["research", 60, false],
+    ["learning", 75, false], ["learning", 75, false], ["portfolio", 110, false],
+    ["portfolio", 90, false], ["portfolio", 150, false], ["portfolio", 30, false],
+    ["portfolio", 90, false], ["application", 60, false], ["networking", 60, false], ["research", 45, false],
+  ].reduce((weeks, [type, m, done], i) => {
+    const w = i < 4 ? 0 : i < 7 ? 1 : i < 10 ? 2 : 3;
+    (weeks[w] ??= { week: w + 1, tasks: [] }).tasks.push({ id: "s" + i, type, title: TYPE_LABEL[type], estimatedMinutes: m, completed: done });
+    return weeks;
+  }, []),
+};
+
+function jumpToTask(id) {
+  const row = document.getElementById(`task-${id}`);
+  row?.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  document.getElementById(`cb-${id}`)?.focus({ preventScroll: true });
+}
+
+function growingCalendar(r, { interactive = true } = {}) {
+  const budget = r.hoursPerWeek * 60;
+  const next = nextAction(r);
+  const just = interactive ? memory.ui.justFilled : null;
+  if (interactive) memory.ui.justFilled = null;
+  const kinds = [...new Set(r.weeks.flatMap((w) => w.tasks.map((t) => t.type)))];
+  const pr = progress(r);
+  return el(
+    "div",
+    { class: "grow-wrap" },
+    el(
+      "div",
+      { class: "grow-cal", role: "group", "aria-label": `30-day calendar: ${pr.done} of ${pr.total} tasks done` },
+      r.weeks.map((w) =>
+        el(
+          "div",
+          { class: "gc-week" },
+          el("span", { class: "gc-label" }, `Wk ${w.week}`),
+          el(
+            "div",
+            { class: "gc-track", style: `--hours:${r.hoursPerWeek}` },
+            w.tasks.map((t) => {
+              const isNext = interactive && next?.task.id === t.id;
+              const cls = `gc-bar k-${t.type}${t.completed ? " is-done" : ""}${isNext ? " is-next" : ""}${just === t.id ? " just-filled" : ""}`;
+              const style = `flex-basis:${((t.estimatedMinutes / budget) * 100).toFixed(2)}%`;
+              const state = t.completed ? "done" : isNext ? "next" : "not started";
+              const label = `${t.title}, ${minutes(t.estimatedMinutes)}, ${state}`;
+              const pin = isNext ? el("span", { class: "gc-pin", "aria-hidden": "true" }, "Next") : null;
+              return interactive
+                ? el("button", { type: "button", class: cls, style, "aria-label": label, title: label, onclick: () => jumpToTask(t.id) }, pin)
+                : el("span", { class: cls, style, title: label }, pin);
+            }),
+          ),
+        ),
+      ),
+    ),
+    el(
+      "ul",
+      { class: "gc-legend", "aria-label": "Legend" },
+      kinds.map((k) => el("li", {}, el("span", { class: `sw k-${k}` }), TYPE_LABEL[k])),
+      el("li", {}, el("span", { class: "sw outline" }), "To do"),
+      el("li", {}, el("span", { class: "sw grid" }), `Gridline = 1 hour of your ${r.hoursPerWeek} h week`),
+    ),
+  );
 }
 
 function taskCard(t) {
@@ -894,7 +977,7 @@ function taskCard(t) {
   return el(
     "li",
     { class: "task" + (t.completed ? " is-done" : ""), id: `task-${t.id}` },
-    el("div", { class: "task-head" }, cb, el("label", { for: cbId, class: "task-title" }, t.title)),
+    el("div", { class: "task-head" }, cb, el("label", { for: cbId, class: "task-title" }, t.title, t.completed ? el("span", { class: "stamp" }, "Done") : null)),
     el(
       "p",
       { id: `meta-${t.id}`, class: "task-meta" },
@@ -919,7 +1002,7 @@ function weekCard(w, budget) {
   return el(
     "section",
     { class: "week card", "aria-labelledby": `wk-${w.week}` },
-    el("div", { class: "row space" }, el("h3", { id: `wk-${w.week}`, class: "flush" }, `Week ${w.week} · ${w.title}`), pill(STATUS_LABEL[status], "status-" + status)),
+    el("div", { class: "week-head" }, el("h3", { id: `wk-${w.week}` }, el("span", { class: "wk-num" }, `Week ${w.week}`), w.title), pill(STATUS_LABEL[status], "status-" + status)),
     el("p", { class: "muted flush" }, w.objective),
     el("p", { class: "small muted" }, `${minutes(weekMinutes(w))} planned of your ${minutes(budget)} this week`),
     el("ul", { class: "tasks" }, w.tasks.map(taskCard)),
@@ -932,8 +1015,7 @@ function nextActionCard(r) {
     return el(
       "section",
       { class: "card next done-all" },
-      el("p", { class: "eyebrow" }, "All done"),
-      el("h2", { class: "flush" }, "You finished your first 30 days."),
+      el("h2", { class: "next-title" }, "You finished your first 30 days."),
       el("p", {}, "That's a real start, not the finish. Export your case study, keep the conversations going, or regenerate a plan with new constraints."),
     );
   }
@@ -942,16 +1024,15 @@ function nextActionCard(r) {
   return el(
     "section",
     { class: "card next", "aria-labelledby": "next-title" },
-    el("p", { class: "eyebrow" }, quick ? "Your next 10-minute step" : `Next action · Week ${next.week}`),
-    el("h2", { id: "next-title", class: "flush" }, t.title),
-    el("p", { class: "task-meta" }, pill(minutes(t.estimatedMinutes), quick ? "quick" : ""), pill(TYPE_LABEL[t.type], "type-" + t.type)),
+    el("h2", { id: "next-title", class: "next-title" }, t.title),
+    el("p", { class: "task-meta" }, pill(quick ? "Your next 10-minute step" : `Your next step · Week ${next.week}`, "quick"), pill(minutes(t.estimatedMinutes)), pill(TYPE_LABEL[t.type], "type-" + t.type)),
     el("p", {}, el("strong", {}, "You'll produce: "), t.deliverable),
     el("p", { class: "small" }, el("strong", {}, "Done when: "), t.successCriteria),
     el(
       "div",
       { class: "actions" },
       t.type === "simulation"
-        ? el("a", { class: "button primary", href: `#/practice/${encodeURIComponent(t.id)}` }, "Start practice task")
+        ? el("a", { class: "button primary", href: `#/practice/${encodeURIComponent(t.id)}` }, "Start practice task", icon("arrowRight"))
         : el(
             "button",
             {
@@ -1066,12 +1147,12 @@ function calendarCard(r) {
       el(
         "div",
         { class: "actions" },
-        el("button", { type: "button", class: "primary", onclick: downloadIcs }, `Add all ${list.length} tasks (.ics file)`),
+        el("button", { type: "button", class: "primary", onclick: downloadIcs }, icon("calendar"), `Add all ${list.length} tasks (.ics file)`),
       ),
       el(
         "p",
         { class: "small muted" },
-        "Google Calendar: open calendar.google.com → Settings → Import & export → Import, choose the file. It also works with Apple Calendar and Outlook. Or add tasks one by one below.",
+        "Google Calendar: open calendar.google.com, then Settings, Import & export, Import, and choose the file. It also works with Apple Calendar and Outlook. Or add tasks one by one below.",
       ),
       el(
         "ul",
@@ -1082,7 +1163,7 @@ function calendarCard(r) {
             {},
             el("span", { class: "cal-when" }, `${dateFmt.format(e.start)} · ${timeFmt.format(e.start)}–${timeFmt.format(e.end)}`),
             el("span", { class: "cal-title" }, e.title),
-            el("a", { class: "button secondary small-btn", href: googleCalendarUrl(e), target: "_blank", rel: "noopener noreferrer" }, "Add to Google Calendar"),
+            el("a", { class: "button secondary small-btn", href: googleCalendarUrl(e), target: "_blank", rel: "noopener noreferrer" }, "Add to Google Calendar", icon("external")),
           ),
         ),
       ),
@@ -1224,17 +1305,17 @@ function renderRoadmap(failure) {
     failure ? errorPanel(failure.message, { onRetry: failure.retry, onSample: failure.sample }) : null,
     el(
       "section",
-      { class: "card roadmap-head" },
-      el("p", { class: "eyebrow" }, "My career roadmap"),
-      el("h1", { class: "flush route" }, el("span", {}, r.currentRole), el("span", { class: "arrow", "aria-label": "to" }, " → "), el("span", {}, r.targetRole)),
-      el("p", { class: "muted" }, `Your first 30 days · ${hoursText(r.hoursPerWeek)} · ${TRACK_INFO[r.track].label}`),
+      { class: "packet", "aria-labelledby": "pk-role" },
+      el("h1", { id: "pk-role", class: "pk-role" }, el("span", { class: "visually-hidden" }, "My career roadmap: "), r.targetRole),
+      el("p", { class: "pk-from" }, `from ${r.currentRole}`),
       el(
         "div",
-        { class: "progress", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": pr.percent, "aria-label": "Roadmap progress" },
-        el("div", { class: "bar", style: `width:${pr.percent}%` }),
+        { class: "pk-meta" },
+        el("p", { class: "progress-text" }, el("strong", {}, `${pr.done} of ${pr.total}`), ` tasks done (${pr.percent}%)`),
+        el("span", {}, `Your first 30 days · ${hoursText(r.hoursPerWeek)} · ${TRACK_INFO[r.track].label}`),
       ),
-      el("p", { class: "progress-text" }, el("strong", {}, `${pr.done} of ${pr.total} tasks done`), ` (${pr.percent}%)`),
-      career?.missingSkills?.length ? el("p", { class: "small" }, el("strong", {}, "Skills this plan builds: "), career.missingSkills.join(", ")) : null,
+      growingCalendar(r),
+      career?.missingSkills?.length ? el("p", { class: "pk-skills" }, el("strong", {}, "Skills this plan builds: "), career.missingSkills.join(", ")) : null,
     ),
     memory.ui.confirm?.kind === "regenerate" ? regenerateConfirm(r) : null,
     nextActionCard(r),
@@ -1300,7 +1381,7 @@ async function loadSimulation(taskId, sample = false) {
 function renderPracticeError(taskId, failure) {
   mount(
     app,
-    el("p", {}, el("a", { href: "#/roadmap" }, "← Back to my roadmap")),
+    el("a", { class: "back", href: "#/roadmap" }, icon("arrowLeft"), "Back to my roadmap"),
     errorPanel(failure.message, { onRetry: failure.retry, onSample: failure.sample, onBack: () => go("#/roadmap"), backLabel: "Back to my roadmap" }),
   );
 }
@@ -1329,8 +1410,7 @@ function feedbackView(p) {
     "section",
     { class: "card feedback", "aria-labelledby": "fb-title" },
     modeBanner(p.evalMode),
-    el("p", { class: "eyebrow" }, "AI-generated practice feedback"),
-    el("h2", { id: "fb-title", class: "flush" }, `${ev.totalScore} of ${ev.maxTotal} points`),
+    el("h2", { id: "fb-title" }, `AI practice feedback: ${ev.totalScore} of ${ev.maxTotal} points`),
     el("p", { class: "small muted" }, "Practice feedback from an AI against the rubric above. It is not a hiring decision, an employer's assessment or an accreditation."),
     el(
       "ul",
@@ -1438,12 +1518,12 @@ function renderPractice(taskId) {
   mount(
     app,
     modeBanner(p.mode),
-    el("p", {}, el("a", { href: "#/roadmap" }, "← Back to my roadmap")),
+    el("a", { class: "back", href: "#/roadmap" }, icon("arrowLeft"), "Back to my roadmap"),
     el(
       "section",
       { class: "card" },
-      el("p", { class: "eyebrow" }, `Practice task · Week ${found.week} · ${sim.targetRole}`),
       el("h1", { class: "flush" }, task.title),
+      el("p", { class: "meta" }, `Practice task · Week ${found.week} · ${sim.targetRole}`),
       el("p", { class: "task-meta" }, pill(`Timebox: ${sim.timeboxMinutes} min`, "quick"), task.completed ? pill("Task done", "status-completed") : null, p.attempts ? pill(`Attempts: ${p.attempts}`) : null),
       el("h3", {}, "Scenario"),
       el("p", {}, sim.scenario),
@@ -1556,12 +1636,12 @@ function renderCaseStudy(taskId) {
 
   mount(
     app,
-    el("p", { class: "no-print" }, el("a", { href: `#/practice/${encodeURIComponent(taskId)}` }, "← Back to the practice task")),
+    el("a", { class: "back no-print", href: `#/practice/${encodeURIComponent(taskId)}` }, icon("arrowLeft"), "Back to the practice task"),
     el(
       "article",
       { class: "card case-study" },
-      el("p", { class: "eyebrow" }, `Practice work sample · ${sim.targetRole}`),
       el("h1", { class: "flush" }, `Case study: ${found.task.title}`),
+      el("p", { class: "meta" }, `Practice work sample · ${sim.targetRole}`),
       el("h2", {}, "The challenge"),
       el("p", { class: "small muted" }, "Scenario written by Bridge's AI as practice; fictional."),
       el("p", {}, sim.scenario),
@@ -1589,8 +1669,8 @@ function renderCaseStudy(taskId) {
     el(
       "div",
       { class: "actions no-print" },
-      el("button", { type: "button", class: "primary", onclick: download }, "Download as Markdown"),
-      el("button", { type: "button", class: "secondary", onclick: () => window.print() }, "Print or save as PDF"),
+      el("button", { type: "button", class: "primary", onclick: download }, icon("download"), "Download as Markdown"),
+      el("button", { type: "button", class: "secondary", onclick: () => window.print() }, icon("print"), "Print or save as PDF"),
       el("a", { class: "button secondary", href: "#/roadmap" }, "Back to my roadmap"),
     ),
     el("p", { class: "fine no-print" }, "Contains only the practice task, your answer and your reflection: no résumé text, income or contact details. Nothing is uploaded or published; there is no public link."),
