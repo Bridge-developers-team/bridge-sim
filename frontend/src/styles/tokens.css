@@ -70,7 +70,14 @@
   --kb-networking: #86d2e6;
   --kb-application: #ef9cc1;
 
-  /* Flat by default. The one shadow lifts the landing's sample plan. */
+  /* Depth: three layered, navy-tinted elevations (DESIGN.md, Elevation).
+     1 = resting panels and buttons, 2 = hover / raised controls,
+     3 = things above the page (sheets, the final action bar). */
+  --shadow-1: 0 1px 2px rgba(11, 26, 58, 0.05), 0 2px 8px -4px rgba(11, 26, 58, 0.08);
+  --shadow-2: 0 1px 2px rgba(11, 26, 58, 0.06), 0 6px 16px -6px rgba(11, 26, 58, 0.16);
+  --shadow-3: 0 2px 4px rgba(11, 26, 58, 0.06), 0 12px 32px -8px rgba(11, 26, 58, 0.22),
+    0 32px 64px -32px rgba(11, 26, 58, 0.3);
+  /* The landing's sample plan */
   --shadow-sample: 0 1px 2px rgba(11, 26, 58, 0.06), 0 6px 16px -6px rgba(11, 26, 58, 0.16),
     0 24px 48px -24px rgba(11, 26, 58, 0.28);
 
@@ -119,6 +126,11 @@
   --k-portfolio: var(--kb-portfolio);
   --k-networking: var(--kb-networking);
   --k-application: var(--kb-application);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px -4px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 40px -12px rgba(0, 0, 0, 0.6),
+    0 32px 64px -32px rgba(0, 0, 0, 0.6);
 
   color-scheme: dark;
 }
@@ -174,6 +186,11 @@
   --page-max: 980px;
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Ease-out-quint: a longer, softer landing for things that settle into place. */
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-quick: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
   --dur-fade: 200ms;
   --dur-fill: 700ms;
 }
@@ -317,6 +334,102 @@ details[open] > :not(summary) {
   }
 }
 
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Sheets and popovers */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes sheet-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+/* A new item settles in; a missing field nudges. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+/* Reading guide: panels and cards rise into place as they scroll into view,
+   once, so the eye follows the page top to bottom. Content is visible by
+   default; browsers without scroll timelines simply skip this. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .panel,
+  .career,
+  .week,
+  .values li,
+  .submit-bar {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+}
+
+/* Route changes: the new page arrives from just below. */
+.page-enter {
+  animation: settle var(--dur-slow) var(--ease) both;
+}
+
 @keyframes fill {
   from {
     transform: scaleX(0);
@@ -367,5 +480,13 @@ button:not(:disabled):active {
 
   button:not(:disabled):active {
     transform: none;
+  }
+
+  .panel,
+  .career,
+  .week,
+  .values li,
+  .submit-bar {
+    animation: none;
   }
 }

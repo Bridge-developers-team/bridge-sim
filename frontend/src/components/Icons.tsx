@@ -7,6 +7,21 @@ export function UploadIcon() {
   );
 }
 
+function Stroke({ d }: { d: string }) {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
+export const ChevronIcon = () => <Stroke d="M9 6l6 6-6 6" />;
+export const ChevronDownIcon = () => <Stroke d="M6 9l6 6 6-6" />;
+export const CheckIcon = () => <Stroke d="M5 12.5l4.5 4.5L19 7.5" />;
+export const ArrowRightIcon = () => <Stroke d="M5 12h14M13 6l6 6-6 6" />;
+export const SearchIcon = () => <Stroke d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4" />;
+export const CloseIcon = () => <Stroke d="M6 6l12 12M18 6L6 18" />;
+export const FileIcon = () => <Stroke d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4" />;
+
 // The brand kit's horizontal logo (brand/bridge_logo_vector_flat.svg), flat
 // colours only: navy parts follow currentColor so dark mode turns them ivory,
 // gold parts read --gold. The "Bridge" letters are the approved lettering as
