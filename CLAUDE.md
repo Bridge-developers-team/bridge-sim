@@ -46,7 +46,9 @@ Dockerfile, render.yaml, .github/workflows/ci.yml
   `live`, `demo` (no key on the server) or `sample` (user chose sample data),
   and the UI shows a banner for the last two. Proof pages keep the label.
 - **Honesty rules:** no salaries, prices, job listings, hiring dates or URLs are
-  generated. Effort is qualitative. Practice feedback is "practice, not a hiring
+  generated. Course links live only in `domain/learning.py` (each opened and
+  checked by hand; never a Google or YouTube search page) and pay figures only
+  in `domain/pay.py` (official tables, source shown). Effort is qualitative. Practice feedback is "practice, not a hiring
   decision".
 - **Privacy:** resume text is never stored (browser memory only, server uses it
   for one request). Income never leaves the browser. Only a proof the user

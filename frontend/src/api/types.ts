@@ -155,13 +155,46 @@ export interface AppConfig {
   limits: { maxResume: number; minResume: number; maxAnswer: number; minHours: number; maxHours: number };
 }
 
-export interface Resource {
-  /** "search": a labeled search link, used when no AI picked real pages. */
-  kind: "article" | "video" | "search";
+/** A course from the checked catalog (backend domain/learning.py). free: no
+ * charge; paid: a paid plan, subscription or trial (all Coursera courses). */
+export interface Course {
+  id: string;
   title: string;
+  provider: string;
   url: string;
-  source: string;
+  cost: "free" | "paid";
+  format: "certificate" | "course" | "lectures";
+  length: string;
+  modules: string[];
+  pace: "weekly" | "course";
   why: string;
+}
+
+/** The main course spread over the 30 days, plus other options. */
+export interface StudyPlan {
+  field: string;
+  fieldLabel: string;
+  paid: boolean;
+  main: Course;
+  weeks: { week: number; modules: string[] }[];
+  later: string[];
+  more: Course[];
+  checked: string;
+}
+
+/** Typical pay from an official table (backend domain/pay.py). */
+export interface Pay {
+  role: string;
+  occupation: string;
+  area: string;
+  currency: string;
+  period: "year" | "month";
+  stat: "median" | "average";
+  low: number;
+  high: number;
+  note: string;
+  source: string;
+  url: string;
 }
 
 export interface JobListing {

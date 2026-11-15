@@ -86,11 +86,10 @@ test("tastings survive choosing a path and rebuilding the plan, and reset with n
   assert.deepEqual(parseJourney(JSON.stringify({ ...emptyJourney(), tastings: undefined })).tastings, {});
 });
 
-test("new career paths also clear saved learning links", () => {
+test("a saved study schedule survives new career paths", () => {
   const paths = { profile: {}, careers: [], mode: "live" } as unknown as CareersResponse;
-  const j = { ...emptyJourney(), resources: { "r1:1": { items: [], mode: "live" as const } } };
+  const j = { ...emptyJourney(), schedule: { days: [2, 4], time: "19:00", start: "2026-11-16" } };
 
-  assert.deepEqual(withCareers(j, paths).resources, {});
-  assert.deepEqual(parseJourney(JSON.stringify({ ...emptyJourney(), resources: undefined })).resources, {});
+  assert.deepEqual(withCareers(j, paths).schedule, j.schedule);
   assert.equal(emptyJourney().profile.country, "us");
 });

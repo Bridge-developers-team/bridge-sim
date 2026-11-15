@@ -103,12 +103,3 @@ class EvaluationDraft(BaseModel):
 
 class SampleAnswerDraft(BaseModel):
     answer: str
-
-
-class ResourcePickDraft(BaseModel):
-    index: int = Field(description="Number of the search result, exactly as listed")
-    why: str = Field(description="Why this helps a beginner, 15 words at most")
-
-
-class ResourcePicksDraft(BaseModel):
-    picks: list[ResourcePickDraft] = Field(description="Up to 3 articles and 2 videos, best first")

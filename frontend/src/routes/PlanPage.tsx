@@ -14,7 +14,8 @@ import { Waiting } from "../components/ui/Waiting";
 import { GrowingCalendar } from "../components/GrowingCalendar";
 import { JobsPanel } from "../components/JobsPanel";
 import { MoneyCheck } from "../components/MoneyCheck";
-import { WeekResources } from "../components/WeekResources";
+import { MakeItStick } from "../components/MakeItStick";
+import { StudyPanel, WeekStudy, useStudyPlan } from "../components/StudyTrack";
 import { selectedCareer, setDone, withPractice, withRoadmap } from "../lib/journey";
 import { TASK_TYPE, WEEK_STATUS, hoursText, minutesText } from "../lib/labels";
 import { nextAction, progress, weekMinutes, weekStatus } from "../lib/progress";
@@ -37,6 +38,11 @@ export function PlanPage() {
     setJustFilled(done ? taskId : null);
   };
   const started = useRef(false);
+  const study = useStudyPlan(
+    journey.roadmap?.targetRole ?? career?.title ?? "",
+    journey.profile.monthlyLearningBudget,
+    journey.roadmap?.hoursPerWeek ?? hours,
+  );
   const sample = journey.careers?.mode === "sample";
 
   const build = useMutation({
@@ -174,6 +180,10 @@ export function PlanPage() {
         </Panel>
       )}
 
+      <StudyPanel query={study} budget={journey.profile.monthlyLearningBudget} currency={journey.profile.currency} />
+
+      <MakeItStick plan={plan} />
+
       {plan.weeks.map((week) => {
         const status = WEEK_STATUS[weekStatus(week)];
         return (
@@ -190,7 +200,7 @@ export function PlanPage() {
                   <TaskRow key={task.id} task={task} onTick={tick} onOpen={() => navigate(`/practice/${task.id}`)} />
                 ))}
               </ul>
-              <WeekResources roadmapId={plan.id} week={week} role={plan.targetRole} sample={journey.roadmapMode !== "live"} />
+              <WeekStudy study={study.data} week={week} />
             </PanelBody>
           </Panel>
         );

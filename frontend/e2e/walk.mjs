@@ -37,6 +37,10 @@ async function run(name, viewport, colorScheme) {
   await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
   const cards = await page.locator("article.career").count();
   if (cards !== 3) problems.push(`${name}: expected 3 career cards, got ${cards}`);
+  // Each path shows official pay or says there is none; never a made-up number.
+  await page.locator(".pay").first().waitFor();
+  const pays = await page.locator(".pay").count();
+  if (pays !== 3) problems.push(`${name}: expected a pay line on 3 cards, got ${pays}`);
   await noSideScroll(page, `${name} paths`);
   await shot("2-paths");
 
@@ -60,11 +64,22 @@ async function run(name, viewport, colorScheme) {
 
   await page.getByRole("button", { name: "Build my 30-day plan" }).first().click();
   await page.locator("#packet-role").waitFor();
-  // Learning links for week 2 and job openings for the role.
-  await page.getByRole("button", { name: "Find articles and videos for this week" }).nth(1).click();
-  await page.getByText(/^(Learn|Search for) this week$/).first().waitFor();
+  // The month's course (real course pages, never a search), a study line in
+  // every week, the if-then schedule and job openings for the role.
+  await page.getByRole("heading", { name: "Your course for this month" }).waitFor();
+  const courseLinks = await page.locator(".study .course__text a").evaluateAll((as) => as.map((a) => a.href));
+  if (!courseLinks.length) problems.push(`${name}: no courses on the plan`);
+  if (courseLinks.some((u) => /google\.com\/search|youtube\.com\/results/.test(u))) problems.push(`${name}: a search link: ${courseLinks}`);
+  const weekLines = await page.getByText("Study this week").count();
+  if (weekLines !== 4) problems.push(`${name}: expected a study line in 4 weeks, got ${weekLines}`);
+  await page.getByRole("heading", { name: "Make it stick" }).waitFor();
+  await page.getByText(/^When it's .* I open my Bridge plan and do the next task\.$/).waitFor();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Add to my calendar (.ics)" }).click();
+  if ((await download).suggestedFilename() !== "bridge-study-plan.ics") problems.push(`${name}: calendar file not offered`);
   const boards = await page.locator(".jobs__where ~ .stack a.btn").allTextContents();
   if (!boards.join(" ").includes("LinkedIn")) problems.push(`${name}: jobs panel has no board links (${boards})`);
+  if (boards.join(" ").includes("Google")) problems.push(`${name}: jobs panel still links to Google search`);
   await noSideScroll(page, `${name} plan`);
   await shot("3-plan");
 
