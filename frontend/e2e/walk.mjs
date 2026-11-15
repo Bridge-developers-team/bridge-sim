@@ -63,8 +63,16 @@ async function run(name, viewport, colorScheme) {
   // Learning links for week 2 and job openings for the role.
   await page.getByRole("button", { name: "Find articles and videos for this week" }).nth(1).click();
   await page.getByText(/^(Learn|Search for) this week$/).first().waitFor();
-  const boards = await page.locator(".jobs__where ~ .stack a.btn").allTextContents();
-  if (!boards.join(" ").includes("LinkedIn")) problems.push(`${name}: jobs panel has no board links (${boards})`);
+  for (const [group, expected] of [
+    ["Openings", "LinkedIn: entry level"],
+    ["Recruiters", "Recruiters on LinkedIn"],
+    ["Hot topics this month", "LinkedIn posts"],
+  ]) {
+    const sites = await page.locator(`section.linkgroup[aria-label^="${group}"] .linkcard__site`).allTextContents();
+    if (!sites.join(" ").includes(expected)) problems.push(`${name}: "${group}" links missing ${expected} (${sites})`);
+  }
+  const note = await page.locator(".outreach__text").textContent();
+  if (!note || note.length > 200) problems.push(`${name}: recruiter note missing or over 200 chars (${note?.length})`);
   await noSideScroll(page, `${name} plan`);
   await shot("3-plan");
 

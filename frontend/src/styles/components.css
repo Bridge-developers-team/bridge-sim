@@ -1966,3 +1966,91 @@ button.gc-bar:hover {
   border-radius: var(--radius-control);
   overflow: hidden;
 }
+
+/* Outside searches on the plan: openings, recruiters, hot topics. */
+.linkgroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+  padding-top: var(--space-150);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.linkgroup__title {
+  display: flex;
+  gap: var(--space-100);
+  align-items: center;
+  margin: 0;
+  font-size: var(--type-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+}
+
+.linkgroup__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: var(--space-100);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linkcard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  padding: var(--space-100) var(--space-150);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.linkcard:hover {
+  border-color: var(--brand);
+}
+
+.linkcard:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.linkcard__site {
+  display: flex;
+  gap: var(--space-050);
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.linkcard__site .icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--text-subtle);
+}
+
+.linkcard__hint {
+  color: var(--text-subtle);
+  font-size: var(--type-sm);
+}
+
+.outreach summary {
+  cursor: pointer;
+  font-size: var(--type-sm);
+  font-weight: 600;
+}
+
+.outreach__text {
+  margin: var(--space-100) 0;
+  padding: var(--space-150);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  font-size: var(--type-sm);
+}

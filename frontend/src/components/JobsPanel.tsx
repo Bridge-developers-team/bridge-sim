@@ -1,9 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { type ReactNode, useState } from "react";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
+import type { JobLink } from "../api/types";
 import { CITIES, COUNTRIES } from "../lib/options";
+import { connectionNote } from "../lib/outreach";
 import { updateJourney, useJourney } from "../state/journey";
-import { BriefcaseIcon, ExternalIcon } from "./Icons";
+import { BriefcaseIcon, ExternalIcon, PeopleIcon, TrendIcon } from "./Icons";
+import { Button } from "./ui/Button";
 import { Panel, PanelBody, PanelHeader } from "./ui/Panel";
 import { Picker } from "./ui/Picker";
 
@@ -13,10 +17,64 @@ function postedText(iso: string): string {
   return days <= 0 ? "today" : days === 1 ? "1 day ago" : `${days} days ago`;
 }
 
+/** One group of outside searches: a heading, then one card per site with a
+ * line on what it finds. Every card opens the site's own search in a new tab. */
+function LinkGroup({ icon, title, links, children }: { icon: ReactNode; title: string; links: JobLink[]; children?: ReactNode }) {
+  if (links.length === 0) return null;
+  return (
+    <section className="linkgroup" aria-label={title}>
+      <h3 className="linkgroup__title">
+        {icon}
+        {title}
+      </h3>
+      <ul className="linkgroup__list">
+        {links.map((link) => (
+          <li key={link.site}>
+            <a className="linkcard" href={link.url} target="_blank" rel="noopener noreferrer">
+              <span className="linkcard__site">
+                {link.site}
+                <ExternalIcon />
+              </span>
+              {link.hint && <span className="linkcard__hint">{link.hint}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {children}
+    </section>
+  );
+}
+
+/** The note to send a recruiter, ready to paste into a LinkedIn request. */
+function OutreachNote({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      setCopied(false); // the note stays visible to copy by hand
+    }
+  };
+  return (
+    <details className="outreach">
+      <summary>A note to send them</summary>
+      <p className="outreach__text">{text}</p>
+      <div className="row">
+        <Button size="sm" onClick={() => void copy()}>
+          {copied ? "Copied" : "Copy note"}
+        </Button>
+        <span className="fine">Swap in their name. Fits LinkedIn's 200-character limit.</span>
+      </div>
+    </details>
+  );
+}
+
 /** Real openings for the target role near the user: live listings when the
  * server has a job-search key, and one-tap searches on the big boards always. */
 export function JobsPanel({ role }: { role: string }) {
   const { profile } = useJourney();
+  const note = connectionNote(profile.currentRole, role, profile.location);
   const city = profile.location;
   const country = profile.country || "us";
   const jobs = useQuery({
@@ -28,7 +86,7 @@ export function JobsPanel({ role }: { role: string }) {
 
   return (
     <Panel>
-      <PanelHeader title={`${role} jobs near you`} note={city || "Anywhere"} />
+      <PanelHeader title={`${role}: jobs and people`} note={city || "Anywhere"} />
       <PanelBody className="stack">
         <div className="jobs__where">
           <Picker
@@ -68,23 +126,22 @@ export function JobsPanel({ role }: { role: string }) {
         )}
 
         {jobs.data && (
-          <div className="stack">
-            <p className="small">
-              {jobs.data.listings.length > 0 ? "More on the job boards:" : "See current openings on the job boards:"}
-            </p>
-            <div className="row">
-              {jobs.data.links.map((link) => (
-                <a key={link.site} className="btn btn--sm" href={link.url} target="_blank" rel="noopener noreferrer">
-                  {link.site}
-                  <ExternalIcon />
-                </a>
-              ))}
-            </div>
+          <>
+            <LinkGroup
+              icon={<BriefcaseIcon />}
+              title={jobs.data.listings.length > 0 ? "More openings" : "Openings"}
+              links={jobs.data.links}
+            />
+            <LinkGroup icon={<PeopleIcon />} title={city ? "Recruiters near you" : "Recruiters"} links={jobs.data.people ?? []}>
+              <OutreachNote text={note} />
+            </LinkGroup>
+            <LinkGroup icon={<TrendIcon />} title="Hot topics this month" links={jobs.data.topics ?? []} />
             <p className="fine">
               {jobs.data.source === "adzuna" ? "Live listings from Adzuna, newest first. " : ""}
-              Openings change daily and Bridge does not screen them.
+              Every link opens that site's own search; Bridge does not screen the results.
+              {!city && " Pick a city to narrow the recruiter search."}
             </p>
-          </div>
+          </>
         )}
       </PanelBody>
     </Panel>

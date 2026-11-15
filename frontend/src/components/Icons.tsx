@@ -24,6 +24,8 @@ export const FileIcon = () => <Stroke d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h
 export const PlayIcon = () => <Stroke d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM10 9l5 3-5 3z" />;
 export const ArticleIcon = () => <Stroke d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM8.5 8h7M8.5 12h7M8.5 16h4" />;
 export const BriefcaseIcon = () => <Stroke d="M4 8h16v11H4zM9 8V5h6v3M4 13h16" />;
+export const PeopleIcon = () => <Stroke d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M18 14.5a6 6 0 0 1 4 5.5v1" />;
+export const TrendIcon = () => <Stroke d="M3 17l6-6 4 4 8-8M15 7h6v6" />;
 export const ExternalIcon = () => <Stroke d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />;
 
 // The brand kit's horizontal logo (brand/bridge_logo_vector_flat.svg), flat
