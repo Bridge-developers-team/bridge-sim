@@ -299,4 +299,4 @@ Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label an
 - **Layout:** page width 1200px (was 980), 32px side gutters on desktop, 48px between blocks, 32px between cards, body line height 1.6.
 - **Career card:** title, then effort plus work modes as plain faint text ("Remote · Hybrid", no pills), summary, pay, up to three skills each, "Why it fits you", and the actions at the bottom. "Meet the job" is a solid light surface with real depth and a navy arrow circle (light grey surface with a white circle in dark mode); the plan is a quiet text row that turns solid navy once the job has been met.
 - **Dark mode:** neutral graphite, Apple-like: background #0f0f10, surfaces #1c1c1e / #2c2c2e, borders #3a3a3c, text #f5f5f7 / #a1a1a6. No blue glow; the ambient light is a faint grey with a trace of gold.
-- **Language:** an EN / RU switch right after the theme switch, with a sliding thumb. Interface text comes from `lib/ru.ts`; AI-written content stays as written.
+- **Language:** English only.
