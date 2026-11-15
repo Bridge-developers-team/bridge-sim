@@ -37,7 +37,10 @@ def response(parsed, stop_reason: str = "end_turn"):
 
 
 CAREERS = CareersDraft.model_validate(
-    {"profile": {"current_role": "T", "years_experience": 1, "industry": "", "evidence_note": ""}, "careers": []}
+    {
+        "profile": {"current_role": "T", "years_experience": 1, "industry": "", "evidence_note": "", "standout": ""},
+        "careers": [],
+    }
 )
 
 
@@ -51,6 +54,20 @@ async def test_main_model_gets_structured_output_effort_and_refusal_fallback():
     assert messages.kwargs["output_config"] == {"effort": "medium"}
     assert messages.kwargs["betas"] == [FALLBACK_BETA] and messages.kwargs["fallbacks"] == "default"
     assert "<resume>\nresume text\n</resume>" in messages.kwargs["messages"][0]["content"]
+    assert "INPUT TYPE: cv" in messages.kwargs["messages"][0]["content"]
+
+
+async def test_the_prompt_says_what_kind_of_text_it_is_and_lists_the_study_fields():
+    w, messages = writer(response(CAREERS))
+
+    await w.careers(resume="resume text", candidate=Candidate(country="Kazakhstan"), source="linkedin")
+
+    user = messages.kwargs["messages"][0]["content"]
+    assert "INPUT TYPE: linkedin (the person's LinkedIn profile, saved as PDF)" in user
+    assert "Country: Kazakhstan" in user
+    system = messages.kwargs["system"]
+    assert "- learning: Instructional design and training" in system and "- other:" in system
+    assert "{fields}" not in system
 
 
 async def test_haiku_gets_no_fallback_because_it_has_none(practice):
