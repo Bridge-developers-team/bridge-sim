@@ -106,7 +106,7 @@ export function PathsPage() {
       />
       <header className="page-head">
         <h1>You're not starting from zero.</h1>
-        <p className="lead">Three paths that reuse what you already do. Meet each job first, then build a plan for the one you want.</p>
+        <p className="lead">Three paths that reuse what you already do.</p>
         <p className="muted small">
           Read as {profile.currentRole}
           {profile.yearsExperience !== null && <> · {profile.yearsExperience} years</>}
@@ -157,27 +157,15 @@ function CareerCard({
   const effort = EFFORT[career.relativeEffort];
   return (
     <article className={`panel career ${chosen ? "career--chosen" : ""}`}>
-      <h2 className="career__title">{career.title}</h2>
-      <ul className="career__pills" aria-label="Effort and how the job is done">
-        <li>
+      <header className="career__head">
+        <h2 className="career__title">{career.title}</h2>
+        <p className="career__meta">
           <Lozenge tone={effort.tone}>{effort.label}</Lozenge>
-        </li>
-        {(career.workModes ?? []).map((m) => (
-          <li key={m}>
-            <Lozenge tone="info">{WORK_MODE[m] ?? m}</Lozenge>
-          </li>
-        ))}
-      </ul>
-
-      <button type="button" className={`meet-btn ${met ? "is-met" : ""}`} onClick={onMeet}>
-        <span className="meet-btn__text">
-          <strong>{met ? "Meet the job again" : "Meet the job"}</strong>
-          <span>What you’d do, a typical day, the pay</span>
-        </span>
-        <span className="meet-btn__go" aria-hidden="true">
-          <ArrowRightIcon />
-        </span>
-      </button>
+          {(career.workModes ?? []).length > 0 && (
+            <span className="career__modes">{(career.workModes ?? []).map((m) => WORK_MODE[m] ?? m).join(" · ")}</span>
+          )}
+        </p>
+      </header>
 
       <p className="career__summary">{career.roleSummary}</p>
       <PayLine pay={pay} loading={payLoading} country={country} />
@@ -186,7 +174,7 @@ function CareerCard({
         <div className="career__tags">
           <span className="label">Your edge</span>
           <ul className="tags">
-            {career.transferableSkills.map((s) => (
+            {career.transferableSkills.slice(0, 3).map((s) => (
               <li key={s.skill} className={`tag ${s.verified ? "tag--proven" : ""}`} title={s.verified ? `From your CV: "${s.evidence}"` : "AI inference, not quoted from your CV"}>
                 {s.verified && <CheckIcon />}
                 {s.skill}
@@ -200,7 +188,7 @@ function CareerCard({
         <div className="career__tags">
           <span className="label">To learn</span>
           <ul className="tags">
-            {career.missingSkills.map((s) => (
+            {career.missingSkills.slice(0, 3).map((s) => (
               <li key={s} className="tag tag--learn">
                 {s}
               </li>
@@ -212,29 +200,22 @@ function CareerCard({
       <details className="career__more">
         <summary>Why it fits you</summary>
         <p>{career.fitExplanation}</p>
-        {career.motivationMatch && (
-          <p className="career__why small">
-            <span className="strong">Against what you want:</span> {career.motivationMatch}
-          </p>
-        )}
-        {career.transferableSkills.some((s) => s.verified) && (
-          <ul className="plain small">
-            {career.transferableSkills
-              .filter((s) => s.verified)
-              .map((s) => (
-                <li key={s.skill}>
-                  <span className="strong">{s.skill}:</span> <q className="quote">{s.evidence}</q>
-                </li>
-              ))}
-          </ul>
-        )}
+        {career.motivationMatch && <p className="career__why small">{career.motivationMatch}</p>}
         <p className="small">
           <span className="strong">Trade-off:</span> {career.keyTradeoff}
         </p>
-        {career.assumptions.length > 0 && <p className="muted small">{career.assumptions.join(" ")}</p>}
       </details>
 
       <div className="career__action">
+        <button type="button" className={`meet-btn ${met ? "is-met" : ""}`} onClick={onMeet}>
+          <span className="meet-btn__text">
+            <strong>{met ? "Meet the job again" : "Meet the job"}</strong>
+            <span>Duties, a typical day, the pay</span>
+          </span>
+          <span className="meet-btn__go" aria-hidden="true">
+            <ArrowRightIcon />
+          </span>
+        </button>
         <button type="button" className={`plan-btn ${met || chosen ? "is-ready" : ""}`} onClick={onChoose}>
           <span>{chosen ? "Open my 30-day plan" : met ? "Build my 30-day plan" : "Skip to the plan"}</span>
           <span className="plan-btn__go" aria-hidden="true">

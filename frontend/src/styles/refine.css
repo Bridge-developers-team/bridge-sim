@@ -1,0 +1,418 @@
+/* Calmer, roomier, more expensive: a wider page with more air between
+   blocks, quieter career cards, one primary action that feels solid, and a
+   neutral graphite dark mode. Imported last. */
+
+/* ---------- Room to breathe ---------- */
+
+:root {
+  --page-max: 1200px;
+}
+
+body {
+  line-height: 1.6;
+}
+
+.page {
+  padding-left: max(var(--space-400), env(safe-area-inset-left));
+  padding-right: max(var(--space-400), env(safe-area-inset-right));
+}
+
+.top__inner {
+  max-width: var(--page-max);
+}
+
+.stack-lg {
+  gap: var(--space-600);
+}
+
+.page-head {
+  gap: var(--space-150);
+  padding-bottom: var(--space-100);
+}
+
+.page-head .lead {
+  max-width: 46ch;
+}
+
+.panel {
+  padding: var(--space-100);
+}
+
+.panel__body,
+.panel-body {
+  gap: var(--space-200);
+}
+
+.card-grid {
+  gap: var(--space-400);
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-left: max(var(--space-200), env(safe-area-inset-left));
+    padding-right: max(var(--space-200), env(safe-area-inset-right));
+  }
+  .stack-lg {
+    gap: var(--space-400);
+  }
+  .card-grid {
+    gap: var(--space-300);
+  }
+}
+
+/* ---------- Career card: information first, quiet labels, one clear action ---------- */
+
+.career {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-250);
+  padding: var(--space-400) var(--space-300) var(--space-300);
+}
+
+.career__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+}
+
+.career__title {
+  font-size: var(--type-xl);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.career__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-100) var(--space-150);
+  margin: 0;
+}
+
+/* Work modes: plain words, no pills. */
+.career__modes {
+  color: var(--text-faint);
+  font-size: var(--type-sm);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.career__summary {
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+.career .pay {
+  padding: var(--space-200);
+  border-radius: 16px;
+}
+
+.career .pay__amount strong {
+  font-size: var(--type-lg);
+  letter-spacing: -0.01em;
+}
+
+.career .pay__sources {
+  font-size: var(--type-xs);
+  color: var(--text-faint);
+}
+
+.career__tags {
+  gap: var(--space-100);
+}
+
+.career .tags {
+  gap: var(--space-075, 6px);
+}
+
+.career__action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+  margin-top: auto;
+  padding-top: var(--space-200);
+}
+
+/* Meet the job: a solid, quiet surface with real depth, not a gold slab. */
+.meet-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-200);
+  width: 100%;
+  padding: var(--space-200) var(--space-200) var(--space-200) var(--space-250);
+  border: 1px solid rgba(11, 26, 58, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f6f1 100%);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 1px 2px rgba(11, 26, 58, 0.06),
+    0 8px 24px -12px rgba(11, 26, 58, 0.28);
+  transition:
+    transform 0.35s var(--ease-glass),
+    box-shadow 0.35s var(--ease-glass);
+}
+
+.meet-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 2px 4px rgba(11, 26, 58, 0.06),
+    0 18px 36px -16px rgba(11, 26, 58, 0.35);
+}
+
+.meet-btn:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.meet-btn__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.meet-btn__text strong {
+  font-size: var(--type-md);
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.meet-btn__text span {
+  color: var(--text-faint);
+  font-size: var(--type-sm);
+  opacity: 1;
+}
+
+.meet-btn__go {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0b1a3a;
+  color: #fff;
+  box-shadow: 0 6px 14px -6px rgba(11, 26, 58, 0.6);
+  transition: transform 0.35s var(--ease-glass);
+}
+
+.meet-btn:hover .meet-btn__go {
+  transform: translateX(3px);
+}
+
+.meet-btn.is-met {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+
+.meet-btn.is-met .meet-btn__go {
+  background: var(--surface-sunken);
+  color: var(--text);
+  box-shadow: none;
+}
+
+/* The plan: a calm text action until the job has been met. */
+.plan-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-150);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-250);
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-subtle);
+  font: inherit;
+  font-size: var(--type-sm);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background-color 0.25s var(--ease-glass), color 0.25s var(--ease-glass);
+}
+
+.plan-btn:hover {
+  background: rgba(11, 26, 58, 0.05);
+  color: var(--text);
+}
+
+.plan-btn.is-ready {
+  background: #0b1a3a;
+  color: #fff;
+  box-shadow: 0 10px 24px -14px rgba(11, 26, 58, 0.7);
+}
+
+.plan-btn__go {
+  display: grid;
+  place-items: center;
+  transition: transform 0.3s var(--ease-glass);
+}
+
+.plan-btn:hover .plan-btn__go {
+  transform: translateX(3px);
+}
+
+/* ---------- Dark mode: graphite, not blue ---------- */
+
+:root.dark {
+  --background: #0f0f10;
+  --surface: #1c1c1e;
+  --surface-sunken: #161617;
+  --surface-hover: #2c2c2e;
+  --border-subtle: #2c2c2e;
+  --border: #3a3a3c;
+  --text: #f5f5f7;
+  --text-subtle: #a1a1a6;
+  --text-faint: #8e8e93;
+  --accent-soft: #232325;
+  --band: #1c1c1e;
+  --band-deep: #141415;
+  --band-ink: #f5f5f7;
+  --band-muted: #a1a1a6;
+  --info-bg: #2c2c2e;
+  --info-fg: #e5e5ea;
+  --neutral-bg: #232325;
+  --neutral-fg: #a1a1a6;
+  --ok-bg: #1f2a22;
+  --warn-bg: #2d2a20;
+  --danger-bg: #2e1f1d;
+  --glass-bg: rgba(30, 30, 32, 0.72);
+  --glass-bg-strong: rgba(36, 36, 38, 0.86);
+  --glass-rim: rgba(255, 255, 255, 0.07);
+  --glass-edge: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 1px 1px rgba(0, 0, 0, 0.5), 0 20px 44px -20px rgba(0, 0, 0, 0.75);
+  --focus-glow: 0 0 0 1px rgba(212, 175, 98, 0.55), 0 14px 36px -14px rgba(212, 175, 98, 0.28);
+  --scene-paper: #2c2c2e;
+  --scene-soft: #3a3a3c;
+  --scene-ink: #e5e5ea;
+}
+
+.dark .ambient {
+  background: radial-gradient(120% 90% at 50% -10%, #1f1f21 0%, #121213 55%, #0a0a0b 100%);
+}
+
+.dark .ambient__orb--navy,
+.dark .ambient__orb--sky {
+  background: radial-gradient(circle, #3a3a3c, transparent 70%);
+  opacity: 0.25;
+}
+
+.dark .ambient__orb--gold {
+  opacity: 0.08;
+}
+
+.dark .meet-btn {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, #2c2c2e 0%, #232325 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 10px 28px -14px rgba(0, 0, 0, 0.8);
+}
+
+.dark .meet-btn__go {
+  background: #f5f5f7;
+  color: #1c1c1e;
+  box-shadow: none;
+}
+
+.dark .plan-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark .plan-btn.is-ready {
+  background: #f5f5f7;
+  color: #1c1c1e;
+}
+
+/* ---------- Language switch: EN / RU, quiet ---------- */
+
+.lang-switch {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  height: 42px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: rgba(11, 26, 58, 0.06);
+  box-shadow: inset 0 1px 2px rgba(11, 26, 58, 0.1);
+  color: var(--text-subtle);
+  font: inherit;
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.dark .lang-switch {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.lang-switch__thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: 34px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(11, 26, 58, 0.18);
+  transition: transform 0.45s var(--ease-spring);
+}
+
+.lang-switch.is-ru .lang-switch__thumb {
+  transform: translateX(100%);
+}
+
+.lang-switch__opt {
+  position: relative;
+  z-index: 1;
+  min-width: 34px;
+  text-align: center;
+  transition: color 0.3s var(--ease-glass);
+}
+
+.lang-switch__opt.is-on {
+  color: var(--text);
+}
+
+.top__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-100);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meet-btn,
+  .plan-btn,
+  .lang-switch__thumb {
+    transition: none;
+  }
+}
+
+.career__head,
+.career__title {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.career__meta {
+  justify-content: flex-start;
+}
+
+.dark .theme-switch.is-dark .theme-switch__thumb {
+  background: #3a3a3c;
+  color: var(--gold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dark .lang-switch__thumb {
+  background: #3a3a3c;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
