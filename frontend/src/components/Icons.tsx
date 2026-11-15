@@ -20,6 +20,7 @@ export const CheckIcon = () => <Stroke d="M5 12.5l4.5 4.5L19 7.5" />;
 export const ArrowRightIcon = () => <Stroke d="M5 12h14M13 6l6 6-6 6" />;
 export const SearchIcon = () => <Stroke d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4" />;
 export const CloseIcon = () => <Stroke d="M6 6l12 12M18 6L6 18" />;
+export const TrashIcon = () => <Stroke d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />;
 export const SunIcon = () => <Stroke d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />;
 export const MoonIcon = () => <Stroke d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />;
 export const ChevronDownBig = () => <Stroke d="M6 9l6 6 6-6" />;
