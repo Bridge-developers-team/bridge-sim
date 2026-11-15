@@ -2,7 +2,7 @@ import { useNavigate } from "react-router";
 import { useConfig } from "../api/hooks";
 import type { Task, TaskType } from "../api/types";
 import { GrowingCalendar } from "../components/GrowingCalendar";
-import { ArrowRightIcon } from "../components/Icons";
+import { ArrowRightIcon, ChevronDownBig } from "../components/Icons";
 import { Button } from "../components/ui/Button";
 import { TASK_TYPE, hoursText } from "../lib/labels";
 import { memory, updateJourney } from "../state/journey";
@@ -81,7 +81,15 @@ export function LandingPage() {
         </figure>
       </section>
 
-      <div className="story">
+      <a className="scroll-cue" href="#how">
+        <span>See how it works</span>
+        <span className="scroll-cue__arrow" aria-hidden="true">
+          <ChevronDownBig />
+        </span>
+      </a>
+
+      <div className="story" id="how">
+        <span className="story__thread" aria-hidden="true" />
         <section className="story__scene">
           <div className="story__head">
             <span className="story__step">

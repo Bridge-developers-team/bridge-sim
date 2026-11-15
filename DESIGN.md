@@ -113,9 +113,13 @@ components:
 
 ## Overview
 
-**Material: Liquid Glass (2026-11-15).** The navy-and-gold identity is rendered in a liquid-glass material, chosen by the team from an approved test design: translucent panels (white at about 52%, a 24px backdrop blur with saturation) float over a slow ambient light of soft gold, navy and sky orbs. Every glass surface has a bright 1px top rim, a hairline edge and a soft specular sheen on its upper left. Controls are capsules. The header is a floating glass capsule with a thin gold-to-navy scroll-progress line. The span band is deep navy glass with a faint gold glow. All of it lives in `frontend/src/styles/glass.css`, which loads last and overrides `components.css`.
+**Material: Liquid Glass (2026-11-15).** The navy-and-gold identity is rendered in a liquid-glass material, chosen by the team from an approved test design: translucent panels (white at about 52%, a 24px backdrop blur with saturation) float over a slow ambient light of soft gold, navy and sky orbs. Every glass surface has a bright 1px top rim, a hairline edge and a soft specular sheen on its upper left. Controls are capsules. The header is a floating glass capsule with a thin gold-to-navy scroll-progress line. The span band is bright glass with navy type in light mode (the calendar uses the deep kind colours) and deep navy glass with a faint gold glow in dark mode. All of it lives in `frontend/src/styles/glass.css`, which loads last and overrides `components.css`.
 
 **The Gold Is Focus Rule.** Gold, as a fill or a glow (`--focus-glow`), marks the single most important thing in view: the final action of a form, the plan's next step and its button, the path you chose, a selected option's check, and the pace control's active edge. Everything else stays neutral glass and navy. If two things on one screen glow gold, one of them is wrong.
+
+**The Visible Pick Rule.** A chosen chip or list option is filled navy with white text in light mode, and gold with navy text in dark mode. A choice must never look like the unchosen ones.
+
+**Theme.** One Light/Dark switch (sun and moon), no Auto option. The first visit follows the device; a click stores an explicit choice.
 
 
 **Creative North Star: "The Span"**
@@ -217,6 +221,8 @@ Fully round pills with a 1px rule. Selected: filled navy, bold. Single- or multi
 White panel, 1px warm rule, 12px radius, 24px padding (16px on phones). Never nested. The next-action panel is the one panel with a 2px navy border.
 
 ### Settings rows and option sheets
+**Update (Liquid Glass):** option lists no longer open as pop-ups. Tapping a row unfolds its list right underneath, inside the same card: a search capsule for long lists, options as capsules in a grid (one column on phones), a "n of max chosen" line and Done for multi-choice. Only one list is open at a time, the page keeps scrolling, and Escape closes it. The text below describes the retired pop-up.
+
 Answers on the start form are rows, not open text boxes: label on the left, current value on the right, a chevron that nudges right on hover, 56px tall, 1px dividers. Tapping a row opens an **option sheet**: a popover that grows out of the row on a wide screen, a bottom sheet that slides up on a phone (with a grip bar). Long lists get a search box, and a typed value that is not in the list can be used as is. Multi-choice sheets show "n of max" and a Done button. Built on `<dialog>` (Escape, focus trap, focus returns to the row).
 
 ### Segmented control
@@ -238,6 +244,7 @@ The logo left, text links right; the active link sits on a white pill.
 - **Landing:** the hero copy arrives in a staggered sequence and the sample plan floats gently. Below it, the landing is one continuous story (where you are, three paths, 30 days, try the job, proof) whose meters fill as they arrive.
 - **Focus:** when the focus element first appears it pulses once with a soft gold ring, then rests at its glow. It never loops.
 - **Buttons:** a highlight sweeps across a capsule on hover, which lifts 2px and scales 1.02; pressing scales to 0.97.
+- **Landing narrative:** a "See how it works" cue under the hero bobs gently and fades away once you scroll (the one looping animation outside loaders, because it disappears). Down the story runs a gold thread that grows as you read; each step number turns gold as its scene arrives. The story ends in a highlighted glass card (gold glow) holding the main action.
 - The ambient orbs drift slowly (about 30s cycles); everything above is off with reduced motion.
 
 Smooth, short and purposeful: it either answers an action or leads the eye down the page, never loops (except loaders). Tokens: `--dur-quick` 140ms (hover, press), `--dur-base` 220ms (popovers, fades), `--dur-slow` 380ms (sheets, sliding thumbs); `--ease` (expo-out) for most things, `--ease-settle` (ease-out-quint, a softer landing, no overshoot) for things that settle into place.
