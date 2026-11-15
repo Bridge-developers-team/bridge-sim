@@ -26,6 +26,7 @@ from bridge.db.repository import ProofRepository
 from bridge.llm.base import Writer
 from bridge.llm.claude import ClaudeWriter, Models, make_client
 from bridge.llm.demo import DemoWriter
+from bridge.services.insights import InsightsService
 from bridge.services.jobs import Fetch, JobsService, http_fetch
 from bridge.services.limits import DailyBudget, SlidingWindow
 from bridge.services.signing import Signer
@@ -79,6 +80,7 @@ def create_app(
             fetch=jobs_fetch,
         ),
         jobs_per_client=SlidingWindow(settings.jobs_per_client, 600),
+        insights=InsightsService(),
     )
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     errors.install(app)

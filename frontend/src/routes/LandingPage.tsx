@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { useConfig } from "../api/hooks";
 import type { Task, TaskType } from "../api/types";
 import { GrowingCalendar } from "../components/GrowingCalendar";
-import { ArrowRightIcon, ChevronDownBig } from "../components/Icons";
+import { ArrowRightIcon, ArrowUpIcon, ChevronDownBig } from "../components/Icons";
 import { Button } from "../components/ui/Button";
 import { TASK_TYPE, hoursText } from "../lib/labels";
 import { memory, updateJourney } from "../state/journey";
@@ -39,6 +41,18 @@ const SAMPLE_PLAN = {
 export function LandingPage() {
   const navigate = useNavigate();
   const config = useConfig();
+  const firstScreen = useRef<HTMLDivElement>(null);
+  const [past, setPast] = useState(false);
+
+  // Once the first screen is gone, the arrow pops up at the top as a way back.
+  useEffect(() => {
+    const el = firstScreen.current;
+    if (!el) return;
+    const seen = new IntersectionObserver(([entry]) => setPast(!entry!.isIntersecting), { threshold: 0.25 });
+    seen.observe(el);
+    return () => seen.disconnect();
+  }, []);
+  const smooth = (): ScrollBehavior => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 
   const tryDemo = () => {
     const data = config.data;
@@ -52,6 +66,7 @@ export function LandingPage() {
 
   return (
     <div className="stack-lg">
+      <div className="hero-screen" ref={firstScreen}>
       <section className="hero">
         <div className="hero__copy">
           <h1>Change careers without starting over.</h1>
@@ -81,12 +96,30 @@ export function LandingPage() {
         </figure>
       </section>
 
-      <a className="scroll-cue" href="#how">
+      <button
+        type="button"
+        className={`scroll-cue ${past ? "is-gone" : ""}`}
+        onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: smooth(), block: "start" })}
+      >
         <span>See how it works</span>
         <span className="scroll-cue__arrow" aria-hidden="true">
           <ChevronDownBig />
         </span>
-      </a>
+      </button>
+      </div>
+
+      {past &&
+        createPortal(
+        <button
+          type="button"
+          className="to-top"
+          aria-label="Back to the top"
+          onClick={() => window.scrollTo({ top: 0, behavior: smooth() })}
+        >
+          <ArrowUpIcon />
+        </button>,
+          document.body,
+        )}
 
       <div className="story" id="how">
         <span className="story__thread" aria-hidden="true" />

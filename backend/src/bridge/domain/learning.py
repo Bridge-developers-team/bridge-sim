@@ -14,8 +14,10 @@ from typing import Literal
 
 from pydantic import Field as PydanticField
 
+from bridge.domain.drafts import CoursePickDraft
 from bridge.domain.models import CamelModel
-from bridge.domain.text import clean
+from bridge.domain.text import clean, slug
+from bridge.domain.web import Found, host
 
 # free: no charge at all. paid: a paid plan, subscription or trial. Coursera
 # courses count as paid: its own FAQ says course materials need the paid
@@ -38,6 +40,10 @@ class Course(CamelModel):
     modules: list[str] = PydanticField(default_factory=list)
     pace: Pace = "course"
     why: str = ""
+    # Paid only: the provider's US monthly price, rounded (Coursera programs
+    # are $49 a month; checked November 2026). 0 = unknown or free.
+    monthly_usd: int = 0
+    found: bool = False  # True for a course the AI found on the web for this exact role
 
 
 def _c(id: str, title: str, provider: str, url: str, cost: Cost, format: Format, **kw: object) -> Course:
@@ -57,6 +63,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/google-data-analytics",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 6 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Foundations: Data, Data, Everywhere",
@@ -126,6 +133,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/health-informatics",
             "paid",
             "certificate",
+            monthly_usd=49,
             modules=[
                 "The Social and Technical Context of Health Informatics",
                 "Leading Change in Health Informatics",
@@ -193,6 +201,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/meta-back-end-developer",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 8 months at 6 hours a week (Coursera's estimate)",
             modules=[
                 "Introduction to Back-End Development",
@@ -254,6 +263,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/meta-front-end-developer",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 7 months at 6 hours a week (Coursera's estimate)",
             modules=[
                 "Introduction to Front-End Development",
@@ -276,6 +286,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/software-testing-automation",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 2 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Introduction to Software Testing",
@@ -302,6 +313,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/google-ux-design",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 6 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Foundations of User Experience (UX) Design",
@@ -321,6 +333,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/michiganux",
             "paid",
             "certificate",
+            monthly_usd=49,
             modules=[
                 "Introduction to User Experience Principles and Processes",
                 "Understanding User Needs",
@@ -348,6 +361,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/google-it-support",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 3 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Technical Support Fundamentals",
@@ -386,6 +400,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/google-cybersecurity",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 6 months at 7 hours a week (Coursera's estimate)",
             modules=[
                 "Foundations of Cybersecurity",
@@ -443,6 +458,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/google-project-management",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 6 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Foundations of Project Management",
@@ -470,6 +486,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/uva-darden-digital-product-management",
             "paid",
             "certificate",
+            monthly_usd=49,
             modules=[
                 "Digital Product Management: Modern Fundamentals",
                 "Agile Meets Design Thinking",
@@ -486,6 +503,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/ibm-product-manager",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 3 months (Coursera's estimate)",
             modules=[
                 "Product Management: An Introduction",
@@ -514,6 +532,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/business-analytics",
             "paid",
             "certificate",
+            monthly_usd=49,
             modules=[
                 "Customer Analytics",
                 "Operations Analytics",
@@ -530,6 +549,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/google-digital-marketing-ecommerce",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 6 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Foundations of Digital Marketing and E-commerce",
@@ -576,6 +596,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/professional-certificates/sales-development-representative",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 3 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Groundwork for Success in Sales Development",
@@ -621,6 +642,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/human-resource-management",
             "paid",
             "certificate",
+            monthly_usd=49,
             length="About 2 months at 10 hours a week (Coursera's estimate)",
             modules=[
                 "Preparing to Manage Human Resources",
@@ -638,6 +660,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/learn/wharton-people-analytics",
             "paid",
             "course",
+            monthly_usd=49,
             why="How HR teams use data for hiring, performance and retention.",
         ),
         _c(
@@ -656,6 +679,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/learn/instructional-design-foundations-applications",
             "paid",
             "course",
+            monthly_usd=49,
             length="About 13 hours (Coursera's estimate)",
             modules=["Introduction to ISD", "Foundations and Tools of ISD", "Analysis Part 1", "Analysis Part 2"],
             pace="weekly",
@@ -677,6 +701,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/learn/learning-how-to-learn",
             "paid",
             "course",
+            monthly_usd=49,
             why="One of the most-taken online courses: the science of studying well, useful for any switch.",
         ),
         _c(
@@ -686,6 +711,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/specializations/wharton-business-financial-modeling",
             "paid",
             "certificate",
+            monthly_usd=49,
             modules=[
                 "Fundamentals of Quantitative Modeling",
                 "Introduction to Spreadsheets and Models",
@@ -745,6 +771,7 @@ COURSES: dict[str, Course] = {
             "https://www.coursera.org/learn/sciwrite",
             "paid",
             "course",
+            monthly_usd=49,
             why="Stanford's course on clear, tight writing; the editing skills carry over to any field.",
         ),
     ]
@@ -977,7 +1004,8 @@ class StudyWeek(CamelModel):
 class StudyPlan(CamelModel):
     field: str
     field_label: str
-    paid: bool  # paid options included (the user has a learning budget)
+    matched: bool  # False: no catalog field fits this role, so web-found courses lead
+    budget_usd: int  # the user's monthly learning budget in US dollars (approximate)
     main: Course
     weeks: list[StudyWeek]  # what of the main course goes into each roadmap week
     later: list[str]  # main-course modules left after the 30 days
@@ -985,8 +1013,15 @@ class StudyPlan(CamelModel):
     checked: str = CHECKED
 
 
-def _allowed(course: Course, paid: bool) -> bool:
-    return paid or course.cost != "paid"
+COURSERA_MONTHLY_USD = 49
+
+
+def affordable(course: Course, budget_usd: int) -> bool:
+    """Free courses always; a paid one when the monthly budget covers its
+    monthly price (Coursera's $49 when the price is unknown)."""
+    if course.cost != "paid":
+        return True
+    return budget_usd > 0 and budget_usd >= (course.monthly_usd or COURSERA_MONTHLY_USD)
 
 
 def month_modules(course: Course, hours_per_week: float) -> int:
@@ -1013,9 +1048,9 @@ def spread(modules: list[str], weeks: int = 4) -> list[list[str]]:
     ]
 
 
-def study_plan(role: str, paid: bool, hours_per_week: float, weeks: int = 4) -> StudyPlan:
+def study_plan(role: str, budget_usd: int, hours_per_week: float, weeks: int = 4) -> StudyPlan:
     field = match_field(role)
-    usable = [COURSES[c] for c in field.courses if _allowed(COURSES[c], paid)]
+    usable = [COURSES[c] for c in field.courses if affordable(COURSES[c], budget_usd)]
     if not usable:  # every field lists at least one free course; this is a guard
         usable = [COURSES[c] for c in GENERAL.courses]
     main = usable[0]
@@ -1024,9 +1059,73 @@ def study_plan(role: str, paid: bool, hours_per_week: float, weeks: int = 4) -> 
     return StudyPlan(
         field=field.id,
         field_label=field.label,
-        paid=paid,
+        matched=field is not GENERAL,
+        budget_usd=max(0, budget_usd),
         main=main,
         weeks=[StudyWeek(week=i + 1, modules=m) for i, m in enumerate(spread(month, weeks))],
         later=main.modules[n:],
         more=usable[1:5],
     )
+
+
+# ---------- Courses found on the web for one exact role ----------
+
+# Where the AI may look: course platforms, universities and official
+# training sites. Never a search page (domain/web.py drops those).
+COURSE_DOMAINS = [
+    "coursera.org",
+    "edx.org",
+    "ocw.mit.edu",
+    "youtube.com",
+    "khanacademy.org",
+    "freecodecamp.org",
+    "udemy.com",
+    "linkedin.com",
+    "futurelearn.com",
+    "open.edu",
+    "pll.harvard.edu",
+    "online.stanford.edu",
+    "learn.microsoft.com",
+    "grow.google",
+    "skillshop.withgoogle.com",
+    "academy.hubspot.com",
+    "trailhead.salesforce.com",
+    "kaggle.com",
+    "cs50.harvard.edu",
+    "oyc.yale.edu",
+    "mooc.fi",
+    "alison.com",
+    "udacity.com",
+    "datacamp.com",
+    "codecademy.com",
+]
+MAX_FOUND = 8
+
+
+def pick_courses(found: list[Found], picks: list[CoursePickDraft], budget_usd: int) -> list[Course]:
+    """The AI's picks among real search results, by number. Invented numbers
+    are ignored; paid picks are dropped when the user has no budget."""
+    out: list[Course] = []
+    used: set[int] = set()
+    for p in picks:
+        if p.index in used or not 0 <= p.index < len(found):
+            continue
+        used.add(p.index)
+        if not p.free and budget_usd <= 0:
+            continue
+        r = found[p.index]
+        out.append(
+            Course(
+                id="web-" + slug(r.url)[:40],
+                title=r.title,
+                provider=host(r.url),
+                url=r.url,
+                cost="free" if p.free else "paid",
+                format="lectures" if host(r.url).endswith("youtube.com") else "course",
+                why=clean(p.why, 160),
+                found=True,
+            )
+        )
+        if len(out) == MAX_FOUND:
+            break
+    return out

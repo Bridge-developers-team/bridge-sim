@@ -3,7 +3,8 @@ import { applyTheme, watchSystemTheme } from "../lib/theme";
 import { MoonIcon, SunIcon } from "./Icons";
 
 /** Two states only: light or dark. The first visit follows the device; any
- * click stores an explicit choice. */
+ * click stores an explicit choice. The thumb slides from left to right
+ * (sun to moon) while the label slides the other way. */
 function isDark(): boolean {
   return document.documentElement.classList.contains("dark");
 }
@@ -24,10 +25,17 @@ export function ThemeToggle() {
         setDark(next);
       }}
     >
-      <span className="theme-switch__thumb" aria-hidden="true">
-        {dark ? <MoonIcon /> : <SunIcon />}
+      <span className="theme-switch__label" aria-hidden="true">
+        {dark ? "Dark" : "Light"}
       </span>
-      <span className="theme-switch__label">{dark ? "Dark" : "Light"}</span>
+      <span className="theme-switch__thumb" aria-hidden="true">
+        <span className="theme-switch__sun">
+          <SunIcon />
+        </span>
+        <span className="theme-switch__moon">
+          <MoonIcon />
+        </span>
+      </span>
     </button>
   );
 }

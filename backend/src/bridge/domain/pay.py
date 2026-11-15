@@ -11,16 +11,21 @@ exact one).
   workers by main professions and positions" (2026, published 03.11.2026),
   average monthly nominal wage. The survey gives a figure per industry, so
   the UI shows the range across the industries most career changers join.
-Other countries: no figure (the UI says so)."""
+Everywhere else (and for jobs with no official figure): an approximate
+figure the AI found with web search, kept only when it names one of the
+real search results as its source. It is labeled as an estimate, with the
+source linked."""
 
 from __future__ import annotations
 
 import re
 from typing import Literal
 
+from bridge.domain.drafts import PayEstimateDraft
 from bridge.domain.learning import match_field
 from bridge.domain.models import CamelModel
 from bridge.domain.text import clean
+from bridge.domain.web import Found, host
 
 US_SOURCE = "U.S. Bureau of Labor Statistics, OEWS, May 2025"
 KZ_SOURCE = "Bureau of National Statistics of Kazakhstan, wages by profession, 2026"
@@ -610,12 +615,13 @@ class Pay(CamelModel):
     area: str  # "Texas", "United States", "Kazakhstan"
     currency: str
     period: Literal["year", "month"]
-    stat: Literal["median", "average"]
+    stat: Literal["median", "average", "estimate"]
     low: int
     high: int  # equal to low for a single figure
     note: str = ""  # e.g. "Range across 3 industries"
     source: str
     url: str
+    kind: Literal["official", "estimate"] = "official"
 
 
 _STATE = re.compile(r",\s*([A-Z]{2})\b")
@@ -675,3 +681,32 @@ def pay_for(role: str, country: str, location: str = "") -> Pay | None:
             url=KZ_URL,
         )
     return None
+
+
+_CURRENCY = re.compile(r"^[A-Z]{3}$")
+
+
+def estimate_from_draft(role: str, area: str, draft: PayEstimateDraft, found: list[Found]) -> Pay | None:
+    """An AI-read pay figure, kept only if it cites a real search result and
+    the numbers make sense. The source title and link are the result's own."""
+    if not draft.found or not 0 <= draft.source < len(found):
+        return None
+    low, high = sorted((int(draft.low), int(draft.high)))
+    currency = clean(draft.currency, 3).upper()
+    if low <= 0 or high > low * 10 or not _CURRENCY.match(currency):
+        return None
+    r = found[draft.source]
+    return Pay(
+        role=clean(role, 80),
+        occupation=clean(role, 80),
+        area=clean(area, 80),
+        currency=currency,
+        period="month" if draft.period.strip().lower().startswith("month") else "year",
+        stat="estimate",
+        low=low,
+        high=high,
+        note=clean(draft.note, 120),
+        source=f"{r.title} ({host(r.url)})",
+        url=r.url,
+        kind="estimate",
+    )

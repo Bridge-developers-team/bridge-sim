@@ -33,8 +33,8 @@ def test_role_titles_map_to_the_right_field_and_unknown_ones_to_general():
 
 
 def test_without_a_budget_only_free_courses_are_offered():
-    plan = study_plan("Data analyst", paid=False, hours_per_week=5)
-    with_budget = study_plan("Data analyst", paid=True, hours_per_week=5)
+    plan = study_plan("Data analyst", budget_usd=0, hours_per_week=5)
+    with_budget = study_plan("Data analyst", budget_usd=60, hours_per_week=5)
 
     assert plan.main.cost != "paid" and all(c.cost != "paid" for c in plan.more)
     assert with_budget.main.id == "google-data-analytics"
@@ -47,7 +47,7 @@ def test_the_main_course_is_spread_over_the_month_at_a_realistic_pace():
     assert month_modules(lectures, 3) == 4
     assert month_modules(certificate, 5) == 1 and month_modules(certificate, 10) == 2
     assert spread(["A", "B"]) == [["A"], ["A"], ["B"], ["B"]]
-    plan = study_plan("Data analyst", paid=True, hours_per_week=10)
+    plan = study_plan("Data analyst", budget_usd=60, hours_per_week=10)
     assert [w.modules for w in plan.weeks][2] == [certificate.modules[1]]
     assert plan.later == certificate.modules[2:]
 
@@ -67,3 +67,28 @@ def test_kazakhstan_pay_is_a_monthly_range_across_industries_and_other_countries
     assert kz and kz.currency == "KZT" and kz.period == "month" and kz.low < kz.high
     assert pay_for("Software developer", "de") is None
     assert pay_for("Product manager", "us") is None  # no official US occupation
+
+
+def test_web_picks_keep_only_real_results_and_respect_a_zero_budget():
+    from bridge.domain.drafts import CoursePickDraft, PayEstimateDraft
+    from bridge.domain.learning import pick_courses
+    from bridge.domain.pay import estimate_from_draft
+    from bridge.domain.web import Found, harvest
+
+    found = harvest(
+        [
+            Found("https://www.coursera.org/learn/hr", "HR basics"),
+            Found("https://www.youtube.com/results?search_query=hr", "A search page"),
+            Found("https://ocw.mit.edu/courses/hr/", "MIT HR"),
+        ]
+    )
+    picks = [CoursePickDraft(index=9, free=True, why="made up"), CoursePickDraft(index=0, free=False, why="paid")]
+    picks.append(CoursePickDraft(index=1, free=True, why="free"))
+
+    assert [f.title for f in found] == ["HR basics", "MIT HR"]  # search pages never count
+    assert [c.title for c in pick_courses(found, picks, budget_usd=0)] == ["MIT HR"]
+    assert len(pick_courses(found, picks, budget_usd=100)) == 2
+    draft = PayEstimateDraft(found=True, source=1, low=500000, high=300000, currency="kzt", period="monthly", note="x")
+    pay = estimate_from_draft("HR generalist", "Almaty, Kazakhstan", draft, found)
+    assert pay and pay.low == 300000 and pay.currency == "KZT" and pay.period == "month" and pay.url == found[1].url
+    assert estimate_from_draft("HR", "Almaty", draft.model_copy(update={"source": 7}), found) is None

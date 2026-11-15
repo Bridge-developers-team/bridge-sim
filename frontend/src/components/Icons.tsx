@@ -29,6 +29,16 @@ export const ArticleIcon = () => <Stroke d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1
 export const BriefcaseIcon = () => <Stroke d="M4 8h16v11H4zM9 8V5h6v3M4 13h16" />;
 export const TrendIcon = () => <Stroke d="M3 17l6-6 4 4 8-8M15 7h6v6" />;
 export const ExternalIcon = () => <Stroke d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />;
+export const PenIcon = () => <Stroke d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" />;
+export const ArrowUpIcon = () => <Stroke d="M12 19V5M6 11l6-6 6 6" />;
+export function LinkedInIcon() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="4" />
+      <path d="M8 10.5V16M8 7.8v.2M11.5 16v-3.2c0-1.5 1-2.3 2.2-2.3s2 .8 2 2.3V16M11.5 10.5V16" />
+    </svg>
+  );
+}
 export const BookIcon = () => <Stroke d="M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2zM4 20a2 2 0 0 0 2 1h13M8 7h7" />;
 export const CalendarIcon = () => <Stroke d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" />;
 export const PeopleIcon = () => <Stroke d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14a6 6 0 0 1 3.5 6" />;
@@ -50,6 +60,20 @@ export function BridgeLogo() {
         />
         <path fill="var(--gold)" d="M187 32C232 36 272 78 292 137L262 130C252 72 228 32 187 32Z" />
         <path fill="var(--gold)" d="M0 203C55 160 150 120 258 110L259 116C205 121 160 139 141 170L139 203Z" />
+        <clipPath id="logo-bridge">
+          <path d="M4 168C30 62 92 0 165 0C238 0 302 55 327 145L262 130C252 72 228 32 187 32C148 32 120 72 104 124C66 134 30 148 4 168Z" />
+          <path d="M0 203C55 160 150 120 258 110L259 116C205 121 160 139 141 170L139 203Z" />
+        </clipPath>
+        <g clipPath="url(#logo-bridge)">
+          <rect className="logo-shine" x="-120" y="-10" width="70" height="230" fill="url(#logo-shine-fill)" />
+        </g>
+        <defs>
+          <linearGradient id="logo-shine-fill" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stopColor="#fff" stopOpacity="0" />
+            <stop offset="0.5" stopColor="#fff" stopOpacity="0.95" />
+            <stop offset="1" stopColor="#fff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
       </g>
       <path fill="currentColor" fillRule="evenodd" d={WORDMARK} />
     </svg>

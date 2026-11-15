@@ -1,19 +1,20 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { bridgeApi } from "../api/bridge";
+import { errorText } from "../api/hooks";
 import type { Profile, Track } from "../api/types";
 import { useConfig } from "../api/hooks";
 import { Button } from "../components/ui/Button";
 import { OptionList, Picker } from "../components/ui/Picker";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
-import { ArrowRightIcon, ChevronDownIcon, FileIcon, UploadIcon } from "../components/Icons";
+import { ArrowRightIcon, ChevronDownIcon, FileIcon, LinkedInIcon, PenIcon, UploadIcon } from "../components/Icons";
 import { readCvFile } from "../lib/pdf";
-import { budgetLabel, budgetSteps, CITIES, COUNTRIES, CURRENCIES, convertBudget, CURRENT_ROLES, HOURS, MOTIVATIONS, TARGET_ROLES } from "../lib/options";
+import { COUNTRIES, CURRENCY_OPTIONS, CURRENT_ROLES, HOURS, MOTIVATIONS, budgetLabel, countryCurrency, countryName, loadJobTitles, type Option } from "../lib/options";
 import { memory, updateJourney, useJourney } from "../state/journey";
 
-type Source = { kind: "file" | "sample" | "paste"; name: string } | null;
+type Source = { kind: "file" | "sample" | "paste" | "linkedin"; name: string } | null;
 
 const hourOptions = HOURS.map((h) => ({ value: String(h), label: `${h} hours a week` }));
-const currencyOptions = CURRENCIES.map((c) => ({ value: c, label: c }));
 const motivationOptions = MOTIVATIONS.map((m) => ({ value: m, label: m }));
 
 export function StartPage() {
@@ -32,6 +33,34 @@ export function StartPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const cvCard = useRef<HTMLDivElement>(null);
   const sampleLink = useRef<HTMLButtonElement>(null);
+  const [jobs, setJobs] = useState<Option[]>(CURRENT_ROLES);
+  const [linkedin, setLinkedin] = useState<{ open: boolean; url: string; busy: boolean; error: string | null }>({
+    open: false,
+    url: "",
+    busy: false,
+    error: null,
+  });
+  const [budgetText, setBudgetText] = useState(String(journey.profile.monthlyLearningBudget || ""));
+
+  // Thousands of job titles, loaded once the form is on screen.
+  useEffect(() => {
+    let live = true;
+    void loadJobTitles().then((list) => live && setJobs(list));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const readLinkedIn = async () => {
+    setLinkedin((l) => ({ ...l, busy: true, error: null }));
+    try {
+      const { resumeText } = await bridgeApi.linkedin(linkedin.url.trim());
+      applyText(resumeText, { kind: "linkedin", name: "Your LinkedIn profile" });
+      setLinkedin({ open: false, url: "", busy: false, error: null });
+    } catch (err) {
+      setLinkedin((l) => ({ ...l, busy: false, error: errorText(err) }));
+    }
+  };
 
   const limits = config.data?.limits;
   const minResume = limits?.minResume ?? 80;
@@ -77,7 +106,6 @@ export function StartPage() {
   const tracks = config.data?.tracks ?? [];
   const trackIndex = Math.max(0, tracks.findIndex((t) => t.id === profile.transitionPreference));
   const track = tracks[trackIndex];
-  const budgetText = budgetLabel(profile.monthlyLearningBudget, profile.currency);
 
   return (
     <form className="start" onSubmit={submit} noValidate>
@@ -128,12 +156,79 @@ export function StartPage() {
                 </Button>
               </div>
             ) : source?.kind !== "paste" ? (
-              <div className="cv-empty">
-                <Button className="btn--upload" onClick={() => fileInput.current?.click()} loading={reading}>
-                  {!reading && <UploadIcon />}
-                  {reading ? "Reading your CV…" : "Upload CV"}
-                </Button>
-                <p className="muted small">PDF or .txt, or drop it here.</p>
+              <div className="cv-start">
+                <button type="button" className="cv-drop" onClick={() => fileInput.current?.click()} disabled={reading}>
+                  <span className="cv-drop__icon">{reading ? <span className="waiting__spinner" /> : <UploadIcon />}</span>
+                  <span className="cv-drop__text">
+                    <strong>{reading ? "Reading your CV…" : "Upload your CV"}</strong>
+                    <span>PDF or .txt · drop it here or tap to choose</span>
+                  </span>
+                </button>
+                <p className="cv-or" aria-hidden="true">
+                  <span>or</span>
+                </p>
+                <div className="cv-alts">
+                  <button
+                    type="button"
+                    className={`cv-alt ${linkedin.open ? "is-open" : ""}`}
+                    aria-expanded={linkedin.open}
+                    onClick={() => setLinkedin((l) => ({ ...l, open: !l.open, error: null }))}
+                  >
+                    <span className="cv-alt__icon cv-alt__icon--li">
+                      <LinkedInIcon />
+                    </span>
+                    <span>
+                      <strong>Use my LinkedIn profile</strong>
+                      <span className="muted small">Paste your profile link</span>
+                    </span>
+                  </button>
+                  <button type="button" className="cv-alt" onClick={() => setSource({ kind: "paste", name: "Your CV text" })}>
+                    <span className="cv-alt__icon">
+                      <PenIcon />
+                    </span>
+                    <span>
+                      <strong>Paste text instead</strong>
+                      <span className="muted small">Or describe your jobs</span>
+                    </span>
+                  </button>
+                </div>
+                {linkedin.open && (
+                  <div className="cv-li">
+                    <label className="field__label" htmlFor="li-url">
+                      LinkedIn profile link
+                    </label>
+                    <div className="cv-li__row">
+                      <input
+                        id="li-url"
+                        className="ui-field"
+                        type="url"
+                        inputMode="url"
+                        placeholder="https://www.linkedin.com/in/your-name"
+                        value={linkedin.url}
+                        onChange={(e) => setLinkedin((l) => ({ ...l, url: e.target.value, error: null }))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void readLinkedIn();
+                          }
+                        }}
+                      />
+                      <Button variant="primary" loading={linkedin.busy} onClick={() => void readLinkedIn()} disabled={!linkedin.url.trim()}>
+                        Read my profile
+                      </Button>
+                    </div>
+                    {linkedin.error ? (
+                      <p className="text-danger small" role="alert">
+                        {linkedin.error}
+                      </p>
+                    ) : (
+                      <p className="field__hint">
+                        The AI reads your public profile once; nothing is saved. If your profile is private, use LinkedIn’s
+                        More, then Save to PDF, and upload the file above.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ) : null}
 
@@ -174,11 +269,6 @@ export function StartPage() {
                   </span>
                 </button>
               )}
-              {!source && (
-                <button type="button" className="link-btn" onClick={() => setSource({ kind: "paste", name: "Your CV text" })}>
-                  Paste text instead
-                </button>
-              )}
               {source?.kind === "paste" && !resume && (
                 <button type="button" className="link-btn" onClick={() => setSource(null)}>
                   Upload a file instead
@@ -215,7 +305,7 @@ export function StartPage() {
             label="Current role"
             title="Your current role"
             placeholder="Optional"
-            options={CURRENT_ROLES}
+            options={jobs}
             searchable
             allowCustom
             value={profile.currentRole}
@@ -225,7 +315,7 @@ export function StartPage() {
             label="Curious about"
             title="Roles you are curious about"
             placeholder="Optional, up to 3"
-            options={TARGET_ROLES}
+            options={jobs}
             searchable
             allowCustom
             multiple
@@ -241,37 +331,69 @@ export function StartPage() {
             onChange={(v) => set("hoursPerWeek", Number(v))}
           />
           <Picker
-            label="Learning budget"
-            title="Monthly learning budget"
-            options={budgetSteps(profile.currency).map((b) => ({ value: String(b), label: budgetLabel(b, profile.currency) }))}
-            display={budgetText}
-            value={String(profile.monthlyLearningBudget)}
-            onChange={(v) => set("monthlyLearningBudget", Number(v))}
-          />
-          <Picker
-            label="Currency"
-            title="Currency"
-            options={currencyOptions}
-            value={profile.currency}
+            label="Country"
+            title="Country"
+            options={COUNTRIES}
+            searchable
+            value={profile.country}
             onChange={(v) =>
               setProfile((p) => ({
                 ...p,
-                currency: v,
-                monthlyLearningBudget: convertBudget(p.monthlyLearningBudget, p.currency, v),
+                country: v,
+                location: "",
+                currency: countryCurrency(v) ?? p.currency,
               }))
             }
           />
           <Picker
+            key={profile.country}
             label="City"
-            title="Your city, for local job openings"
+            title={`Your city in ${countryName(profile.country)}`}
             placeholder="Optional"
-            options={CITIES}
+            options={[]}
+            remote={(q) => bridgeApi.cities(profile.country, q)}
             searchable
             allowCustom
             value={profile.location}
             onChange={(v) => set("location", v)}
           />
-          <Picker label="Country" title="Country" options={COUNTRIES} value={profile.country} onChange={(v) => set("country", v)} />
+          <div className="setting-wrap">
+            <label className="setting setting--input" htmlFor="budget">
+              <span className="setting__label">Learning budget</span>
+              <span className="setting__money">
+                <input
+                  id="budget"
+                  className="setting__number tabular"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  placeholder="0"
+                  value={budgetText}
+                  onChange={(e) => {
+                    setBudgetText(e.target.value);
+                    const n = Number(e.target.value);
+                    set("monthlyLearningBudget", Number.isFinite(n) && n > 0 ? Math.round(n) : 0);
+                  }}
+                />
+                <span className="setting__unit">{profile.currency} a month</span>
+              </span>
+            </label>
+            <p className="setting__hint muted small">
+              {profile.monthlyLearningBudget > 0
+                ? "Paid courses and certificates that fit this budget are included."
+                : "0 means free courses and lectures only."}
+            </p>
+          </div>
+          <Picker
+            label="Currency"
+            title="Currency"
+            options={CURRENCY_OPTIONS}
+            searchable
+            display={profile.currency}
+            value={profile.currency}
+            onChange={(v) => set("currency", v)}
+          />
           <Picker
             label="Why change"
             title="Why change?"
@@ -319,7 +441,7 @@ export function StartPage() {
       <div className="submit-bar">
         <p className="submit-bar__summary small">
           <span>{profile.hoursPerWeek} h a week</span>
-          <span>{profile.monthlyLearningBudget === 0 ? "Free only" : `${profile.monthlyLearningBudget.toLocaleString("en-US")} ${profile.currency}`}</span>
+          <span>{profile.monthlyLearningBudget === 0 ? "Free courses" : budgetLabel(profile.monthlyLearningBudget, profile.currency)}</span>
           {track && <span>{track.label.replace(/ Track$/, "")} pace</span>}
         </p>
         <button type="submit" className="btn btn--primary btn--cta">

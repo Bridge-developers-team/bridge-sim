@@ -103,3 +103,53 @@ class EvaluationDraft(BaseModel):
 
 class SampleAnswerDraft(BaseModel):
     answer: str
+
+
+# ---------- Introducing a job (replaces the practice-task "taste") ----------
+
+
+class DaySlotDraft(BaseModel):
+    time: str = Field(description="Time of day, e.g. '9:00'")
+    what: str = Field(description="What the person does then, 6-14 words, concrete")
+
+
+class JobIntroDraft(BaseModel):
+    one_liner: str = Field(description="What this job is, in one plain sentence a 12-year-old understands")
+    responsibilities: list[str] = Field(description="4-6 core responsibilities, each 5-12 words, starting with a verb")
+    day: list[DaySlotDraft] = Field(description="A typical day in 4 moments, morning to end of day")
+    tools: list[str] = Field(description="3-6 tools or methods the job really uses, each 1-4 words")
+    you_will_like: list[str] = Field(description="2-3 things people in this job tend to enjoy, each under 12 words")
+    hard_parts: list[str] = Field(description="2-3 honest downsides or hard parts, each under 12 words")
+    how_to_start: list[str] = Field(
+        description="3 concrete first steps for someone coming from the person's current role, each under 14 words"
+    )
+
+
+# ---------- Web search drafts: the AI picks among real results by number ----------
+
+
+class PayEstimateDraft(BaseModel):
+    found: bool = Field(description="True only if a numbered search result states a pay figure for this job")
+    source: int = Field(description="Number of the search result the figure comes from, exactly as listed")
+    low: int = Field(description="Low end of the typical pay, as a whole number in the stated currency")
+    high: int = Field(description="High end of the typical pay (equal to low for a single figure)")
+    currency: str = Field(description="ISO 4217 code of the figure, e.g. USD, KZT, EUR")
+    period: str = Field(description="'year' or 'month', as the source states it")
+    note: str = Field(description="What the figure is, e.g. 'average base salary, Almaty, 2026', under 12 words")
+
+
+class CoursePickDraft(BaseModel):
+    index: int = Field(description="Number of the search result, exactly as listed")
+    free: bool = Field(description="True if the result says it is free to learn; false if paid or unclear")
+    why: str = Field(description="What it teaches for this job, 15 words at most")
+
+
+class CoursePicksDraft(BaseModel):
+    picks: list[CoursePickDraft] = Field(
+        description="Up to 8 results, best first; only real courses, lectures or guides"
+    )
+
+
+class LinkedInProfileDraft(BaseModel):
+    readable: bool = Field(description="True if the fetched page shows the person's profile; false on a login wall")
+    text: str = Field(description="The profile rewritten as a plain CV: headline, experience, education, skills")

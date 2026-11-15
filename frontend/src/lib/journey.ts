@@ -4,7 +4,7 @@
  * Saved in localStorage: profile (no income), career paths, the chosen path,
  * the roadmap with ticks, practice work, career tastings, the study schedule. NOT saved: the resume text, income
  * figures. Those live in memory for one visit. */
-import type { CareersResponse, Evaluation, Mode, Practice, Profile, Roadmap } from "../api/types";
+import type { CareersResponse, Evaluation, JobIntro, Mode, Practice, Profile, Roadmap } from "../api/types";
 import type { StudySchedule } from "./schedule.ts";
 import { mergeProgress, setTaskCompleted } from "./progress.ts";
 import type { Taste } from "./tasting.ts";
@@ -37,6 +37,8 @@ export interface Journey {
   practices: Record<string, PracticeWork>;
   /** Keyed by career id. Kept when a path is chosen or a plan rebuilt. */
   tastings: Record<string, Tasting>;
+  /** Job introductions, keyed by career id; `seen` once the last slide was reached. */
+  intros: Record<string, { intro: JobIntro; mode: Mode; seen: boolean }>;
   /** When the user plans to study (their if-then plan). Kept across plans. */
   schedule?: StudySchedule;
 }
@@ -55,13 +57,13 @@ export const DEFAULT_PROFILE: Profile = {
 };
 
 export function emptyJourney(): Journey {
-  return { version: JOURNEY_VERSION, profile: { ...DEFAULT_PROFILE }, practices: {}, tastings: {} };
+  return { version: JOURNEY_VERSION, profile: { ...DEFAULT_PROFILE }, practices: {}, tastings: {}, intros: {} };
 }
 
 /** New career paths start a new journey: the old plan and practice belong to
  * a path that may no longer be on screen. */
 export function withCareers(j: Journey, careers: CareersResponse): Journey {
-  return { ...j, careers, careerId: undefined, roadmap: undefined, roadmapMode: undefined, practices: {}, tastings: {} };
+  return { ...j, careers, careerId: undefined, roadmap: undefined, roadmapMode: undefined, practices: {}, tastings: {}, intros: {} };
 }
 
 export function chooseCareer(j: Journey, careerId: string): Journey {

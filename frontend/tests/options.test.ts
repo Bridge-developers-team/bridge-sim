@@ -1,25 +1,25 @@
-// Learning budget: every currency has its own round steps, and switching
-// currency keeps the same step instead of reading 500 USD as 500 KZT.
+// Pick lists: every country with its currency, and search that ranks the
+// best matches first.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { BUDGETS, budgetLabel, budgetSteps, convertBudget, CURRENCIES } from "../src/lib/options.ts";
+import { budgetLabel, COUNTRIES, countryCurrency, CURRENCY_OPTIONS, rankOptions } from "../src/lib/options.ts";
 
-test("every currency offers the same number of steps, starting at free", () => {
-  for (const c of CURRENCIES) {
-    assert.equal(BUDGETS[c].length, BUDGETS.USD.length, c);
-    assert.equal(BUDGETS[c][0], 0, c);
-  }
+test("every country is listed, with its own currency", () => {
+  assert.ok(COUNTRIES.length > 240);
+  assert.equal(countryCurrency("kz"), "KZT");
+  assert.equal(countryCurrency("de"), "EUR");
+  assert.ok(CURRENCY_OPTIONS.some((c) => c.value === "KZT"));
 });
 
-test("switching currency keeps the step, not the number", () => {
-  assert.equal(convertBudget(500, "USD", "KZT"), 250_000);
-  assert.equal(convertBudget(50_000, "KZT", "USD"), 100);
-  assert.equal(convertBudget(0, "USD", "KZT"), 0);
-  assert.equal(convertBudget(60, "USD", "GBP"), 40); // between steps: snaps down
+test("search puts titles that start with the query first", () => {
+  const opts = ["Data Analyst", "Big Data Engineer", "Database Administrator", "Metadata Librarian"].map((l) => ({ value: l, label: l }));
+  assert.deepEqual(
+    rankOptions(opts, "data").map((o) => o.label),
+    ["Data Analyst", "Database Administrator", "Big Data Engineer", "Metadata Librarian"],
+  );
 });
 
-test("unknown currencies fall back to USD steps; labels group thousands", () => {
-  assert.deepEqual(budgetSteps("XYZ"), BUDGETS.USD);
+test("budget labels group thousands and say when it is free", () => {
   assert.equal(budgetLabel(250_000, "KZT"), "250,000 KZT a month");
-  assert.equal(budgetLabel(0, "KZT"), "Free resources only");
+  assert.equal(budgetLabel(0, "KZT"), "Free courses only");
 });

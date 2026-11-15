@@ -6,6 +6,8 @@ import type {
   Career,
   CareersResponse,
   Evaluation,
+  Course,
+  JobIntro,
   JobsResult,
   Mode,
   Practice,
@@ -62,14 +64,25 @@ export const bridgeApi = {
     displayName: string;
   }) => api.post<{ proof: Proof; deleteKey: string }>("/api/proofs", body),
 
-  study: (role: string, paid: boolean, hours: number) =>
-    api.get<StudyPlan>(`/api/study?${new URLSearchParams({ role, paid: String(paid), hours: String(hours) })}`),
-
-  /** One entry per role, in order; null where no official figure exists. */
-  pay: (roles: string[], country: string, location: string) =>
-    api.get<(Pay | null)[]>(
-      `/api/pay?${new URLSearchParams([...roles.map((r): [string, string] => ["role", r]), ["country", country], ["location", location]])}`,
+  study: (role: string, budget: number, currency: string, hours: number) =>
+    api.get<StudyPlan>(
+      `/api/study?${new URLSearchParams({ role, budget: String(budget), currency, hours: String(hours) })}`,
     ),
+
+  /** Courses, lectures and guides the live AI finds on the web for this exact role. */
+  studySearch: (role: string, budget: number, currency: string, sample = false) =>
+    api.post<{ courses: Course[]; mode: Mode }>("/api/study/search", { role, budget, currency, sample }),
+
+  /** One entry per role, in order; null where no figure could be found. */
+  pay: (roles: string[], country: string, countryName: string, location: string, sample = false) =>
+    api.post<(Pay | null)[]>("/api/pay", { roles, country, countryName, location, sample }),
+
+  intro: (role: string, currentRole: string, country: string, sample = false) =>
+    api.post<{ intro: JobIntro; mode: Mode }>("/api/intro", { role, currentRole, country, sample }),
+
+  cities: (country: string, q: string) => api.get<string[]>(`/api/cities?${new URLSearchParams({ country, q })}`),
+
+  linkedin: (url: string) => api.post<{ resumeText: string; mode: Mode }>("/api/linkedin", { url }),
 
   jobs: (role: string, city: string, country: string) =>
     api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country })}`),

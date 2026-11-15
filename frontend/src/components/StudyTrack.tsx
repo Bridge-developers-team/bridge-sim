@@ -3,7 +3,8 @@ import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
 import type { Course, StudyPlan, Week } from "../api/types";
 import { budgetLabel } from "../lib/options";
-import { BookIcon, PlayIcon } from "./Icons";
+import { useJourney } from "../state/journey";
+import { BookIcon, PlayIcon, SearchIcon } from "./Icons";
 import { Lozenge, type Tone } from "./ui/Lozenge";
 import { Panel, PanelBody, PanelHeader } from "./ui/Panel";
 
@@ -12,20 +13,38 @@ const COST: Record<Course["cost"], { label: string; tone: Tone }> = {
   paid: { label: "Paid", tone: "neutral" },
 };
 
-/** Courses from the checked catalog for this role. Free ones only unless the
- * user set a learning budget. */
-export function useStudyPlan(role: string, budget: number, hours: number) {
-  const paid = budget > 0;
+/** The checked catalog for this role's field, fitted to the budget (a paid
+ * certificate only when the monthly budget covers its price). */
+export function useStudyPlan(role: string, budget: number, currency: string, hours: number) {
   return useQuery({
-    queryKey: ["study", role, paid, hours],
-    queryFn: () => bridgeApi.study(role, paid, hours),
+    queryKey: ["study", role, budget, currency, hours],
+    queryFn: () => bridgeApi.study(role, budget, currency, hours),
     staleTime: Infinity,
     enabled: Boolean(role),
   });
 }
 
+/** Courses, lectures and guides the live AI found on the web for this exact
+ * role (links are the search engine's own results). Empty in demo mode. */
+export function useWebCourses(role: string, budget: number, currency: string, sample: boolean) {
+  return useQuery({
+    queryKey: ["study-web", role, budget, currency, sample],
+    queryFn: () => bridgeApi.studySearch(role, budget, currency, sample),
+    staleTime: Infinity,
+    retry: false,
+    enabled: Boolean(role),
+  });
+}
+
+/** The course that leads the month: the catalog's when the role fits a
+ * catalog field, else the best course found for this exact role. */
+export function leadCourse(study: StudyPlan, web: Course[]): Course {
+  return study.matched || web.length === 0 ? study.main : web[0]!;
+}
+
 function CourseRow({ course, main = false }: { course: Course; main?: boolean }) {
   const cost = COST[course.cost];
+  const price = course.cost === "paid" && course.monthlyUsd ? ` · about $${course.monthlyUsd} a month (US price)` : "";
   return (
     <li className={`course ${main ? "course--main" : ""}`}>
       <span className="course__icon">{course.format === "lectures" ? <PlayIcon /> : <BookIcon />}</span>
@@ -36,6 +55,7 @@ function CourseRow({ course, main = false }: { course: Course; main?: boolean })
         <span className="muted small">
           {course.provider}
           {course.length && <> · {course.length}</>}
+          {price}
         </span>
         {course.why && <span className="small">{course.why}</span>}
       </span>
@@ -44,21 +64,23 @@ function CourseRow({ course, main = false }: { course: Course; main?: boolean })
   );
 }
 
-/** The month's course: what it covers week by week, what comes after the 30
- * days, and a few other good options. */
 export function StudyPanel({
+  role,
   query,
+  web,
   budget,
   currency,
 }: {
+  role: string;
   query: ReturnType<typeof useStudyPlan>;
+  web: ReturnType<typeof useWebCourses>;
   budget: number;
   currency: string;
 }) {
   if (query.isError) {
     return (
       <Panel>
-        <PanelHeader title="Your course for this month" />
+        <PanelHeader title="What to study this month" />
         <PanelBody>
           <p className="text-danger small">{errorText(query.error)}</p>
         </PanelBody>
@@ -67,16 +89,21 @@ export function StudyPanel({
   }
   const study = query.data;
   if (!study) return null;
-  const { main } = study;
+  const found = web.data?.courses ?? [];
+  const main = leadCourse(study, found);
+  const fromCatalog = main === study.main;
+  const foundRest = found.filter((c) => c.url !== main.url);
+  // Off-field roles: the catalog's general picks stay below the found ones.
+  const catalogRest = fromCatalog ? study.more : [study.main, ...study.more];
   return (
     <Panel className="study">
-      <PanelHeader title="Your course for this month" note={study.fieldLabel} />
+      <PanelHeader title="What to study this month" note={study.matched ? study.fieldLabel : role} />
       <PanelBody className="stack">
         <ul className="courses">
           <CourseRow course={main} main />
         </ul>
 
-        {main.modules.length > 0 && (
+        {fromCatalog && main.modules.length > 0 && (
           <div className="stack-sm">
             <p className="label">This month in the course</p>
             <ol className="study__weeks">
@@ -102,58 +129,85 @@ export function StudyPanel({
           </div>
         )}
 
-        {study.more.length > 0 && (
-          <div className="stack-sm">
-            <p className="label">Other good options</p>
+        <div className="stack-sm">
+          <p className="label">Picked for {role}</p>
+          {web.isLoading && (
+            <p className="study__searching muted small">
+              <SearchIcon /> Finding courses and lectures for this exact job…
+            </p>
+          )}
+          {!web.isLoading && web.data?.mode !== "live" && (
+            <p className="muted small">With live AI, Bridge searches course sites for this exact job. This demo shows the checked list.</p>
+          )}
+          {web.data?.mode === "live" && found.length === 0 && (
+            <p className="muted small">No extra courses found for this exact title; the checked list below still fits.</p>
+          )}
+          {foundRest.length > 0 && (
             <ul className="courses">
-              {study.more.map((c) => (
+              {foundRest.map((c) => (
+                <CourseRow key={c.id} course={c} />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {catalogRest.length > 0 && (
+          <div className="stack-sm">
+            <p className="label">{study.matched ? `More for ${study.fieldLabel.toLowerCase()}` : "Good for any switch"}</p>
+            <ul className="courses">
+              {catalogRest.map((c) => (
                 <CourseRow key={c.id} course={c} />
               ))}
             </ul>
           </div>
         )}
 
-        <p className="fine">
-          {budget > 0
-            ? `Paid options are included because your learning budget is ${budgetLabel(budget, currency)}; Coursera offers financial aid. `
-            : "Free courses only, because your learning budget is 0. Add a budget on the start page to see paid certificates. "}
-          Bridge picked these by hand and earns nothing from them. Links checked {study.checked}; prices differ by
-          country, so check the course page.
-        </p>
-        <p className="fine">
-          Why a plan around the course: in MIT's and Harvard's free online courses, about 3 in 100 learners finished in
-          2017-18 (
-          <a href="https://doi.org/10.1126/science.aav7958" target="_blank" rel="noopener noreferrer">
-            Reich &amp; Ruipérez-Valiente, Science, 2019
-          </a>
-          ). Each week below pairs the course with small tasks you can tick off.
+        <p className="fine fine--quiet">
+          {budget > 0 ? `Budget: ${budgetLabel(budget, currency)} (about $${study.budgetUsd}). ` : "Budget 0: free material only. "}
+          Links come from search results or our checked list (November 2026), never typed by the AI. Check the price on the
+          course page.
         </p>
       </PanelBody>
     </Panel>
   );
 }
 
-/** The part of the course that belongs to one plan week. */
-export function WeekStudy({ study, week }: { study: StudyPlan | undefined; week: Week }) {
+/** The part of the month's course that belongs to one plan week. */
+export function WeekStudy({ study, web, week }: { study: StudyPlan | undefined; web: Course[]; week: Week }) {
   if (!study) return null;
-  const modules = study.weeks.find((w) => w.week === week.week)?.modules ?? [];
+  const main = leadCourse(study, web);
+  const fromCatalog = main === study.main;
+  const modules = fromCatalog ? (study.weeks.find((w) => w.week === week.week)?.modules ?? []) : [];
+  // Without a catalog syllabus, each week points at the next found course.
+  const course = fromCatalog ? main : web[(week.week - 1) % web.length]!;
   return (
     <div className="resources">
       <p className="label">Study this week</p>
       <div className="course">
-        <span className="course__icon">
-          <BookIcon />
-        </span>
+        <span className="course__icon">{course.format === "lectures" ? <PlayIcon /> : <BookIcon />}</span>
         <span className="course__text">
-          <a href={study.main.url} target="_blank" rel="noopener noreferrer">
-            {modules.length ? modules.join(", ") : `Keep going: ${study.main.title}`}
+          <a href={course.url} target="_blank" rel="noopener noreferrer">
+            {modules.length ? modules.join(", ") : course.title}
           </a>
           <span className="muted small">
-            {modules.length ? `${study.main.title} · ` : ""}
-            {study.main.provider}
+            {modules.length ? `${course.title} · ` : ""}
+            {course.provider}
           </span>
         </span>
       </div>
     </div>
   );
+}
+
+/** Both course sources for the plan page in one call. */
+export function usePlanStudy(role: string, hours: number) {
+  const journey = useJourney();
+  const { monthlyLearningBudget: budget, currency } = journey.profile;
+  const sample = journey.roadmapMode ? journey.roadmapMode !== "live" : false;
+  return {
+    study: useStudyPlan(role, budget, currency, hours),
+    web: useWebCourses(role, budget, currency, sample),
+    budget,
+    currency,
+  };
 }

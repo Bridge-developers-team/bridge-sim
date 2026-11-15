@@ -15,7 +15,7 @@ import { GrowingCalendar } from "../components/GrowingCalendar";
 import { JobsPanel } from "../components/JobsPanel";
 import { MoneyCheck } from "../components/MoneyCheck";
 import { MakeItStick } from "../components/MakeItStick";
-import { StudyPanel, WeekStudy, useStudyPlan } from "../components/StudyTrack";
+import { StudyPanel, WeekStudy, usePlanStudy } from "../components/StudyTrack";
 import { selectedCareer, setDone, withPractice, withRoadmap } from "../lib/journey";
 import { TASK_TYPE, WEEK_STATUS, hoursText, minutesText } from "../lib/labels";
 import { nextAction, progress, weekMinutes, weekStatus } from "../lib/progress";
@@ -38,9 +38,8 @@ export function PlanPage() {
     setJustFilled(done ? taskId : null);
   };
   const started = useRef(false);
-  const study = useStudyPlan(
+  const { study, web, budget, currency } = usePlanStudy(
     journey.roadmap?.targetRole ?? career?.title ?? "",
-    journey.profile.monthlyLearningBudget,
     journey.roadmap?.hoursPerWeek ?? hours,
   );
   const sample = journey.careers?.mode === "sample";
@@ -180,7 +179,7 @@ export function PlanPage() {
         </Panel>
       )}
 
-      <StudyPanel query={study} budget={journey.profile.monthlyLearningBudget} currency={journey.profile.currency} />
+      <StudyPanel role={plan.targetRole} query={study} web={web} budget={budget} currency={currency} />
 
       <MakeItStick plan={plan} />
 
@@ -200,7 +199,7 @@ export function PlanPage() {
                   <TaskRow key={task.id} task={task} onTick={tick} onOpen={() => navigate(`/practice/${task.id}`)} />
                 ))}
               </ul>
-              <WeekStudy study={study.data} week={week} />
+              <WeekStudy study={study.data} web={web.data?.courses ?? []} week={week} />
             </PanelBody>
           </Panel>
         );
@@ -248,6 +247,7 @@ export function PlanPage() {
           <div>
             <Button
               variant="danger"
+              size="sm"
               onClick={() => {
                 if (window.confirm("Delete your paths, plan and practice work from this browser?")) {
                   resetJourney();

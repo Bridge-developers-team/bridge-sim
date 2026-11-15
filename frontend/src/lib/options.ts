@@ -2,6 +2,8 @@
  * strings, so a role that is not listed can be typed into the search box and
  * used as is. */
 
+import countryData from "../data/countries.json" with { type: "json" };
+
 export interface Option {
   value: string;
   label: string;
@@ -79,38 +81,11 @@ export const TARGET_ROLES = list([
 ]);
 
 export const HOURS = [2, 3, 5, 8, 10, 15, 20];
-/** Monthly learning budget steps, in round amounts of each currency. Every
- * currency has the same number of steps, roughly the same value at each step
- * (step 3 is about 100 USD), so switching currency keeps the user's choice. */
-export const BUDGETS = {
-  USD: [0, 25, 50, 100, 200, 500],
-  EUR: [0, 25, 50, 100, 200, 500],
-  GBP: [0, 20, 40, 80, 150, 400],
-  CAD: [0, 35, 70, 140, 275, 700],
-  AUD: [0, 40, 75, 150, 300, 750],
-  KZT: [0, 10_000, 25_000, 50_000, 100_000, 250_000],
-} as const satisfies Record<string, readonly number[]>;
-export type Currency = keyof typeof BUDGETS;
-export const CURRENCIES = Object.keys(BUDGETS) as Currency[];
-
-export function budgetSteps(currency: string): readonly number[] {
-  return currency in BUDGETS ? BUDGETS[currency as Currency] : BUDGETS.USD;
-}
-
-/** The same step in the new currency. An amount that is not a step snaps to
- * the nearest step below it. */
-export function convertBudget(amount: number, from: string, to: string): number {
-  const steps = budgetSteps(from);
-  let step = 0;
-  steps.forEach((value, i) => {
-    if (amount >= value) step = i;
-  });
-  return budgetSteps(to)[step] ?? 0;
-}
 
 export function budgetLabel(amount: number, currency: string): string {
-  return amount === 0 ? "Free resources only" : `${amount.toLocaleString("en-US")} ${currency} a month`;
+  return amount === 0 ? "Free courses only" : `${amount.toLocaleString("en-US")} ${currency} a month`;
 }
+
 export const MOTIVATIONS = [
   "Higher pay",
   "Less stress",
@@ -121,56 +96,70 @@ export const MOTIVATIONS = [
   "Room to grow",
 ];
 
-/** Large US metros first (the hackathon market), then other big job markets.
- * Any other city can be typed into the search box. */
-export const CITIES = list([
-  "New York, NY",
-  "Los Angeles, CA",
-  "Chicago, IL",
-  "Houston, TX",
-  "Dallas, TX",
-  "Austin, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Diego, CA",
-  "San Francisco, CA",
-  "San Jose, CA",
-  "Seattle, WA",
-  "Denver, CO",
-  "Boston, MA",
-  "Atlanta, GA",
-  "Miami, FL",
-  "Orlando, FL",
-  "Washington, DC",
-  "Nashville, TN",
-  "Charlotte, NC",
-  "Raleigh, NC",
-  "Minneapolis, MN",
-  "Detroit, MI",
-  "Columbus, OH",
-  "Portland, OR",
-  "Salt Lake City, UT",
-  "Las Vegas, NV",
-  "Remote",
-  "London",
-  "Toronto",
-  "Sydney",
-  "Berlin",
-  "Almaty",
-  "Astana",
-]);
+interface Country {
+  code: string;
+  name: string;
+  currency: string;
+}
 
-/** Country for job searches. Live listings exist for the first group; any
- * country still gets LinkedIn, Indeed and Google Jobs links. */
-export const COUNTRIES: Option[] = [
-  { value: "us", label: "United States" },
-  { value: "gb", label: "United Kingdom" },
-  { value: "ca", label: "Canada" },
-  { value: "au", label: "Australia" },
-  { value: "de", label: "Germany" },
-  { value: "fr", label: "France" },
-  { value: "nl", label: "Netherlands" },
-  { value: "in", label: "India" },
-  { value: "sg", label: "Singapore" },
-  { value: "kz", label: "Kazakhstan" },
-];
+/** Every country (GeoNames), with its own currency. */
+export const COUNTRY_LIST = countryData as Country[];
+export const COUNTRIES: Option[] = COUNTRY_LIST.map((c) => ({ value: c.code, label: c.name }));
+
+export function countryName(code: string): string {
+  return COUNTRY_LIST.find((c) => c.code === code)?.name ?? code.toUpperCase();
+}
+
+export function countryCurrency(code: string): string | undefined {
+  return COUNTRY_LIST.find((c) => c.code === code)?.currency;
+}
+
+function currencyName(code: string): string {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "currency" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
+/** Every currency some country uses, as "KZT · Kazakhstani Tenge". */
+export const CURRENCY_OPTIONS: Option[] = [...new Set(COUNTRY_LIST.map((c) => c.currency).filter(Boolean))]
+  .sort()
+  .map((code) => ({ value: code, label: `${code} · ${currencyName(code)}` }));
+
+/** Matches that start with the query first, then words that start with it,
+ * then anything else containing it. */
+export function rankOptions(options: Option[], query: string): Option[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return options;
+  const starts: Option[] = [];
+  const words: Option[] = [];
+  const within: Option[] = [];
+  for (const o of options) {
+    const l = o.label.toLowerCase();
+    if (l.startsWith(q)) starts.push(o);
+    else if (l.includes(" " + q) || l.includes("-" + q) || l.includes("(" + q)) words.push(o);
+    else if (l.includes(q)) within.push(o);
+  }
+  return [...starts, ...words, ...within];
+}
+
+/** Thousands of real job titles (O*NET reported titles, CC BY 4.0), loaded
+ * on first use so the start page stays light. Common career-change roles
+ * come first. */
+let jobTitles: Promise<Option[]> | null = null;
+export function loadJobTitles(): Promise<Option[]> {
+  jobTitles ??= import("../data/jobs.json").then((m) => {
+    const seen = new Set<string>();
+    const out: Option[] = [];
+    for (const t of [...CURRENT_ROLES.map((o) => o.label), ...TARGET_ROLES.map((o) => o.label), ...(m.default as string[])]) {
+      const key = t.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({ value: t, label: t });
+      }
+    }
+    return out;
+  });
+  return jobTitles;
+}

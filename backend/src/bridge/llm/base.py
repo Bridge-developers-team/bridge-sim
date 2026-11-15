@@ -6,8 +6,17 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from bridge.domain.drafts import CareersDraft, EvaluationDraft, PracticeDraft, RoadmapDraft
+from bridge.domain.drafts import (
+    CareersDraft,
+    CoursePickDraft,
+    EvaluationDraft,
+    JobIntroDraft,
+    PayEstimateDraft,
+    PracticeDraft,
+    RoadmapDraft,
+)
 from bridge.domain.models import Candidate, Career, Practice, Track
+from bridge.domain.web import Found
 
 
 class LlmError(Exception):
@@ -33,3 +42,13 @@ class Writer(Protocol):
     async def evaluate(self, *, practice: Practice, answer: str) -> EvaluationDraft: ...
 
     async def sample_answer(self, *, practice: Practice, candidate: Candidate) -> str: ...
+
+    async def introduce(self, *, role: str, current_role: str, country: str) -> JobIntroDraft: ...
+
+    async def pay_search(self, *, role: str, place: str) -> tuple[list[Found], PayEstimateDraft | None]: ...
+
+    async def course_search(
+        self, *, role: str, budget: str, domains: list[str]
+    ) -> tuple[list[Found], list[CoursePickDraft]]: ...
+
+    async def read_linkedin(self, *, url: str) -> str | None: ...

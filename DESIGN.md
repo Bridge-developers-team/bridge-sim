@@ -252,6 +252,19 @@ Smooth, short and purposeful: it either answers an action or leads the eye down 
 - **Reading guide:** on arrival a page settles in from just below (380ms). As you scroll, each panel and card rises into place once (a scroll-linked 24px rise), so the eye moves top to bottom with the content. Content is visible by default; browsers without scroll timelines skip it.
 - Reduced motion turns all of it off.
 
+### November rebuild (job introductions, start, pickers, loader)
+- **Meet the job:** one glass panel per job with seven slides (hello, responsibilities, a day, tools, good and hard, pay, how to start). Left: a simple cartoon scene (big-headed figure, a few props) in navy, gold and ivory with a gold radial glow; right: the slide title in the editorial face and its content. Slides glide in from the side they come from; arrows, dots (the current one a gold pill), swipe and arrow keys move between them. The last slide ends with the gold "Build my 30-day plan for this job" and two quiet links.
+- **Career card actions:** step 1 "Meet the job" is a solid navy row button with a gold step number; step 2 is a dashed "Skip to the plan" until the job was met, then a gold "Build my 30-day plan". The two never look alike.
+- **CV start:** one large dashed drop zone (navy tile, upload icon) leads; under an "or" rule, two equal tiles: LinkedIn (brand-blue tile) and paste text. The LinkedIn link field unfolds in place, with the "Save to PDF" fallback in the hint.
+- **Pickers:** the search capsule shows its focus as an inset gold ring (never clipped). Long lists show the best 80 matches (starts-with first) and say how many more; cities load per country as you type.
+- **Budget:** a typed number with the currency beside it; one line says what 0 means.
+- **Week calendar:** seven day tiles (Monday first); tap a day to study, then pick its own start time. On phones the days stack as rows.
+- **Loader:** a small bridge draws itself while gold planks drop in and a dot walks across; a gold progress line eases toward 95%; steps get a gold check when done, a pulsing ring while active. No strikethrough.
+- **Theme switch:** the thumb slides left to right while the sun turns into the moon, and the label slides the other way. Phones show the thumb only.
+- **Logo:** pressing it grows the mark briefly and sweeps a light across the bridge (an overlay clipped to the arch and deck; the logo itself is unchanged).
+- **First screen:** the hero fills the first screen; "See how it works" sits at its bottom and scrolls smoothly to the story; once the hero is gone, an up arrow pops in at the top and returns to the start.
+- **Fine print** ("Why:" lines, link notes) is extra-small and faint. **Delete** is a small red outline button that fills red on hover.
+
 ### Course panel, study lines and Make it stick
 - **Course panel** ("Your course for this month"): the main course as a row with a navy book tile, title link, provider and the provider's own length, then "This month in the course" as Week 1-4 rows (a 72px week label and the module names), an "After the 30 days" disclosure, and "Other good options" with plain tiles. A cost lozenge on each row: green "Free" or neutral "Paid"; never a price. Fine print says why these courses and when the links were checked.
 - **Study line:** each week panel ends with "Study this week" and that week's module, linked to the course page.

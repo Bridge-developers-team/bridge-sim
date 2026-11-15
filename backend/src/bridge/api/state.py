@@ -11,6 +11,7 @@ from bridge.config import Settings
 from bridge.db.repository import ProofRepository
 from bridge.domain.models import Mode
 from bridge.llm.base import Writer
+from bridge.services.insights import InsightsService
 from bridge.services.jobs import JobsService
 from bridge.services.limits import DailyBudget, SlidingWindow
 from bridge.services.signing import Signer
@@ -28,6 +29,7 @@ class AppState:
     proofs_per_client: SlidingWindow
     jobs: JobsService
     jobs_per_client: SlidingWindow
+    insights: InsightsService
 
     @property
     def demo_mode(self) -> bool:

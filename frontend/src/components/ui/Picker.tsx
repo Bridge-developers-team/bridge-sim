@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import type { Option } from "../../lib/options";
+import { rankOptions, type Option } from "../../lib/options";
 import { CheckIcon, ChevronIcon, SearchIcon } from "../Icons";
 
 /**
@@ -34,8 +34,13 @@ interface ListBase {
   searchable?: boolean;
   /** Allow a typed value that is not in the list. */
   allowCustom?: boolean;
+  /** Ask the server for options as the user types (e.g. cities of a country). */
+  remote?: (query: string) => Promise<string[]>;
   onClose: () => void;
 }
+
+/** Long lists render at most this many matches; typing narrows them. */
+const SHOWN_MAX = 80;
 
 interface SingleList extends ListBase {
   multiple?: false;
@@ -54,7 +59,8 @@ export type OptionListProps = SingleList | MultiList;
 
 /** The unfolding list itself. Render it where it should appear. */
 export function OptionList(props: OptionListProps) {
-  const { title, options, searchable, allowCustom, onClose } = props;
+  const { title, searchable, allowCustom, onClose, remote } = props;
+  const [remoteOptions, setRemoteOptions] = useState<Option[] | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -76,10 +82,25 @@ export function OptionList(props: OptionListProps) {
     if (searchable && matchMedia("(min-width: 640px)").matches) search.current?.focus({ preventScroll: true });
   }, [searchable]);
 
-  const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q ? options.filter((o) => o.label.toLowerCase().includes(q)) : options;
-  }, [options, query]);
+  // Server-side options: refetch shortly after typing stops.
+  useEffect(() => {
+    if (!remote) return;
+    let live = true;
+    const t = window.setTimeout(() => {
+      remote(query)
+        .then((names) => live && setRemoteOptions(names.map((n) => ({ value: n, label: n }))))
+        .catch(() => live && setRemoteOptions([]));
+    }, query ? 160 : 0);
+    return () => {
+      live = false;
+      window.clearTimeout(t);
+    };
+  }, [remote, query]);
+
+  const options = remote ? (remoteOptions ?? []) : props.options;
+  const ranked = useMemo(() => (remote ? options : rankOptions(options, query)), [options, query, remote]);
+  const shown = ranked.slice(0, SHOWN_MAX);
+  const more = ranked.length - shown.length;
 
   const custom =
     allowCustom && query.trim() && !options.some((o) => o.label.toLowerCase() === query.trim().toLowerCase()) ? query.trim() : null;
@@ -170,7 +191,11 @@ export function OptionList(props: OptionListProps) {
             </span>
           </button>
         )}
-        {shown.length === 0 && !custom && <p className="picklist__empty muted small">Nothing matches “{query}”.</p>}
+        {more > 0 && <p className="picklist__more muted small">{more.toLocaleString("en-US")} more. Keep typing to narrow the list.</p>}
+        {remote && remoteOptions === null && <p className="picklist__empty muted small">Loading…</p>}
+        {shown.length === 0 && !custom && (remoteOptions !== null || !remote) && (
+          <p className="picklist__empty muted small">{query ? `Nothing matches “${query}”.` : "Nothing to choose here."}</p>
+        )}
       </div>
 
       {props.multiple && (
