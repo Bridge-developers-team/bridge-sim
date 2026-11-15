@@ -51,7 +51,7 @@ export function PayLine({ pay, loading, country }: { pay: Pay | null | undefined
     return (
       <p className="pay pay--none small muted">
         {live
-          ? `Pay for ${countryName(country)} could not be looked up just now. Reload the page to try again.`
+          ? `No pay figure for ${countryName(country)} yet.`
           : `Sample mode knows official US and Kazakhstan pay only; the live AI looks up pay for ${countryName(country)}.`}
       </p>
     );
@@ -62,13 +62,13 @@ export function PayLine({ pay, loading, country }: { pay: Pay | null | undefined
     <div className="pay">
       <p className="pay__amount">
         <span className="label">
-          {label} in {pay.area}
+          {label} · {pay.area}
         </span>
-        <strong className="tabular">{payAmount(pay)}</strong> <span className="muted small">a {pay.period}</span>
+        <strong className="tabular">{payAmount(pay)}</strong> <span className="muted small">{`a ${pay.period}`}</span>
       </p>
       <p className="fine pay__sources">
         {pay.kind === "ai" ? (
-          "AI estimate: no web page stated pay for this job here."
+          "AI estimate, no published figure found."
         ) : (
           <>
             {pay.kind === "estimate" && links.length > 1 ? `Median of ${links.length} sources: ` : "Source: "}

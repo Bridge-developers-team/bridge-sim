@@ -10,6 +10,8 @@ import "./styles/tokens.css";
 import "./styles/components.css";
 import "./styles/glass.css";
 import "./styles/rebuild.css";
+import "./styles/refine.css";
+import { applyLang, getLang } from "./lib/i18n";
 
 applyTheme(getStoredTheme());
 
@@ -28,3 +30,5 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </StrictMode>,
 );
+
+applyLang(getLang());

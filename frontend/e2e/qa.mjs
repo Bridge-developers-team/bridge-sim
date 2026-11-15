@@ -313,9 +313,11 @@ async function pickersAndCards() {
     const pos = (sel) => [...el.querySelectorAll("*")].indexOf(el.querySelector(sel));
     return { meet: pos(".meet-btn"), summary: pos(".career__summary"), plan: pos(".plan-btn") };
   });
-  check(order.meet >= 0 && order.meet < order.summary && order.summary < order.plan, `cards: wrong order ${JSON.stringify(order)}`);
-  const pills = await card.locator(".career__pills li").allTextContents();
-  check(pills.length >= 2 && /effort/i.test(pills[0]), `cards: effort and work-style pills missing: ${pills}`);
+  // Information first, then the actions: Meet the job, then the plan.
+  check(order.summary >= 0 && order.summary < order.meet && order.meet < order.plan, `cards: wrong order ${JSON.stringify(order)}`);
+  const effort = await card.locator(".career__meta .lozenge").first().textContent();
+  const modes = await card.locator(".career__modes").textContent();
+  check(/effort/i.test(effort ?? "") && (modes ?? "").length > 2, `cards: effort or work modes missing: ${effort} / ${modes}`);
   const payText = await page.locator(".pay").first().innerText();
   check(!/closest official job title|Range across/i.test(payText), `cards: pay box still long: ${payText}`);
   check(/Source/i.test(payText), `cards: pay box lost its source: ${payText}`);
