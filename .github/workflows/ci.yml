@@ -112,6 +112,9 @@ jobs:
       - name: Walk the judge path
         working-directory: frontend
         run: BASE=http://localhost:8000 npm run e2e
+      - name: Deep QA (inputs, countries, courses, links, reloads)
+        working-directory: frontend
+        run: BASE=http://localhost:8000 npm run qa
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

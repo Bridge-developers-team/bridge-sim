@@ -30,6 +30,7 @@ from bridge.services.insights import InsightsService
 from bridge.services.jobs import Fetch, JobsService, http_fetch
 from bridge.services.limits import DailyBudget, SlidingWindow
 from bridge.services.signing import Signer
+from bridge.services.videos import VideosService
 
 log = logging.getLogger("bridge")
 
@@ -51,9 +52,13 @@ def _secret(settings: Settings) -> str:
 
 
 def create_app(
-    settings: Settings | None = None, *, live_writer: Writer | None = None, jobs_fetch: Fetch = http_fetch
+    settings: Settings | None = None,
+    *,
+    live_writer: Writer | None = None,
+    jobs_fetch: Fetch = http_fetch,
+    videos_fetch: Fetch = http_fetch,
 ) -> FastAPI:
-    """`live_writer` and `jobs_fetch` let tests inject fakes; otherwise they come from settings."""
+    """`live_writer` and the fetch functions let tests inject fakes; otherwise they come from settings."""
     settings = settings or Settings()
     engine = make_engine(settings.database_url)
 
@@ -81,6 +86,10 @@ def create_app(
         ),
         jobs_per_client=SlidingWindow(settings.jobs_per_client, 600),
         insights=InsightsService(),
+        videos=VideosService(
+            settings.youtube_api_key.get_secret_value() if settings.youtube_api_key else None, fetch=videos_fetch
+        ),
+        videos_per_client=SlidingWindow(settings.videos_per_client, 600),
     )
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     errors.install(app)

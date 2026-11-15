@@ -39,6 +39,14 @@ export interface Career {
   relativeEffort: Effort;
   keyTradeoff: string;
   assumptions: string[];
+  /** How the path serves the user's reasons and constraints. "" when unknown. */
+  motivationMatch?: string;
+  /** Study field id (backend domain/learning.py); "" or missing on older saved cards. */
+  field?: string;
+  /** Job-post titles to search for first. */
+  jobTitles?: string[];
+  /** English YouTube searches for the missing skills. */
+  videoSearches?: string[];
 }
 
 export interface ProfileRead {
@@ -46,7 +54,12 @@ export interface ProfileRead {
   yearsExperience: number | null;
   industry: string;
   evidenceNote: string;
+  /** The most distinctive pattern in the person's experience. "" when too thin. */
+  standout?: string;
 }
+
+/** What the experience text is; the AI reads each kind differently. */
+export type ResumeSource = "cv" | "linkedin" | "text";
 
 export interface CareersResponse {
   profile: ProfileRead;
@@ -181,7 +194,8 @@ export interface StudyPlan {
   /** False: no catalog field fits this role, so web-found courses lead. */
   matched: boolean;
   budgetUsd: number;
-  main: Course;
+  /** null: no checked course for this field (web-found courses and videos cover it). */
+  main: Course | null;
   weeks: { week: number; modules: string[] }[];
   later: string[];
   more: Course[];
@@ -243,4 +257,23 @@ export interface JobIntro {
   youWillLike: string[];
   hardParts: string[];
   howToStart: string[];
+}
+
+/** One YouTube video (backend domain/videos.py). */
+export interface Video {
+  id: string;
+  title: string;
+  channel: string;
+  url: string;
+  thumbnail: string;
+  views: number;
+  minutes: number;
+  published: string;
+  query: string;
+}
+
+export interface VideosResult {
+  /** "off": the server has no YouTube key, so there are no videos to show. */
+  source: "youtube" | "off";
+  videos: Video[];
 }

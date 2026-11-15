@@ -1,7 +1,7 @@
 """Things that make the plan useful outside the app: an introduction to each
-job, typical pay, courses to study, cities, LinkedIn import and job
-openings. Numbers and links never come from the AI's own typing: pay is from
-official tables or a cited search result, links are search results."""
+job, typical pay, courses and videos to study, cities, LinkedIn import and
+job openings. Numbers and links never come from the AI's own typing: pay is
+from official tables or a cited search result, links are search results."""
 
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ from bridge.domain.learning import StudyPlan, study_plan
 from bridge.domain.pay import Pay
 from bridge.domain.roadmap import clamp_hours
 from bridge.domain.text import clean
+from bridge.domain.videos import MAX_QUERIES, VideosResult
 from bridge.services.insights import cities as city_list
 
 router = APIRouter(prefix="/api", tags=["extras"])
@@ -39,9 +40,8 @@ async def intro(body: IntroRequest, request: Request, state: State) -> IntroResp
     if not role:
         raise HTTPException(400, "Missing the job to introduce.")
     writer, mode = pick_writer(request, state, sample=body.sample)
-    draft = await writer.introduce(
-        role=role, current_role=clean(body.current_role, 80), country=clean(body.country, 60)
-    )
+    current, country = clean(body.current_role, 80), clean(body.country, 60)
+    draft = await writer.introduce(role=role, current_role=current, country=country)
     try:
         return IntroResponse(intro=normalize_intro(role, draft), mode=mode)
     except IntroTooThin as err:
@@ -55,11 +55,14 @@ async def study(
     budget: Annotated[float, Query(ge=0, le=10_000_000)] = 0,
     currency: Annotated[str, Query(max_length=3)] = "USD",
     hours: Annotated[float, Query(ge=0, le=80)] = 5,
+    field: Annotated[str, Query(max_length=40)] = "",
 ) -> StudyPlan:
+    """`field`: the study field the AI chose for the career; without it the
+    role title decides."""
     if not clean(role, 80):
         raise HTTPException(400, "Missing the role to study for.")
     budget_usd = await state.insights.to_usd(budget, currency)
-    return study_plan(role, budget_usd=budget_usd, hours_per_week=clamp_hours(hours))
+    return study_plan(role, budget_usd=budget_usd, hours_per_week=clamp_hours(hours), field_id=clean(field, 40))
 
 
 @router.post("/study/search", summary="Courses, lectures and guides found on the web for this exact role")
@@ -76,12 +79,17 @@ async def study_search(body: CoursesRequest, request: Request, state: State) -> 
 
 @router.post("/pay", summary="Typical pay for each role: official tables, else a web estimate with its source")
 async def pay(body: PayRequest, request: Request, state: State) -> list[Pay | None]:
+    """`fields` (optional, one per role, same order): the study field the AI
+    chose for each career; without it the role title decides."""
     roles = [clean(r, 80) for r in body.roles[:5]]
+    fields = [clean(f, 40) for f in body.fields[:5]]
     country = normalize_country(body.country)
     writer = None
     if not body.sample and state.live_writer is not None:
         writer, _ = pick_writer(request, state, sample=False)
-    return await state.insights.pay_many(writer, roles, country, clean(body.country_name, 80), clean(body.location, 80))
+    return await state.insights.pay_many(
+        writer, roles, fields, country, clean(body.country_name, 80), clean(body.location, 80)
+    )
 
 
 @router.get("/cities", summary="Cities of one country, largest first, filtered by what the user typed")
@@ -117,9 +125,28 @@ async def jobs(
     role: Annotated[str, Query(max_length=120)],
     city: Annotated[str, Query(max_length=120)] = "",
     country: Annotated[str, Query(max_length=8)] = "us",
+    field: Annotated[str, Query(max_length=40)] = "",
 ) -> JobsResult:
     if not clean(role, 80):
         raise HTTPException(400, "Missing the role to search for.")
     if not state.jobs_per_client.allow(client_key(request)):
         raise HTTPException(429, "Too many job searches from this browser. Try again in a few minutes.")
-    return await state.jobs.find(role=role, city=city, country=country)
+    return await state.jobs.find(role=role, city=city, country=country, field=field)
+
+
+@router.get("/videos", summary="The best English YouTube video for each search phrase of a path")
+async def videos(
+    request: Request,
+    state: State,
+    role: Annotated[str, Query(max_length=120)],
+    q: Annotated[list[str] | None, Query(max_length=120)] = None,
+) -> VideosResult:
+    """`q`: the path's video searches (career.videoSearches), at most 3. Without
+    any, one broad phrase about the role is used."""
+    if not clean(role, 80):
+        raise HTTPException(400, "Missing the role to find videos for.")
+    if not state.videos.live:
+        return VideosResult(source="off", videos=[])
+    if not state.videos_per_client.allow(client_key(request)):
+        raise HTTPException(429, "Too many video searches from this browser. Try again in a few minutes.")
+    return await state.videos.find(phrases=(q or [])[:MAX_QUERIES], role=role)

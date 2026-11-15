@@ -52,7 +52,20 @@ def normalize_career(draft: CareerDraft, resume: str) -> Career | None:
         relative_effort=draft.relative_effort,
         key_tradeoff=clean(draft.key_tradeoff, 300),
         assumptions=clean_list(draft.assumptions, 3, 300),
+        motivation_match=clean(draft.motivation_match, 400),
+        field=draft.field,
+        job_titles=_titles(draft.job_titles, title),
+        video_searches=clean_list(draft.video_searches, 3, 80),
     )
+
+
+def _titles(titles: list[str], fallback: str) -> list[str]:
+    """Job-post titles to search for: the AI's, de-duplicated, else the path's own."""
+    out: list[str] = []
+    for t in clean_list(titles, 5, 80):
+        if t.lower() not in {o.lower() for o in out}:
+            out.append(t)
+    return out[:3] or [fallback]
 
 
 def normalize_careers(drafts: list[CareerDraft], resume: str) -> list[Career]:
@@ -102,4 +115,8 @@ def bound_career(career: Career) -> Career:
         relative_effort=career.relative_effort,
         key_tradeoff=clean(career.key_tradeoff, 300),
         assumptions=clean_list(career.assumptions, 3, 300),
+        motivation_match=clean(career.motivation_match, 400),
+        field=clean(career.field, 40),
+        job_titles=clean_list(career.job_titles, 3, 80),
+        video_searches=clean_list(career.video_searches, 3, 80),
     )

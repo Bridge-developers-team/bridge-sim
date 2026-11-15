@@ -40,7 +40,7 @@ interface ListBase {
 }
 
 /** Long lists render at most this many matches; typing narrows them. */
-const SHOWN_MAX = 80;
+const SHOWN_MAX = 300;
 
 interface SingleList extends ListBase {
   multiple?: false;

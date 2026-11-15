@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from bridge.config import Settings
-from bridge.domain.models import Candidate, Career, Practice, Track
+from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
 from bridge.llm.demo import DemoWriter
 from bridge.main import create_app
 
@@ -31,9 +31,10 @@ class FakeWriter(DemoWriter):
         if self.fail_with:
             raise self.fail_with
 
-    async def careers(self, *, resume: str, candidate: Candidate):
+    async def careers(self, *, resume: str, candidate: Candidate, source: ResumeSource = "cv"):
         self._hit("careers")
-        return await super().careers(resume=resume, candidate=candidate)
+        self.last_source = source
+        return await super().careers(resume=resume, candidate=candidate, source=source)
 
     async def roadmap(self, *, candidate: Candidate, career: Career, track: Track, hours_per_week: float):
         self._hit("roadmap")
@@ -63,18 +64,22 @@ def make_client(tmp_path: Path) -> Iterator[Callable[..., TestClient]]:
         writer: FakeWriter | None = None,
         static_dir: Path | None = None,
         jobs_fetch: Any = None,
+        videos_fetch: Any = None,
         **overrides: object,
     ) -> TestClient:
+        values: dict[str, object] = {
+            "llm_provider": "demo" if writer is None else "anthropic",
+            "anthropic_api_key": "test-key" if writer else None,
+            "youtube_api_key": None,  # a developer's YOUTUBE_API_KEY must not leak in; tests opt in
+            "database_url": _db_url(tmp_path),
+            "secret_key": "test-secret-key-0123456789",
+            "static_dir": static_dir or tmp_path / "no-front-end",
+        }
         settings = Settings(
             _env_file=None,  # type: ignore[call-arg]  # never read a developer's .env in tests
-            llm_provider="demo" if writer is None else "anthropic",
-            anthropic_api_key="test-key" if writer else None,  # type: ignore[arg-type]
-            database_url=_db_url(tmp_path),
-            secret_key="test-secret-key-0123456789",  # type: ignore[arg-type]
-            static_dir=static_dir or tmp_path / "no-front-end",
-            **overrides,  # type: ignore[arg-type]
+            **(values | overrides),  # type: ignore[arg-type]
         )
-        extra = {"jobs_fetch": jobs_fetch} if jobs_fetch else {}
+        extra = {k: v for k, v in {"jobs_fetch": jobs_fetch, "videos_fetch": videos_fetch}.items() if v}
         client = TestClient(create_app(settings, live_writer=writer, **extra), raise_server_exceptions=False)
         client.__enter__()  # runs the lifespan: creates tables
         opened.append(client)

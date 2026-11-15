@@ -14,17 +14,19 @@ import type {
   Pay,
   Profile,
   Proof,
+  ResumeSource,
   Roadmap,
   StudyPlan,
   Task,
   Track,
+  VideosResult,
 } from "./types";
 
 export const bridgeApi = {
   config: () => api.get<AppConfig>("/api/config"),
 
-  careers: (resumeText: string, profile: Profile, sample = false) =>
-    api.post<CareersResponse>("/api/careers", { resumeText, profile, sample }),
+  careers: (resumeText: string, profile: Profile, sample = false, source: ResumeSource = "cv") =>
+    api.post<CareersResponse>("/api/careers", { resumeText, profile, sample, source }),
 
   roadmap: (career: Career, profile: Profile, track: Track, hoursPerWeek: number, sample = false) =>
     api.post<{ roadmap: Roadmap; mode: Mode }>("/api/roadmap", { career, profile, track, hoursPerWeek, sample }),
@@ -64,18 +66,20 @@ export const bridgeApi = {
     displayName: string;
   }) => api.post<{ proof: Proof; deleteKey: string }>("/api/proofs", body),
 
-  study: (role: string, budget: number, currency: string, hours: number) =>
+  /** `field`: the study field the AI chose for the path ("" lets the server use the title). */
+  study: (role: string, budget: number, currency: string, hours: number, field = "") =>
     api.get<StudyPlan>(
-      `/api/study?${new URLSearchParams({ role, budget: String(budget), currency, hours: String(hours) })}`,
+      `/api/study?${new URLSearchParams({ role, budget: String(budget), currency, hours: String(hours), field })}`,
     ),
 
   /** Courses, lectures and guides the live AI finds on the web for this exact role. */
   studySearch: (role: string, budget: number, currency: string, sample = false) =>
     api.post<{ courses: Course[]; mode: Mode }>("/api/study/search", { role, budget, currency, sample }),
 
-  /** One entry per role, in order; null where no figure could be found. */
-  pay: (roles: string[], country: string, countryName: string, location: string, sample = false) =>
-    api.post<(Pay | null)[]>("/api/pay", { roles, country, countryName, location, sample }),
+  /** One entry per role, in order; null where no figure could be found.
+   * `fields` lines up with `roles` (the AI's study field for each). */
+  pay: (roles: string[], fields: string[], country: string, countryName: string, location: string, sample = false) =>
+    api.post<(Pay | null)[]>("/api/pay", { roles, fields, country, countryName, location, sample }),
 
   intro: (role: string, currentRole: string, country: string, sample = false) =>
     api.post<{ intro: JobIntro; mode: Mode }>("/api/intro", { role, currentRole, country, sample }),
@@ -84,8 +88,14 @@ export const bridgeApi = {
 
   linkedin: (url: string) => api.post<{ resumeText: string; mode: Mode }>("/api/linkedin", { url }),
 
-  jobs: (role: string, city: string, country: string) =>
-    api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country })}`),
+  jobs: (role: string, city: string, country: string, field = "") =>
+    api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country, field })}`),
+
+  /** The best English YouTube video for each search phrase (at most 3). */
+  videos: (role: string, queries: string[]) =>
+    api.get<VideosResult>(
+      `/api/videos?${new URLSearchParams([["role", role], ...queries.slice(0, 3).map((q): [string, string] => ["q", q])])}`,
+    ),
 
   proof: (id: string) => api.get<Proof>(`/api/proofs/${encodeURIComponent(id)}`),
 

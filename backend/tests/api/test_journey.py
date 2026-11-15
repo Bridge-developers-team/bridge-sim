@@ -186,3 +186,26 @@ def test_tasting_all_three_sample_paths_gives_three_different_tasks(demo, sample
     }
 
     assert len(scenarios) == 3
+
+
+def test_the_input_type_reaches_the_ai_and_paths_come_back_personal(live, fake_ai):
+    body = live.post(
+        "/api/careers", json={"resumeText": TEACHER.resume, "profile": DEMO_PERSONA, "source": "linkedin"}
+    ).json()
+
+    assert fake_ai.last_source == "linkedin"
+    assert "58% to 71%" in body["profile"]["standout"]
+    career = body["careers"][0]
+    assert career["field"] == "learning" and career["jobTitles"] and career["videoSearches"]
+    assert live.post("/api/careers", json={"resumeText": TEACHER.resume, "source": "fax"}).status_code == 400
+
+
+def test_courses_and_pay_follow_the_field_the_ai_chose(demo):
+    music = demo.get("/api/study", params={"role": "Music Teacher", "field": "other"}).json()
+    as_data = demo.get("/api/study", params={"role": "Insights Partner", "field": "data"}).json()
+    pay = demo.post("/api/pay", json={"roles": ["Insights Partner"], "fields": ["data"], "country": "us"}).json()
+    analyst = demo.post("/api/pay", json={"roles": ["Data Analyst"], "country": "us"}).json()
+
+    assert music["field"] == "general" and music["main"] is None
+    assert as_data["field"] == "data" and "cs50" in as_data["main"]["id"]
+    assert pay[0] is not None and pay[0]["occupation"] == analyst[0]["occupation"]

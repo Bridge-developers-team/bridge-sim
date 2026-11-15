@@ -633,8 +633,8 @@ def us_state(location: str) -> str | None:
     return m.group(1) if m and m.group(1) in STATE_NAMES else None
 
 
-def pay_for(role: str, country: str, location: str = "") -> Pay | None:
-    field = match_field(role).id
+def pay_for(role: str, country: str, location: str = "", field_id: str = "") -> Pay | None:
+    field = match_field(role, field_id).id
     if country == "us" and field in US_SOC:
         soc = US_SOC[field]
         medians = US_MEDIANS.get(soc, {})

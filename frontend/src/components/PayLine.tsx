@@ -10,11 +10,12 @@ import { useJourney } from "../state/journey";
 export function usePathPay() {
   const journey = useJourney();
   const titles = journey.careers?.careers.map((c) => c.title) ?? [];
+  const fields = journey.careers?.careers.map((c) => c.field ?? "") ?? [];
   const country = journey.profile.country || "us";
   const sample = journey.careers?.mode === "sample";
   return useQuery({
-    queryKey: ["pay", titles, country, journey.profile.location, sample],
-    queryFn: () => bridgeApi.pay(titles, country, countryName(country), journey.profile.location, sample),
+    queryKey: ["pay", titles, fields, country, journey.profile.location, sample],
+    queryFn: () => bridgeApi.pay(titles, fields, country, countryName(country), journey.profile.location, sample),
     enabled: titles.length > 0,
     staleTime: Infinity,
     retry: false,

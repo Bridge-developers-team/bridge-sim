@@ -15,6 +15,7 @@ from bridge.services.insights import InsightsService
 from bridge.services.jobs import JobsService
 from bridge.services.limits import DailyBudget, SlidingWindow
 from bridge.services.signing import Signer
+from bridge.services.videos import VideosService
 
 
 @dataclass
@@ -30,6 +31,8 @@ class AppState:
     jobs: JobsService
     jobs_per_client: SlidingWindow
     insights: InsightsService
+    videos: VideosService
+    videos_per_client: SlidingWindow
 
     @property
     def demo_mode(self) -> bool:

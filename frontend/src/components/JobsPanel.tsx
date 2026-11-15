@@ -3,7 +3,7 @@ import { type ReactNode, useState } from "react";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
 import type { JobLink } from "../api/types";
-import { COUNTRIES, countryCurrency, countryName } from "../lib/options";
+import { COUNTRIES, countryName, withCountry } from "../lib/options";
 import { connectionNote } from "../lib/outreach";
 import { updateJourney, useJourney } from "../state/journey";
 import { BriefcaseIcon, ExternalIcon, PeopleIcon, TrendIcon } from "./Icons";
@@ -72,17 +72,27 @@ function OutreachNote({ text }: { text: string }) {
 
 /** Real openings for the target role near the user: live listings when the
  * server has a job-search key, and one-tap searches on the big boards always. */
-export function JobsPanel({ role }: { role: string }) {
+export function JobsPanel({ role, titles = [], field = "" }: { role: string; titles?: string[]; field?: string }) {
   const { profile } = useJourney();
+  // Job posts use many titles for one path; searching the one the user picks
+  // finds far more openings than the path's name alone.
+  const options = [role, ...titles].filter((t, i, all) => t && all.findIndex((x) => x.toLowerCase() === t.toLowerCase()) === i);
+  const [picked, setPicked] = useState(role);
+  const title = options.includes(picked) ? picked : role;
   const note = connectionNote(profile.currentRole, role, profile.location);
   const city = profile.location;
   const country = profile.country || "us";
   const jobs = useQuery({
-    queryKey: ["jobs", role, city, country],
-    queryFn: () => bridgeApi.jobs(role, city, country),
+    queryKey: ["jobs", title, city, country, field],
+    queryFn: () => bridgeApi.jobs(title, city, country, field),
     staleTime: 30 * 60 * 1000,
   });
   const setProfile = (patch: Partial<typeof profile>) => updateJourney((j) => ({ ...j, profile: { ...j.profile, ...patch } }));
+  // A new country clears a city from another country; currency is left alone here.
+  const setCountry = (v: string) => {
+    const next = withCountry(profile, v);
+    setProfile({ country: next.country, location: next.location });
+  };
 
   return (
     <Panel>
@@ -95,7 +105,7 @@ export function JobsPanel({ role }: { role: string }) {
             options={COUNTRIES}
             searchable
             value={country}
-            onChange={(v) => setProfile({ country: v, location: "", currency: countryCurrency(v) ?? profile.currency })}
+            onChange={setCountry}
           />
           <Picker
             key={country}
@@ -110,6 +120,21 @@ export function JobsPanel({ role }: { role: string }) {
             onChange={(v) => setProfile({ location: v })}
           />
         </div>
+
+        {options.length > 1 && (
+          <div className="stack-sm">
+            <p className="label" id="job-title-label">
+              Search openings as
+            </p>
+            <div className="chips" role="radiogroup" aria-labelledby="job-title-label">
+              {options.map((t) => (
+                <button key={t} type="button" role="radio" aria-checked={t === title} className={`chip ${t === title ? "chip--on" : ""}`} onClick={() => setPicked(t)}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {jobs.isLoading && <p className="muted small">Looking for openings…</p>}
         {jobs.isError && <p className="text-danger small">{errorText(jobs.error)}</p>}

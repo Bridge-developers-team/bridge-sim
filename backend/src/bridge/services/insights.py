@@ -53,6 +53,10 @@ class _Ttl:
         self.items[key] = (time.monotonic(), value)
 
 
+async def _none() -> Pay | None:
+    return None
+
+
 class InsightsService:
     def __init__(self) -> None:
         self._pay = _Ttl(7 * DAY)
@@ -86,8 +90,10 @@ class InsightsService:
 
     # ---------- pay ----------
 
-    async def pay(self, writer: Writer | None, role: str, country: str, country_name: str, city: str) -> Pay | None:
-        official = pay_for(role, country, city)
+    async def pay(
+        self, writer: Writer | None, role: str, country: str, country_name: str, city: str, field: str = ""
+    ) -> Pay | None:
+        official = pay_for(role, country, city, field)
         if official or writer is None:
             return official
         place = ", ".join(p for p in (clean(city, 80), clean(country_name, 80)) if p) or country.upper()
@@ -103,14 +109,18 @@ class InsightsService:
         estimate = estimate_from_draft(role, place, draft, found) if draft else None
         if estimate is None and city and country_name:
             # Nothing for the city: the country-wide figure is still useful.
-            return await self.pay(writer, role, country, country_name, "")
+            return await self.pay(writer, role, country, country_name, "", field)
         self._pay.put(key, estimate)
         return estimate
 
     async def pay_many(
-        self, writer: Writer | None, roles: list[str], country: str, country_name: str, city: str
+        self, writer: Writer | None, roles: list[str], fields: list[str], country: str, country_name: str, city: str
     ) -> list[Pay | None]:
-        return list(await asyncio.gather(*(self.pay(writer, r, country, country_name, city) for r in roles)))
+        jobs = [
+            self.pay(writer, r, country, country_name, city, fields[i] if i < len(fields) else "") if r else _none()
+            for i, r in enumerate(roles)
+        ]
+        return list(await asyncio.gather(*jobs))
 
     # ---------- courses for one exact role ----------
 

@@ -6,9 +6,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from pydantic import Field
+
 from bridge.domain.intro import JobIntro
 from bridge.domain.learning import Course
-from bridge.domain.models import CamelModel, Career, Evaluation, Mode, Practice, Proof, Roadmap, Track
+from bridge.domain.models import CamelModel, Career, Evaluation, Mode, Practice, Proof, ResumeSource, Roadmap, Track
 
 MAX_RESUME = 15_000
 MIN_RESUME = 80
@@ -19,6 +21,7 @@ class CareersRequest(CamelModel):
     resume_text: str
     profile: dict[str, Any] | None = None
     sample: bool = False
+    source: ResumeSource = "cv"
 
 
 class ProfileOut(CamelModel):
@@ -26,6 +29,7 @@ class ProfileOut(CamelModel):
     years_experience: int | None
     industry: str
     evidence_note: str
+    standout: str = ""
 
 
 class CareersResponse(CamelModel):
@@ -159,6 +163,7 @@ class CoursesResponse(CamelModel):
 
 class PayRequest(CamelModel):
     roles: list[str]
+    fields: list[str] = Field(default_factory=list)
     country: str = "us"
     country_name: str = ""
     location: str = ""

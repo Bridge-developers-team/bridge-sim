@@ -32,11 +32,15 @@ class Settings(BaseSettings):
     ai_calls_per_day: int = 400
     proofs_per_client_per_hour: int = 10
     jobs_per_client: int = 30  # per 10 minutes
+    videos_per_client: int = 20  # per 10 minutes
 
     # Optional: live job listings from Adzuna (free developer keys). Without
-    # them the jobs panel still links to LinkedIn, Indeed and Google Jobs.
+    # them the jobs panel still links to LinkedIn and Indeed (and hh.kz).
     adzuna_app_id: str | None = None
     adzuna_app_key: SecretStr | None = None
+    # Optional: YouTube Data API key (free, Google Cloud console) for the
+    # learning videos on the plan. Without it the plan shows courses only.
+    youtube_api_key: SecretStr | None = None
 
     # Set by Render on every deploy: the commit that is running. Shown by
     # /healthz so anyone can check what production runs. None locally.

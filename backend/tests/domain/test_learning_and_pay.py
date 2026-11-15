@@ -3,7 +3,7 @@ figures come from official tables only, for the right place."""
 
 from urllib.parse import urlparse
 
-from bridge.domain.learning import COURSES, FIELDS, GENERAL, match_field, month_modules, spread, study_plan
+from bridge.domain.learning import COURSES, FIELDS, match_field, month_modules, spread, study_plan
 from bridge.domain.pay import pay_for, us_state
 
 
@@ -17,9 +17,37 @@ def test_every_catalog_link_is_a_specific_https_page_never_a_search():
 
 
 def test_every_field_lists_real_courses_and_at_least_one_free_one():
-    for field in (*FIELDS, GENERAL):
+    for field in FIELDS:
         assert field.courses and all(c in COURSES for c in field.courses), field.id
         assert any(COURSES[c].cost != "paid" for c in field.courses), field.id
+
+
+def test_the_ai_field_list_matches_the_catalog():
+    from typing import get_args
+
+    from bridge.domain.learning import FieldId
+
+    assert set(get_args(FieldId)) == {f.id for f in FIELDS} | {"other"}
+
+
+def test_a_role_outside_the_catalog_never_gets_a_course_from_another_field():
+    # The reported bug: a music teacher was sent to Harvard's CS50.
+    for role, field in [("Music Teacher", ""), ("Music Teacher", "other"), ("Pastry Chef", ""), ("Paramedic", "")]:
+        free = study_plan(role, budget_usd=0, hours_per_week=5, field_id=field)
+        paid = study_plan(role, budget_usd=100, hours_per_week=5, field_id=field)
+        assert free.field == "general" and free.main is None and free.more == [], role
+        assert paid.main is not None and paid.main.id == "learning-how-to-learn" and not paid.more, role
+        assert all("cs50" not in c.id for c in [*filter(None, [paid.main]), *paid.more])
+
+
+def test_the_ai_field_beats_title_keywords_and_keywords_skip_false_friends():
+    assert study_plan("Machine Learning Engineer", budget_usd=0, hours_per_week=5).field == "software"
+    assert study_plan("Learning Consultant", budget_usd=0, hours_per_week=5, field_id="hr").field == "hr"
+    assert study_plan("Data Analyst", budget_usd=0, hours_per_week=5, field_id="nonsense").field == "data"
+    for role in ["Personal Trainer", "Security Guard", "Video Editor", "Music Educator", "Yoga Instructor"]:
+        assert match_field(role).id == "general", role
+    assert match_field("Clinical Educator").id == "learning"
+    assert pay_for("Machine Learning Engineer", "us").occupation != pay_for("Instructional Designer", "us").occupation
 
 
 def test_role_titles_map_to_the_right_field_and_unknown_ones_to_general():
@@ -36,7 +64,7 @@ def test_without_a_budget_only_free_courses_are_offered():
     plan = study_plan("Data analyst", budget_usd=0, hours_per_week=5)
     with_budget = study_plan("Data analyst", budget_usd=60, hours_per_week=5)
 
-    assert plan.main.cost != "paid" and all(c.cost != "paid" for c in plan.more)
+    assert plan.main is not None and plan.main.cost != "paid" and all(c.cost != "paid" for c in plan.more)
     assert with_budget.main.id == "google-data-analytics"
 
 

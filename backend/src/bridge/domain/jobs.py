@@ -71,39 +71,107 @@ def normalize_country(value: object) -> str:
 
 
 def _phrase(text: str) -> str:
-    """Text safe to put inside a quoted search phrase: no quotes or brackets
-    that would break the site's search syntax, single spaces."""
+    """Search text without quotes or brackets (they would switch the site's
+    search into exact-phrase or boolean mode and empty the results), single
+    spaces."""
     for ch in '"()[]{}':
         text = text.replace(ch, " ")
     return " ".join(text.split())
 
 
 def city_name(city: str) -> str:
-    """ "Austin, TX" -> "Austin": profiles and posts write the state or country
-    in many ways ("Texas", "TX", "Austin Metro"), but the city name is stable."""
+    """ "Austin, TX" -> "Austin": profiles write the state or country in many
+    ways ("Texas", "TX", "Austin Metro"), but the city name is stable."""
     return _phrase(clean(city, 80).split(",")[0])
 
 
-_RECRUITER = '(recruiter OR "talent acquisition" OR "talent partner")'
-_LEAD = "(manager OR lead OR head OR director)"
+# LinkedIn's geo ids for whole countries (the geoUrn people filter and the
+# jobs geoId). Checked against two independent sources; Kazakhstan's could
+# not be confirmed, so Kazakhstan searches name the place in text instead.
+LINKEDIN_GEO = {
+    "us": "103644278",
+    "gb": "101165590",
+    "ca": "101174742",
+    "au": "101452733",
+    "de": "101282230",
+    "fr": "105015875",
+    "nl": "102890719",
+    "in": "102713980",
+    "sg": "102454443",
+}
+COUNTRY_NAMES = {
+    "us": "United States",
+    "gb": "United Kingdom",
+    "ca": "Canada",
+    "au": "Australia",
+    "de": "Germany",
+    "fr": "France",
+    "nl": "Netherlands",
+    "in": "India",
+    "sg": "Singapore",
+    "kz": "Kazakhstan",
+}
+# One broad word per study field that recruiters for that field put in their
+# headline ("Tech recruiter", "Healthcare recruiter"). Broad on purpose: a
+# full job title in a people search usually finds nobody.
+FIELD_TERMS = {
+    "health-data": "healthcare",
+    "security": "cybersecurity",
+    "qa": "QA",
+    "ux": "UX",
+    "product": "product",
+    "web": "software",
+    "software": "software",
+    "it-support": "IT",
+    "data": "data",
+    "project": "project",
+    "learning": "learning",
+    "hr": "HR",
+    "sales": "sales",
+    "marketing": "marketing",
+    "finance": "finance",
+    "writing": "technical writing",
+    "content": "content",
+    "business": "operations",
+}
+
 _LINKEDIN_JOBS = "https://www.linkedin.com/jobs/search/?"
 _LINKEDIN_PEOPLE = "https://www.linkedin.com/search/results/people/?"
 _LINKEDIN_POSTS = "https://www.linkedin.com/search/results/content/?"
-# LinkedIn job filters: f_E 2,3 = entry level and associate (where career
-# changers are hired); f_TPR r2592000 = posted in the last 30 days.
+# Job filters: f_E 2,3 = entry level and associate (where career changers are
+# hired); f_TPR r2592000 = posted in the last 30 days.
 _ENTRY_FILTERS = {"f_E": "2,3", "f_TPR": "r2592000"}
+
+
+def job_location(city: str, country: str) -> str:
+    """The place as LinkedIn's location box resolves it best: "Austin, TX,
+    United States", "Almaty, Kazakhstan", or just the country."""
+    city, name = clean(city, 80), COUNTRY_NAMES.get(country, "")
+    if city.lower() in {"remote", "anywhere"}:
+        city = ""
+    if city and name and not city.lower().endswith(name.lower()):
+        return f"{city}, {name}"
+    return city or name
+
+
+def _linkedin_jobs(role: str, city: str, country: str, extra: dict[str, str] | None = None) -> str:
+    params = {"keywords": _phrase(role), "location": job_location(city, country)}
+    if not job_location(city, "") and country in LINKEDIN_GEO:
+        params["geoId"] = LINKEDIN_GEO[country]  # whole country: the id is exact
+    elif city:
+        params["distance"] = "25"  # miles around the city, LinkedIn's own default radius
+    return _LINKEDIN_JOBS + urlencode(params | (extra or {}))
 
 
 def board_links(role: str, city: str, country: str) -> list[JobLink]:
     role, city = clean(role, 80), clean(city, 80)
-    where = city or ""
+    where = "" if city.lower() in {"remote", "anywhere"} else city
     indeed = _INDEED_HOSTS.get(country, "www.indeed.com")
-    linkedin = {"keywords": role, "location": where}
     links = [
-        JobLink(site="LinkedIn", url=_LINKEDIN_JOBS + urlencode(linkedin), hint="All openings"),
+        JobLink(site="LinkedIn", url=_linkedin_jobs(role, city, country), hint="All openings"),
         JobLink(
             site="LinkedIn: entry level",
-            url=_LINKEDIN_JOBS + urlencode(linkedin | _ENTRY_FILTERS),
+            url=_linkedin_jobs(role, city, country, _ENTRY_FILTERS),
             hint="Entry and associate level, last 30 days",
         ),
         JobLink(site="Indeed", url=f"https://{indeed}/jobs?" + urlencode({"q": role, "l": where}), hint="All openings"),
@@ -119,23 +187,41 @@ def board_links(role: str, city: str, country: str) -> list[JobLink]:
     return links
 
 
-def people_links(role: str, city: str) -> list[JobLink]:
-    """LinkedIn searches for the people who fill this role near the city.
-    Recruiters first: they answer career changers more often than busy team
-    leads."""
+def _people(title: str, keywords: str, country: str) -> str:
+    """A LinkedIn people search with real filters: the Title filter
+    (titleFreeText), the country filter (geoUrn) and a few broad keywords."""
+    params = {"origin": "FACETED_SEARCH", "titleFreeText": title}
+    if keywords:
+        params["keywords"] = keywords
+    if country in LINKEDIN_GEO:
+        params["geoUrn"] = f'["{LINKEDIN_GEO[country]}"]'
+    return _LINKEDIN_PEOPLE + urlencode(params)
+
+
+def people_links(role: str, city: str, country: str = "us", field: str = "") -> list[JobLink]:
+    """The people who hire for this path near the user. Recruiters first: they
+    answer career changers more often than busy team leads. Filters, not one
+    long query: title contains "recruiter" (or "manager"), the country, and
+    keywords kept to one field word plus the city, so a search finds people."""
     role, town = _phrase(clean(role, 80)), city_name(city)
-    near = f' "{town}"' if town else ""
+    if town.lower() in {"remote", "anywhere"}:
+        town = ""
+    if country not in LINKEDIN_GEO and not town:
+        town = COUNTRY_NAMES.get(country, "")  # no country filter: name the place instead
+    term = FIELD_TERMS.get(field, "")
+    country_name = COUNTRY_NAMES.get(country, "")
+    the = "the " if country in {"us", "gb", "nl"} else ""
+    where = f" around {town}" if town and town != country_name else (f" in {the}{country_name}" if country_name else "")
     return [
         JobLink(
             site="Recruiters on LinkedIn",
-            url=_LINKEDIN_PEOPLE
-            + urlencode({"keywords": f'{_RECRUITER} "{role}"{near}', "origin": "GLOBAL_SEARCH_HEADER"}),
-            hint="Recruiters who hire for this role" + (f" in {town}" if town else ""),
+            url=_people("recruiter", " ".join(w for w in (term, town) if w), country),
+            hint=f"Recruiters{' for ' + term + ' roles' if term else ''}{where}",
         ),
         JobLink(
             site="Team leads on LinkedIn",
-            url=_LINKEDIN_PEOPLE + urlencode({"keywords": f'"{role}" {_LEAD}{near}', "origin": "GLOBAL_SEARCH_HEADER"}),
-            hint="Managers of the team you would join",
+            url=_people("manager", " ".join(w for w in (role, town) if w), country),
+            hint=f"Managers who mention this role{where}",
         ),
     ]
 
@@ -143,16 +229,16 @@ def people_links(role: str, city: str) -> list[JobLink]:
 def topic_links(role: str) -> list[JobLink]:
     """What people in the role are talking about this month: worth a look
     before messaging anyone, and good material for a first post."""
-    quoted = f'"{_phrase(clean(role, 80))}"'
+    words = _phrase(clean(role, 80))
     return [
         JobLink(
             site="LinkedIn posts",
-            url=_LINKEDIN_POSTS + urlencode({"keywords": quoted, "sortBy": '["date_posted"]'}),
+            url=_LINKEDIN_POSTS + urlencode({"keywords": words, "sortBy": '["date_posted"]'}),
             hint="Newest posts about the role",
         ),
         JobLink(
             site="Reddit",
-            url="https://www.reddit.com/search/?" + urlencode({"q": quoted, "sort": "top", "t": "month"}),
+            url="https://www.reddit.com/search/?" + urlencode({"q": words, "sort": "top", "t": "month"}),
             hint="Top discussions this month",
         ),
     ]

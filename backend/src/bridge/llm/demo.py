@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Any
+from typing import Any, cast
 
 from bridge.domain.drafts import (
     CareerDraft,
@@ -30,11 +30,30 @@ from bridge.domain.drafts import (
     TaskDraft,
     WeekDraft,
 )
-from bridge.domain.models import Candidate, Career, Effort, Practice, TaskType, Track
+from bridge.domain.learning import FieldId, match_field
+from bridge.domain.models import Candidate, Career, Effort, Practice, ResumeSource, TaskType, Track
 from bridge.domain.roadmap import TRACKS, clamp_hours
 from bridge.domain.web import Found
 
 NOTE = "Sample data (not AI)"
+
+
+# Job-post titles employers use for each sample path (what to search for).
+_JOB_TITLES: dict[str, list[str]] = {
+    "Instructional Designer": ["Instructional Designer", "Learning Experience Designer", "E-Learning Developer"],
+    "Corporate Trainer": ["Corporate Trainer", "Training Specialist", "Learning and Development Specialist"],
+    "Education Project Coordinator": ["Program Coordinator", "Education Program Coordinator", "Project Coordinator"],
+    "Clinical Informatics Analyst": ["Clinical Informatics Analyst", "Clinical Applications Analyst", "Epic Analyst"],
+    "Quality Improvement Coordinator": [
+        "Quality Improvement Coordinator",
+        "Quality Coordinator",
+        "Patient Safety Specialist",
+    ],
+    "Clinical Educator": ["Clinical Educator", "Nurse Educator", "Clinical Education Specialist"],
+    "Operations Analyst": ["Operations Analyst", "Business Operations Analyst", "Workforce Planning Analyst"],
+    "Supply Chain Planner": ["Supply Chain Planner", "Inventory Planner", "Demand Planner"],
+    "Human Resources Generalist": ["HR Generalist", "Human Resources Generalist", "HR Coordinator"],
+}
 
 
 def _career(
@@ -46,7 +65,10 @@ def _career(
     effort: Effort,
     tradeoff: str,
     assumption: str,
+    job_titles: list[str] | None = None,
 ) -> CareerDraft:
+    field = match_field(title).id
+    job_titles = job_titles or _JOB_TITLES.get(title, [title])
     return CareerDraft(
         title=title,
         role_summary=summary,
@@ -56,6 +78,10 @@ def _career(
         relative_effort=effort,
         key_tradeoff=tradeoff,
         assumptions=[assumption],
+        motivation_match="",  # sample data does not claim to know the person's reasons
+        field=cast(FieldId, "other" if field == "general" else field),  # field ids are FieldId (a test checks)
+        job_titles=job_titles,
+        video_searches=[f"{m} tutorial" for m in missing[:3]],
     )
 
 
@@ -67,6 +93,8 @@ _PATHS: dict[str, tuple[ProfileRead, list[CareerDraft]]] = {
             years_experience=7,
             industry="K-12 education",
             evidence_note=f"{NOTE}: hand-written paths for the sample teacher profile.",
+            standout="You turn messy material into structured, self-paced learning and check that it works: "
+            "your unit redesign moved students meeting the standard from 58% to 71%.",
         ),
         [
             _career(
@@ -137,6 +165,8 @@ _PATHS: dict[str, tuple[ProfileRead, list[CareerDraft]]] = {
             years_experience=6,
             industry="Hospital care",
             evidence_note=f"{NOTE}: hand-written paths for the sample nurse profile.",
+            standout="You are the one a unit trusts with new systems: you trained 40 nurses on the Epic rollout "
+            "and track incident data in Excel.",
         ),
         [
             _career(
@@ -181,6 +211,8 @@ _PATHS: dict[str, tuple[ProfileRead, list[CareerDraft]]] = {
             years_experience=10,
             industry="Big-box retail",
             evidence_note=f"{NOTE}: hand-written paths for the sample store-manager profile.",
+            standout="You run a large operation by the numbers: a $28M store, 120 people, and overtime cut 18% "
+            "with hourly traffic data.",
         ),
         [
             _career(
@@ -522,7 +554,7 @@ def _demo_intro(role: str) -> JobIntroDraft:
 
 
 class DemoWriter:
-    async def careers(self, *, resume: str, candidate: Candidate) -> CareersDraft:
+    async def careers(self, *, resume: str, candidate: Candidate, source: ResumeSource = "cv") -> CareersDraft:
         sample = _sample_id(resume)
         if sample:
             profile, careers = _PATHS[sample]
@@ -534,6 +566,7 @@ class DemoWriter:
                 years_experience=candidate.years_experience or (int(years.group(1)) if years else None),
                 industry="Not read in sample mode",
                 evidence_note=f"{NOTE}: generic paths, not read from your resume.",
+                standout="",
             ),
             careers=_GENERIC,
         )

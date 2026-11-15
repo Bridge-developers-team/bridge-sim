@@ -2215,3 +2215,113 @@ button.gc-bar:hover {
   background: var(--surface-sunken);
   font-size: var(--type-sm);
 }
+
+/* Job title chips on the jobs panel: wrap, never scroll sideways. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-100);
+}
+
+/* LinkedIn tab: numbered steps. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+  margin: 0;
+  padding-left: var(--space-300);
+}
+
+.step__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-050);
+  align-items: flex-start;
+}
+
+.steps li::marker {
+  font-weight: 700;
+}
+
+.steps .ui-field {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Videos on the plan. */
+.video-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.video {
+  display: flex;
+  gap: var(--space-150);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.video__thumb {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 160px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
+}
+
+.video__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video__len {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.video__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.video__text a {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .video__thumb {
+    width: 112px;
+  }
+}
+
+/* Paths page: what Bridge read about you, and the reasons check on a card. */
+.standout {
+  max-width: 70ch;
+  margin: 0;
+  padding-left: var(--space-150);
+  border-left: 3px solid var(--brand);
+}
+
+.career__why {
+  margin: 0;
+}

@@ -15,7 +15,7 @@ from bridge.domain.drafts import (
     PracticeDraft,
     RoadmapDraft,
 )
-from bridge.domain.models import Candidate, Career, Practice, Track
+from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
 from bridge.domain.web import Found
 
 
@@ -29,7 +29,7 @@ class LlmError(Exception):
 
 
 class Writer(Protocol):
-    async def careers(self, *, resume: str, candidate: Candidate) -> CareersDraft: ...
+    async def careers(self, *, resume: str, candidate: Candidate, source: ResumeSource = "cv") -> CareersDraft: ...
 
     async def roadmap(
         self, *, candidate: Candidate, career: Career, track: Track, hours_per_week: float

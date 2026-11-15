@@ -163,3 +163,81 @@ export function loadJobTitles(): Promise<Option[]> {
   });
   return jobTitles;
 }
+
+/** A best guess at the user's country from the browser's time zone, so a
+ * visitor from Almaty does not start in the United States. Anything unknown
+ * starts in the United States, the hackathon's market. */
+export function countryFromTimeZone(timeZone: string): string {
+  const tz = timeZone || "";
+  const exact: Record<string, string> = {
+    "Europe/London": "gb",
+    "Europe/Belfast": "gb",
+    "Europe/Berlin": "de",
+    "Europe/Busingen": "de",
+    "Europe/Paris": "fr",
+    "Europe/Amsterdam": "nl",
+    "Asia/Kolkata": "in",
+    "Asia/Calcutta": "in",
+    "Asia/Singapore": "sg",
+  };
+  if (exact[tz]) return exact[tz];
+  if (/^Australia\//.test(tz)) return "au";
+  if (/^Asia\/(Almaty|Qostanay|Aqtobe|Aqtau|Atyrau|Oral|Qyzylorda)$/.test(tz)) return "kz";
+  if (
+    /^America\/(Toronto|Montreal|Vancouver|Edmonton|Winnipeg|Halifax|Regina|St_Johns|Moncton|Whitehorse|Yellowknife|Iqaluit|Glace_Bay|Goose_Bay|Swift_Current|Dawson_Creek|Fort_Nelson|Cambridge_Bay|Rankin_Inlet|Resolute|Inuvik|Atikokan|Blanc-Sablon|Creston|Dawson)$/.test(
+      tz,
+    )
+  )
+    return "ca";
+  return "us";
+}
+
+export function browserCountry(): string {
+  try {
+    return countryFromTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  } catch {
+    return "us";
+  }
+}
+
+/** Rough units per US dollar, only to carry a typed budget into a new
+ * currency (the server converts with live rates). Unknown: keep the number. */
+const ROUGH_PER_USD: Record<string, number> = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.79,
+  KZT: 500,
+  CAD: 1.37,
+  AUD: 1.52,
+  INR: 84,
+  SGD: 1.35,
+  RUB: 90,
+};
+
+function roundNice(n: number): number {
+  if (n <= 0) return 0;
+  const step = 10 ** Math.max(0, Math.floor(Math.log10(n)) - 1);
+  return Math.round(n / step) * step;
+}
+
+/** A new country on the form: a city from another country is dropped (only
+ * "Remote" carries over), the currency follows the country, and the budget is
+ * carried into it roughly. */
+export function withCountry<P extends { country: string; location: string; currency: string; monthlyLearningBudget: number }>(
+  profile: P,
+  country: string,
+): P {
+  if (country === profile.country) return profile;
+  const currency = countryCurrency(country) ?? profile.currency;
+  const from = ROUGH_PER_USD[profile.currency];
+  const to = ROUGH_PER_USD[currency];
+  const budget =
+    currency === profile.currency || !from || !to ? profile.monthlyLearningBudget : roundNice((profile.monthlyLearningBudget / from) * to);
+  return {
+    ...profile,
+    country,
+    location: profile.location.toLowerCase() === "remote" ? profile.location : "",
+    currency,
+    monthlyLearningBudget: budget,
+  };
+}
