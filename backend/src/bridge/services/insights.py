@@ -1,39 +1,38 @@
 """Facts from outside the app, cached: typical pay (official tables first,
-then a web-found estimate), courses found on the web for one exact role,
-exchange rates for the learning budget, and city lists per country."""
+then the median of several web sources, kept in the database), courses
+found on the web for one exact role, exchange rates, and city lists."""
 
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
-from functools import cache
-from pathlib import Path
-from typing import Any, cast
+from dataclasses import replace
+from typing import Any, Protocol, cast
 
 import httpx
 
-from bridge.domain.learning import COURSE_DOMAINS, Course, pick_courses
-from bridge.domain.pay import Pay, estimate_from_draft, pay_for
+from bridge.domain import reference
+from bridge.domain.learning import Course, course_domains, pick_courses
+from bridge.domain.pay import Pay, pay_for, pay_from_guess, pay_from_median
+from bridge.domain.reference import Country
 from bridge.domain.text import clean
+from bridge.domain.wages import Checked, Snippet, check, median_pay, target_period
 from bridge.llm.base import LlmError, Writer
 
 log = logging.getLogger(__name__)
 
+_NO_COUNTRY = Country(code="", name="", currency="")
+
+
+class PayCacheLike(Protocol):
+    async def get(self, key: str) -> dict[str, Any] | None: ...
+
+    async def put(self, key: str, payload: dict[str, Any]) -> None: ...
+
+
 DAY = 24 * 3600
 FX_URL = "https://open.er-api.com/v6/latest/USD"
-# Used only when the rates service is unreachable: rough units per US dollar.
-FALLBACK_RATES = {
-    "USD": 1.0,
-    "EUR": 0.92,
-    "GBP": 0.79,
-    "KZT": 500.0,
-    "RUB": 90.0,
-    "CAD": 1.37,
-    "AUD": 1.52,
-    "INR": 84.0,
-}
 
 
 class _Ttl:
@@ -58,8 +57,8 @@ async def _none() -> Pay | None:
 
 
 class InsightsService:
-    def __init__(self) -> None:
-        self._pay = _Ttl(7 * DAY)
+    def __init__(self, pay_cache: PayCacheLike | None = None) -> None:
+        self._pay_cache = pay_cache
         self._courses = _Ttl(7 * DAY)
         self._rates: tuple[float, dict[str, float]] | None = None
 
@@ -77,7 +76,7 @@ class InsightsService:
                 return rates
         except (httpx.HTTPError, ValueError, TypeError) as err:
             log.warning("Exchange rates unavailable: %s", err)
-        return FALLBACK_RATES
+        return reference.get().usd_rates  # rough fallback rates (reference data)
 
     async def to_usd(self, amount: float, currency: str) -> int:
         if amount <= 0:
@@ -93,25 +92,53 @@ class InsightsService:
     async def pay(
         self, writer: Writer | None, role: str, country: str, country_name: str, city: str, field: str = ""
     ) -> Pay | None:
+        """Official figure first. Else, with the live AI: the median of the
+        figures several web pages state (city first, then the whole country),
+        each number checked against the page's words; only when no page
+        states one, the AI's own estimate, labeled as such. Kept 30 days."""
         official = pay_for(role, country, city, field)
         if official or writer is None:
             return official
-        place = ", ".join(p for p in (clean(city, 80), clean(country_name, 80)) if p) or country.upper()
-        key = (role.strip().lower(), country, clean(city, 80).lower())
-        hit, value = self._pay.get(key)
-        if hit:
-            return cast("Any", value)
-        try:
-            found, draft = await writer.pay_search(role=role, place=place)
-        except LlmError as err:
-            log.warning("Pay search failed for %s in %s: %s", role, place, err.message)
-            return None
-        estimate = estimate_from_draft(role, place, draft, found) if draft else None
-        if estimate is None and city and country_name:
-            # Nothing for the city: the country-wide figure is still useful.
-            return await self.pay(writer, role, country, country_name, "", field)
-        self._pay.put(key, estimate)
+        name = clean(country_name, 80) or (reference.get().country(country) or _NO_COUNTRY).name or country.upper()
+        town = clean(city, 80)
+        if town.lower() in {"remote", "anywhere"}:
+            town = ""
+        key = "|".join((clean(role, 80).lower(), country, town.lower()))
+        if self._pay_cache:
+            cached = await self._pay_cache.get(key)
+            if cached:
+                return Pay.model_validate(cached)
+        estimate = await self._research(writer, role, country, name, town)
+        if estimate and self._pay_cache:
+            await self._pay_cache.put(key, estimate.model_dump(by_alias=True))
         return estimate
+
+    async def _research(self, writer: Writer, role: str, country: str, name: str, town: str) -> Pay | None:
+        places = [f"{town}, {name}", name] if town else [name]
+        snippets: list[Snippet] = []
+        checked: list[Checked] = []
+        area = name
+        for place in places:
+            try:
+                found, figures = await writer.pay_research(role=role, place=place)
+            except LlmError as err:
+                log.warning("Pay research failed for %s in %s: %s", role, place, err.message)
+                continue
+            offset = len(snippets)
+            snippets.extend(found)
+            checked.extend(
+                c for f in figures if (c := check(replace(f, source=f.source + offset), snippets)) is not None
+            )
+            if len({c.snippet.url for c in checked}) >= 2:
+                area = place  # enough sources for this place: no need to widen
+                break
+        local = (reference.get().country(country) or _NO_COUNTRY).currency
+        currency = local or (checked[0].figure.currency if checked else "USD")
+        median = median_pay(checked, currency=currency, period=target_period(country), rates=await self.rates())
+        if median:
+            return pay_from_median(role, area, median)
+        guess = await writer.pay_guess(role=role, place=places[0])
+        return pay_from_guess(role, places[0], guess) if guess else None
 
     async def pay_many(
         self, writer: Writer | None, roles: list[str], fields: list[str], country: str, country_name: str, city: str
@@ -135,25 +162,18 @@ class InsightsService:
             if budget_usd <= 0
             else f"about {budget_usd} US dollars a month: free material plus paid courses that fit"
         )
-        found, picks = await writer.course_search(role=role, budget=budget, domains=COURSE_DOMAINS)
+        found, picks = await writer.course_search(role=role, budget=budget, domains=course_domains())
         courses = pick_courses(found, picks, budget_usd)
         if courses:
             self._courses.put(key, courses)
         return courses
 
 
-# ---------- cities per country (GeoNames, 15,000+ people, largest first) ----------
-
-_CITIES = Path(__file__).parent / "data" / "cities.json"
-
-
-@cache
-def _all_cities() -> dict[str, list[str]]:
-    return json.loads(_CITIES.read_text(encoding="utf-8"))
+# ---------- cities per country (reference data: GeoNames, largest first) ----------
 
 
 def cities(country: str, query: str = "", limit: int = 60) -> list[str]:
-    names = _all_cities().get(clean(country, 2).lower(), [])
+    names = reference.get().cities.get(clean(country, 2).lower(), [])
     q = clean(query, 60).lower()
     if not q:
         return names[:limit]

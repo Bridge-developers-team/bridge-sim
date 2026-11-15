@@ -17,6 +17,8 @@ Mode = Literal["live", "demo", "sample"]
 # What the experience text is: an uploaded or pasted CV, a LinkedIn profile
 # saved as PDF, or the person's own description. The AI reads each differently.
 ResumeSource = Literal["cv", "linkedin", "text"]
+# How a job is commonly done; shown as tags on each path.
+WorkMode = Literal["remote", "hybrid", "on-site", "flexible hours", "shift work", "travel"]
 
 
 class CamelModel(BaseModel):
@@ -60,6 +62,7 @@ class Career(CamelModel):
     field: str = ""  # study field id (learning.py); "" on cards saved before fields existed
     job_titles: list[str] = []
     video_searches: list[str] = []
+    work_modes: list[WorkMode] = []
 
 
 class Task(CamelModel):

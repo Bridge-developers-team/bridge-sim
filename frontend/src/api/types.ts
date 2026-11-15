@@ -29,6 +29,8 @@ export interface TransferableSkill {
   verified: boolean;
 }
 
+export type WorkMode = "remote" | "hybrid" | "on-site" | "flexible hours" | "shift work" | "travel";
+
 export interface Career {
   id: string;
   title: string;
@@ -47,6 +49,8 @@ export interface Career {
   jobTitles?: string[];
   /** English YouTube searches for the missing skills. */
   videoSearches?: string[];
+  /** How the job is commonly done: remote, hybrid, on-site, flexible hours, shift work, travel. */
+  workModes?: WorkMode[];
 }
 
 export interface ProfileRead {
@@ -166,6 +170,8 @@ export interface AppConfig {
   demoPersona: Profile & { sampleId: string };
   tracks: TrackInfo[];
   limits: { maxResume: number; minResume: number; maxAnswer: number; minHours: number; maxHours: number };
+  /** Reference data from the server's database. */
+  reference: import("../lib/reference").ReferenceData;
 }
 
 /** A course from the checked catalog (backend domain/learning.py). free: no
@@ -215,8 +221,12 @@ export interface Pay {
   note: string;
   source: string;
   url: string;
-  /** official: a statistics table; estimate: a figure the AI found on a cited web page. */
-  kind: "official" | "estimate";
+  /** official: a statistics table; estimate: the median of several web pages'
+   * figures (each checked against the page); ai: the AI's own estimate when
+   * no page stated one. */
+  kind: "official" | "estimate" | "ai";
+  /** The pages behind an estimate. */
+  sources?: { title: string; url: string }[];
 }
 
 export interface JobListing {

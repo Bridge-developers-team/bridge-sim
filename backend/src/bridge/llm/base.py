@@ -11,11 +11,12 @@ from bridge.domain.drafts import (
     CoursePickDraft,
     EvaluationDraft,
     JobIntroDraft,
-    PayEstimateDraft,
+    PayGuessDraft,
     PracticeDraft,
     RoadmapDraft,
 )
 from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
+from bridge.domain.wages import Figure, Snippet
 from bridge.domain.web import Found
 
 
@@ -45,7 +46,9 @@ class Writer(Protocol):
 
     async def introduce(self, *, role: str, current_role: str, country: str) -> JobIntroDraft: ...
 
-    async def pay_search(self, *, role: str, place: str) -> tuple[list[Found], PayEstimateDraft | None]: ...
+    async def pay_research(self, *, role: str, place: str) -> tuple[list[Snippet], list[Figure]]: ...
+
+    async def pay_guess(self, *, role: str, place: str) -> PayGuessDraft | None: ...
 
     async def course_search(
         self, *, role: str, budget: str, domains: list[str]

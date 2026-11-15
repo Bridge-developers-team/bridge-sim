@@ -427,7 +427,16 @@
   padding: 0 var(--space-200) var(--space-150);
 }
 
-/* ---------- Career card: "Meet the job" first, the plan second ---------- */
+/* ---------- Career card: "Meet the job" at the top, the plan at the bottom ---------- */
+
+.career__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-075, 6px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
 .career__action {
   display: flex;
@@ -435,45 +444,40 @@
   gap: var(--space-100);
 }
 
+/* The next step: gold, high contrast in both themes. */
 .meet-btn {
   display: flex;
   align-items: center;
   gap: var(--space-150);
   width: 100%;
+  min-height: 60px;
   padding: var(--space-150) var(--space-200);
   border: 0;
   border-radius: 18px;
-  background: var(--brand);
-  color: var(--on-brand);
+  background: var(--gold-fill);
+  color: #0b1a3a;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 10px 24px -12px rgba(11, 26, 58, 0.6);
+  box-shadow: 0 12px 28px -12px rgba(214, 165, 60, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   transition: transform 0.25s var(--ease-glass), box-shadow 0.25s var(--ease-glass);
 }
 
 .meet-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 30px -12px rgba(11, 26, 58, 0.6);
+  box-shadow: 0 18px 34px -12px rgba(214, 165, 60, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
+.meet-btn:focus-visible,
+.plan-btn:focus-visible {
+  outline: 3px solid var(--focus-gold);
+  outline-offset: 3px;
+}
+
+/* Already met: still clearly a button, now quieter than the plan. */
 .meet-btn.is-met {
   background: transparent;
   color: var(--text);
-  box-shadow: inset 0 0 0 1.5px var(--border);
-}
-
-.meet-btn__step,
-.plan-btn__step {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--gold-fill);
-  color: #0b1a3a;
-  font-size: var(--type-sm);
-  font-weight: 750;
+  box-shadow: inset 0 0 0 2px var(--focus-gold);
 }
 
 .meet-btn__text {
@@ -484,52 +488,60 @@
 
 .meet-btn__text strong {
   font-size: var(--type-md);
+  font-weight: 750;
 }
 
 .meet-btn__text span {
   font-size: var(--type-xs);
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-.meet-btn__go {
+.meet-btn__go,
+.plan-btn__go {
+  display: inline-grid;
   transition: transform 0.25s var(--ease-glass);
 }
 
-.meet-btn:hover .meet-btn__go {
+.meet-btn:hover .meet-btn__go,
+.plan-btn:hover .plan-btn__go {
   transform: translateX(3px);
 }
 
+/* "Skip to the plan": a solid button, never a faint dashed one. */
 .plan-btn {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-150);
   width: 100%;
-  padding: var(--space-100) var(--space-200);
-  border: 1.5px dashed var(--border);
+  min-height: 52px;
+  padding: var(--space-150) var(--space-200);
+  border: 0;
   border-radius: 18px;
-  background: transparent;
-  color: var(--text-subtle);
+  background: var(--brand);
+  color: var(--on-brand);
   font: inherit;
-  font-weight: 650;
+  font-weight: 700;
   text-align: left;
   cursor: pointer;
+  box-shadow: 0 10px 24px -14px rgba(11, 26, 58, 0.7);
+  transition: transform 0.25s var(--ease-glass);
 }
 
-.plan-btn .plan-btn__step {
-  background: var(--surface-sunken);
-  color: var(--text-subtle);
+.plan-btn:hover {
+  transform: translateY(-2px);
 }
 
+.dark .plan-btn {
+  background: #f6f1e6;
+  color: #0b1a3a;
+}
+
+/* After meeting the job, the plan is the next step: gold. */
 .plan-btn.is-ready {
-  border: 0;
   background: var(--gold-fill);
   color: #0b1a3a;
-  box-shadow: var(--focus-glow);
-}
-
-.plan-btn.is-ready .plan-btn__step {
-  background: #0b1a3a;
-  color: #f6f1e6;
+  box-shadow: 0 12px 28px -12px rgba(214, 165, 60, 0.75);
 }
 
 /* ---------- Pay box loading ---------- */

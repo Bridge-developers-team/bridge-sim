@@ -1,6 +1,6 @@
 /** Lookup tables from domain values to words and tones. One place to change
  * when a value is added; never inline conditionals at the call site. */
-import type { Effort, Mode, TaskType } from "../api/types";
+import type { Effort, Mode, TaskType, WorkMode } from "../api/types";
 import type { Tone } from "../components/ui/Lozenge";
 import type { WeekStatus } from "./progress.ts";
 
@@ -9,6 +9,15 @@ export const EFFORT: Record<Effort, { label: string; tone: Tone }> = {
   medium: { label: "Medium effort", tone: "neutral" },
   higher: { label: "Higher effort", tone: "warn" },
   unknown: { label: "Effort unknown", tone: "neutral" },
+};
+
+export const WORK_MODE: Record<WorkMode, string> = {
+  remote: "Remote",
+  hybrid: "Hybrid",
+  "on-site": "On-site",
+  "flexible hours": "Flexible hours",
+  "shift work": "Shift work",
+  travel: "Travel",
 };
 
 export const TASK_TYPE: Record<TaskType, string> = {

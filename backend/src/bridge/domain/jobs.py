@@ -15,28 +15,10 @@ from __future__ import annotations
 from typing import Literal
 from urllib.parse import urlencode
 
+from bridge.domain import reference
 from bridge.domain.models import CamelModel
+from bridge.domain.reference import Country
 from bridge.domain.text import clean
-
-# Countries the Adzuna job-search API serves (lowercase ISO codes in its URL).
-ADZUNA_COUNTRIES = frozenset(
-    {"us", "gb", "ca", "au", "de", "fr", "nl", "at", "be", "ch", "es", "it", "pl", "in", "sg", "nz", "za", "br", "mx"}
-)
-
-_INDEED_HOSTS = {
-    "us": "www.indeed.com",
-    "gb": "uk.indeed.com",
-    "ca": "ca.indeed.com",
-    "au": "au.indeed.com",
-    "de": "de.indeed.com",
-    "fr": "fr.indeed.com",
-    "nl": "nl.indeed.com",
-    "in": "in.indeed.com",
-    "sg": "sg.indeed.com",
-    "nz": "nz.indeed.com",
-    "es": "es.indeed.com",
-    "it": "it.indeed.com",
-}
 
 
 class JobListing(CamelModel):
@@ -85,55 +67,35 @@ def city_name(city: str) -> str:
     return _phrase(clean(city, 80).split(",")[0])
 
 
-# LinkedIn's geo ids for whole countries (the geoUrn people filter and the
-# jobs geoId). Checked against two independent sources; Kazakhstan's could
-# not be confirmed, so Kazakhstan searches name the place in text instead.
-LINKEDIN_GEO = {
-    "us": "103644278",
-    "gb": "101165590",
-    "ca": "101174742",
-    "au": "101452733",
-    "de": "101282230",
-    "fr": "105015875",
-    "nl": "102890719",
-    "in": "102713980",
-    "sg": "102454443",
-}
-COUNTRY_NAMES = {
-    "us": "United States",
-    "gb": "United Kingdom",
-    "ca": "Canada",
-    "au": "Australia",
-    "de": "Germany",
-    "fr": "France",
-    "nl": "Netherlands",
-    "in": "India",
-    "sg": "Singapore",
-    "kz": "Kazakhstan",
-}
-# One broad word per study field that recruiters for that field put in their
-# headline ("Tech recruiter", "Healthcare recruiter"). Broad on purpose: a
-# full job title in a people search usually finds nobody.
-FIELD_TERMS = {
-    "health-data": "healthcare",
-    "security": "cybersecurity",
-    "qa": "QA",
-    "ux": "UX",
-    "product": "product",
-    "web": "software",
-    "software": "software",
-    "it-support": "IT",
-    "data": "data",
-    "project": "project",
-    "learning": "learning",
-    "hr": "HR",
-    "sales": "sales",
-    "marketing": "marketing",
-    "finance": "finance",
-    "writing": "technical writing",
-    "content": "content",
-    "business": "operations",
-}
+def _country(code: str) -> Country | None:
+    return reference.get().country(code)
+
+
+def country_name(code: str) -> str:
+    c = _country(code)
+    return c.name if c else ""
+
+
+def linkedin_geo(code: str) -> str:
+    """LinkedIn's geo id for the whole country (the geoUrn people filter and
+    the jobs geoId); "" where it could not be confirmed, and searches then
+    name the place in text instead."""
+    c = _country(code)
+    return c.linkedin_geo if c else ""
+
+
+def adzuna_covers(code: str) -> bool:
+    c = _country(code)
+    return bool(c and c.adzuna)
+
+
+def field_term(field_id: str) -> str:
+    """One broad word recruiters for the field put in their headline ("Tech
+    recruiter", "Healthcare recruiter"). Broad on purpose: a full job title in
+    a people search usually finds nobody."""
+    f = reference.get().field(field_id) if field_id else None
+    return f.linkedin_term if f else ""
+
 
 _LINKEDIN_JOBS = "https://www.linkedin.com/jobs/search/?"
 _LINKEDIN_PEOPLE = "https://www.linkedin.com/search/results/people/?"
@@ -146,7 +108,7 @@ _ENTRY_FILTERS = {"f_E": "2,3", "f_TPR": "r2592000"}
 def job_location(city: str, country: str) -> str:
     """The place as LinkedIn's location box resolves it best: "Austin, TX,
     United States", "Almaty, Kazakhstan", or just the country."""
-    city, name = clean(city, 80), COUNTRY_NAMES.get(country, "")
+    city, name = clean(city, 80), country_name(country)
     if city.lower() in {"remote", "anywhere"}:
         city = ""
     if city and name and not city.lower().endswith(name.lower()):
@@ -156,8 +118,8 @@ def job_location(city: str, country: str) -> str:
 
 def _linkedin_jobs(role: str, city: str, country: str, extra: dict[str, str] | None = None) -> str:
     params = {"keywords": _phrase(role), "location": job_location(city, country)}
-    if not job_location(city, "") and country in LINKEDIN_GEO:
-        params["geoId"] = LINKEDIN_GEO[country]  # whole country: the id is exact
+    if not job_location(city, "") and linkedin_geo(country):
+        params["geoId"] = linkedin_geo(country)  # whole country: the id is exact
     elif city:
         params["distance"] = "25"  # miles around the city, LinkedIn's own default radius
     return _LINKEDIN_JOBS + urlencode(params | (extra or {}))
@@ -166,7 +128,7 @@ def _linkedin_jobs(role: str, city: str, country: str, extra: dict[str, str] | N
 def board_links(role: str, city: str, country: str) -> list[JobLink]:
     role, city = clean(role, 80), clean(city, 80)
     where = "" if city.lower() in {"remote", "anywhere"} else city
-    indeed = _INDEED_HOSTS.get(country, "www.indeed.com")
+    indeed = (_country(country) or Country(code="", name="", currency="")).indeed_host or "www.indeed.com"
     links = [
         JobLink(site="LinkedIn", url=_linkedin_jobs(role, city, country), hint="All openings"),
         JobLink(
@@ -193,8 +155,8 @@ def _people(title: str, keywords: str, country: str) -> str:
     params = {"origin": "FACETED_SEARCH", "titleFreeText": title}
     if keywords:
         params["keywords"] = keywords
-    if country in LINKEDIN_GEO:
-        params["geoUrn"] = f'["{LINKEDIN_GEO[country]}"]'
+    if linkedin_geo(country):
+        params["geoUrn"] = f'["{linkedin_geo(country)}"]'
     return _LINKEDIN_PEOPLE + urlencode(params)
 
 
@@ -206,12 +168,12 @@ def people_links(role: str, city: str, country: str = "us", field: str = "") -> 
     role, town = _phrase(clean(role, 80)), city_name(city)
     if town.lower() in {"remote", "anywhere"}:
         town = ""
-    if country not in LINKEDIN_GEO and not town:
-        town = COUNTRY_NAMES.get(country, "")  # no country filter: name the place instead
-    term = FIELD_TERMS.get(field, "")
-    country_name = COUNTRY_NAMES.get(country, "")
-    the = "the " if country in {"us", "gb", "nl"} else ""
-    where = f" around {town}" if town and town != country_name else (f" in {the}{country_name}" if country_name else "")
+    name = country_name(country)
+    if not linkedin_geo(country) and not town:
+        town = name  # no country filter: name the place instead
+    term = field_term(field)
+    the = "the " if country in {"us", "gb"} else ""
+    where = f" around {town}" if town and town != name else (f" in {the}{name}" if name else "")
     return [
         JobLink(
             site="Recruiters on LinkedIn",

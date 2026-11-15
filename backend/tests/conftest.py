@@ -13,9 +13,21 @@ import pytest
 from fastapi.testclient import TestClient
 
 from bridge.config import Settings
+from bridge.db.reference import read_seed
+from bridge.domain import reference
 from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
+from bridge.domain.reference import Reference
 from bridge.llm.demo import DemoWriter
 from bridge.main import create_app
+
+
+@pytest.fixture(autouse=True, scope="session")
+def reference_data() -> Reference:
+    """Pure rule tests read the same seed data the app loads into its
+    database (API tests load it through the database itself)."""
+    ref = Reference.from_data(read_seed())
+    reference.install(ref)
+    return ref
 
 
 class FakeWriter(DemoWriter):

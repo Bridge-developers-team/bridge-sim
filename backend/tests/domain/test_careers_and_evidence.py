@@ -33,6 +33,7 @@ def test_three_distinct_paths_and_quotes_checked_against_the_resume():
         "Education Project Coordinator",
     ]
     assert careers[0].transferable_skills[0].verified
+    assert careers[0].work_modes == ["remote", "hybrid"]  # repeats dropped
     trainer_skill = careers[1].transferable_skills[0]
     assert not trainer_skill.verified
     assert trainer_skill.evidence == ""

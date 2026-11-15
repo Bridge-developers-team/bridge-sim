@@ -6,25 +6,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from bridge.domain import reference
 from bridge.domain.careers import normalize_years
 from bridge.domain.models import Candidate
 from bridge.domain.roadmap import clamp_hours, normalize_track
 from bridge.domain.text import clean
 
 MAX_BUDGET = 10_000_000
-# The countries the form offers (frontend lib/options.ts COUNTRIES).
-COUNTRY_NAMES = {
-    "us": "United States",
-    "gb": "United Kingdom",
-    "ca": "Canada",
-    "au": "Australia",
-    "de": "Germany",
-    "fr": "France",
-    "nl": "Netherlands",
-    "in": "India",
-    "sg": "Singapore",
-    "kz": "Kazakhstan",
-}
 _CURRENCY = re.compile(r"^[A-Z]{3}$")
 
 
@@ -44,6 +32,11 @@ def _budget(value: object) -> int:
     return int(min(n, MAX_BUDGET) + 0.5)
 
 
+def _country_name(code: str) -> str:
+    c = reference.get().country(code)
+    return c.name if c else ""
+
+
 def read_candidate(raw: dict[str, Any] | None) -> Candidate:
     """Accepts camelCase form answers. Unknown keys, income fields included,
     are ignored on purpose: the server never needs them."""
@@ -58,7 +51,7 @@ def read_candidate(raw: dict[str, Any] | None) -> Candidate:
         monthly_learning_budget=_budget(p.get("monthlyLearningBudget")),
         currency=currency if _CURRENCY.match(currency) else "USD",
         location=clean(p.get("location"), 80),
-        country=COUNTRY_NAMES.get(clean(p.get("country"), 2).lower(), ""),
+        country=_country_name(clean(p.get("country"), 2).lower()),
         interested_roles=_words(p.get("interestedRoles"), 3, 80),
         transition_preference=normalize_track(p.get("transitionPreference")),
     )

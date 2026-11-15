@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from bridge.domain.samples import TEACHER
 from bridge.services.limits import DailyBudget, SlidingWindow
+from tests.samples import TEACHER
 
 
 def test_per_client_limit_is_per_real_ip_behind_the_proxy(make_client, fake_ai):

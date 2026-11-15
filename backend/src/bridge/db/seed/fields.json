@@ -1,0 +1,416 @@
+[
+ {
+  "id": "health-data",
+  "label": "Health data and informatics",
+  "keywords": [
+   "health data",
+   "health informatics",
+   "clinical informatics",
+   "informatics",
+   "health information",
+   "medical records",
+   "clinical data",
+   "healthcare data",
+   "health analyst"
+  ],
+  "courses": [
+   "jhu-health-informatics",
+   "cs50-sql",
+   "google-data-analytics",
+   "kaggle-sql",
+   "cs50-sql-videos"
+  ],
+  "linkedinTerm": "healthcare",
+  "usSoc": "29-9021",
+  "kzKey": "health-data"
+ },
+ {
+  "id": "security",
+  "label": "Cybersecurity",
+  "keywords": [
+   "security",
+   "cyber",
+   "soc analyst"
+  ],
+  "courses": [
+   "google-cybersecurity",
+   "cs50-cyber",
+   "messer-security-plus",
+   "mit-6-858-videos"
+  ],
+  "linkedinTerm": "cybersecurity",
+  "usSoc": "15-1212",
+  "kzKey": "security"
+ },
+ {
+  "id": "qa",
+  "label": "Software testing (QA)",
+  "keywords": [
+   "qa",
+   "quality assurance",
+   "tester",
+   "test engineer",
+   "testing",
+   "test analyst"
+  ],
+  "courses": [
+   "umn-software-testing",
+   "cs50x",
+   "test-automation-university",
+   "cs50-videos"
+  ],
+  "linkedinTerm": "QA",
+  "usSoc": "15-1253",
+  "kzKey": "qa"
+ },
+ {
+  "id": "ux",
+  "label": "UX and product design",
+  "keywords": [
+   "ux",
+   "ui",
+   "user experience",
+   "user research",
+   "product designer",
+   "interaction design",
+   "service designer",
+   "design researcher",
+   "usability"
+  ],
+  "courses": [
+   "google-ux",
+   "mit-6-831",
+   "michigan-ux"
+  ],
+  "linkedinTerm": "UX",
+  "usSoc": "15-1255",
+  "kzKey": "ux"
+ },
+ {
+  "id": "product",
+  "label": "Product management",
+  "keywords": [
+   "product manager",
+   "product owner",
+   "product management",
+   "product operations",
+   "product lead"
+  ],
+  "courses": [
+   "uva-product",
+   "mit-15-783",
+   "ibm-product",
+   "mit-analytics-edge"
+  ],
+  "linkedinTerm": "product",
+  "usSoc": "",
+  "kzKey": "product"
+ },
+ {
+  "id": "web",
+  "label": "Web development",
+  "keywords": [
+   "web",
+   "front-end",
+   "frontend",
+   "front end"
+  ],
+  "courses": [
+   "meta-front-end",
+   "cs50w",
+   "odin-project",
+   "freecodecamp"
+  ],
+  "linkedinTerm": "software",
+  "usSoc": "15-1254",
+  "kzKey": "web"
+ },
+ {
+  "id": "software",
+  "label": "Software development",
+  "keywords": [
+   "software",
+   "developer",
+   "programmer",
+   "back-end",
+   "backend",
+   "full stack",
+   "full-stack",
+   "devops",
+   "coding",
+   "machine learning",
+   "ml engineer",
+   "ai engineer"
+  ],
+  "courses": [
+   "meta-back-end",
+   "cs50x",
+   "mit-6-0001",
+   "mit-6-0001-videos",
+   "cs50-videos"
+  ],
+  "linkedinTerm": "software",
+  "usSoc": "15-1252",
+  "kzKey": "software"
+ },
+ {
+  "id": "it-support",
+  "label": "IT support",
+  "keywords": [
+   "it support",
+   "help desk",
+   "helpdesk",
+   "technical support",
+   "desktop support",
+   "it specialist",
+   "it technician",
+   "systems administrator",
+   "support specialist",
+   "support engineer"
+  ],
+  "courses": [
+   "google-it-support",
+   "cs50t",
+   "messer-a-plus"
+  ],
+  "linkedinTerm": "IT",
+  "usSoc": "15-1232",
+  "kzKey": "it-support"
+ },
+ {
+  "id": "data",
+  "label": "Data analysis",
+  "keywords": [
+   "data",
+   "analytics",
+   "business intelligence",
+   "bi analyst",
+   "reporting analyst",
+   "insights",
+   "statistic"
+  ],
+  "courses": [
+   "google-data-analytics",
+   "cs50-sql",
+   "kaggle-sql",
+   "harvard-stat110",
+   "mit-analytics-edge",
+   "cs50-sql-videos"
+  ],
+  "linkedinTerm": "data",
+  "usSoc": "15-2051",
+  "kzKey": "data"
+ },
+ {
+  "id": "project",
+  "label": "Project management",
+  "keywords": [
+   "project",
+   "program manager",
+   "programme",
+   "scrum",
+   "delivery manager",
+   "implementation",
+   "pmo"
+  ],
+  "courses": [
+   "google-project-management",
+   "mit-1-040",
+   "learning-how-to-learn"
+  ],
+  "linkedinTerm": "project",
+  "usSoc": "13-1082",
+  "kzKey": "project"
+ },
+ {
+  "id": "learning",
+  "label": "Instructional design and training",
+  "keywords": [
+   "instructional",
+   "educator",
+   "learning",
+   "training",
+   "trainer",
+   "curriculum",
+   "enablement",
+   "l&d",
+   "e-learning",
+   "elearning",
+   "education program",
+   "facilitator"
+  ],
+  "courses": [
+   "illinois-instructional-design",
+   "bates-digital-age",
+   "learning-how-to-learn",
+   "google-tech-writing"
+  ],
+  "linkedinTerm": "learning",
+  "usSoc": "13-1151",
+  "kzKey": "learning"
+ },
+ {
+  "id": "hr",
+  "label": "HR and recruiting",
+  "keywords": [
+   "hr",
+   "human resources",
+   "recruit",
+   "talent",
+   "people operations",
+   "people partner",
+   "people ops"
+  ],
+  "courses": [
+   "umn-hr",
+   "mit-15-660",
+   "wharton-people-analytics"
+  ],
+  "linkedinTerm": "HR",
+  "usSoc": "13-1071",
+  "kzKey": "hr"
+ },
+ {
+  "id": "sales",
+  "label": "Sales and customer success",
+  "keywords": [
+   "customer success",
+   "account manager",
+   "account executive",
+   "sales",
+   "business development",
+   "client success",
+   "customer experience",
+   "partnership",
+   "relationship manager",
+   "customer support"
+  ],
+  "courses": [
+   "salesforce-sdr",
+   "hubspot-inbound-sales",
+   "hubspot-customer-service",
+   "trailhead"
+  ],
+  "linkedinTerm": "sales",
+  "usSoc": "41-3091",
+  "kzKey": "sales"
+ },
+ {
+  "id": "marketing",
+  "label": "Marketing",
+  "keywords": [
+   "marketing",
+   "seo",
+   "growth",
+   "brand",
+   "social media",
+   "community manager",
+   "communications",
+   "public relations",
+   "advertising"
+  ],
+  "courses": [
+   "google-digital-marketing",
+   "hubspot-inbound-marketing",
+   "mit-15-810",
+   "hubspot-content-marketing"
+  ],
+  "linkedinTerm": "marketing",
+  "usSoc": "13-1161",
+  "kzKey": "marketing"
+ },
+ {
+  "id": "finance",
+  "label": "Finance",
+  "keywords": [
+   "financial",
+   "finance",
+   "fp&a",
+   "accountant",
+   "accounting",
+   "investment",
+   "budget",
+   "credit analyst",
+   "risk analyst",
+   "controller"
+  ],
+  "courses": [
+   "wharton-financial-modeling",
+   "mit-15-401-videos",
+   "mit-15-401",
+   "yale-financial-markets"
+  ],
+  "linkedinTerm": "finance",
+  "usSoc": "13-2051",
+  "kzKey": "finance"
+ },
+ {
+  "id": "writing",
+  "label": "Technical writing",
+  "keywords": [
+   "technical writer",
+   "technical writing",
+   "documentation",
+   "docs writer"
+  ],
+  "courses": [
+   "google-tech-writing",
+   "stanford-sciwrite"
+  ],
+  "linkedinTerm": "technical writing",
+  "usSoc": "27-3042",
+  "kzKey": "writing"
+ },
+ {
+  "id": "content",
+  "label": "Writing and content",
+  "keywords": [
+   "content",
+   "copywriter",
+   "writer",
+   "editor",
+   "copy editor"
+  ],
+  "courses": [
+   "google-digital-marketing",
+   "hubspot-content-marketing",
+   "google-tech-writing",
+   "stanford-sciwrite"
+  ],
+  "linkedinTerm": "content",
+  "usSoc": "27-3043",
+  "kzKey": "writing"
+ },
+ {
+  "id": "business",
+  "label": "Business and operations analysis",
+  "keywords": [
+   "business analyst",
+   "operations",
+   "process",
+   "consultant",
+   "strategy",
+   "analyst"
+  ],
+  "courses": [
+   "wharton-business-analytics",
+   "mit-analytics-edge",
+   "google-data-analytics",
+   "learning-how-to-learn"
+  ],
+  "linkedinTerm": "operations",
+  "usSoc": "13-1111",
+  "kzKey": "business"
+ },
+ {
+  "id": "general",
+  "label": "Any new field",
+  "keywords": [],
+  "courses": [
+   "learning-how-to-learn"
+  ],
+  "linkedinTerm": "",
+  "usSoc": "",
+  "kzKey": ""
+ }
+]

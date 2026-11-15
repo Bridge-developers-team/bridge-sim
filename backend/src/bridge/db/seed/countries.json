@@ -1,0 +1,2018 @@
+[
+ {
+  "code": "af",
+  "name": "Afghanistan",
+  "currency": "AFN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ax",
+  "name": "Aland Islands",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "al",
+  "name": "Albania",
+  "currency": "ALL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "dz",
+  "name": "Algeria",
+  "currency": "DZD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "as",
+  "name": "American Samoa",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ad",
+  "name": "Andorra",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ao",
+  "name": "Angola",
+  "currency": "AOA",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ai",
+  "name": "Anguilla",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "aq",
+  "name": "Antarctica",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ag",
+  "name": "Antigua and Barbuda",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ar",
+  "name": "Argentina",
+  "currency": "ARS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "am",
+  "name": "Armenia",
+  "currency": "AMD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "aw",
+  "name": "Aruba",
+  "currency": "AWG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "au",
+  "name": "Australia",
+  "currency": "AUD",
+  "linkedinGeo": "101452733",
+  "indeedHost": "au.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "at",
+  "name": "Austria",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "az",
+  "name": "Azerbaijan",
+  "currency": "AZN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bs",
+  "name": "Bahamas",
+  "currency": "BSD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bh",
+  "name": "Bahrain",
+  "currency": "BHD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bd",
+  "name": "Bangladesh",
+  "currency": "BDT",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bb",
+  "name": "Barbados",
+  "currency": "BBD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "by",
+  "name": "Belarus",
+  "currency": "BYN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "be",
+  "name": "Belgium",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "bz",
+  "name": "Belize",
+  "currency": "BZD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bj",
+  "name": "Benin",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bm",
+  "name": "Bermuda",
+  "currency": "BMD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bt",
+  "name": "Bhutan",
+  "currency": "BTN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bo",
+  "name": "Bolivia",
+  "currency": "BOB",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bq",
+  "name": "Bonaire, Saint Eustatius and Saba ",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ba",
+  "name": "Bosnia and Herzegovina",
+  "currency": "BAM",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bw",
+  "name": "Botswana",
+  "currency": "BWP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bv",
+  "name": "Bouvet Island",
+  "currency": "NOK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "br",
+  "name": "Brazil",
+  "currency": "BRL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "io",
+  "name": "British Indian Ocean Territory",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "vg",
+  "name": "British Virgin Islands",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bn",
+  "name": "Brunei",
+  "currency": "BND",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bg",
+  "name": "Bulgaria",
+  "currency": "BGN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bf",
+  "name": "Burkina Faso",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bi",
+  "name": "Burundi",
+  "currency": "BIF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cv",
+  "name": "Cabo Verde",
+  "currency": "CVE",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kh",
+  "name": "Cambodia",
+  "currency": "KHR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cm",
+  "name": "Cameroon",
+  "currency": "XAF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ca",
+  "name": "Canada",
+  "currency": "CAD",
+  "linkedinGeo": "101174742",
+  "indeedHost": "ca.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "ky",
+  "name": "Cayman Islands",
+  "currency": "KYD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cf",
+  "name": "Central African Republic",
+  "currency": "XAF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "td",
+  "name": "Chad",
+  "currency": "XAF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cl",
+  "name": "Chile",
+  "currency": "CLP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cn",
+  "name": "China",
+  "currency": "CNY",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cx",
+  "name": "Christmas Island",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cc",
+  "name": "Cocos Islands",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "co",
+  "name": "Colombia",
+  "currency": "COP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "km",
+  "name": "Comoros",
+  "currency": "KMF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ck",
+  "name": "Cook Islands",
+  "currency": "NZD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cr",
+  "name": "Costa Rica",
+  "currency": "CRC",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "hr",
+  "name": "Croatia",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cu",
+  "name": "Cuba",
+  "currency": "CUP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cw",
+  "name": "Curacao",
+  "currency": "XCG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cy",
+  "name": "Cyprus",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cz",
+  "name": "Czechia",
+  "currency": "CZK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cd",
+  "name": "Democratic Republic of the Congo",
+  "currency": "CDF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "dk",
+  "name": "Denmark",
+  "currency": "DKK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "dj",
+  "name": "Djibouti",
+  "currency": "DJF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "dm",
+  "name": "Dominica",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "do",
+  "name": "Dominican Republic",
+  "currency": "DOP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ec",
+  "name": "Ecuador",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "eg",
+  "name": "Egypt",
+  "currency": "EGP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sv",
+  "name": "El Salvador",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gq",
+  "name": "Equatorial Guinea",
+  "currency": "XAF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "er",
+  "name": "Eritrea",
+  "currency": "ERN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ee",
+  "name": "Estonia",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sz",
+  "name": "Eswatini",
+  "currency": "SZL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "et",
+  "name": "Ethiopia",
+  "currency": "ETB",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "fk",
+  "name": "Falkland Islands",
+  "currency": "FKP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "fo",
+  "name": "Faroe Islands",
+  "currency": "DKK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "fj",
+  "name": "Fiji",
+  "currency": "FJD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "fi",
+  "name": "Finland",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "fr",
+  "name": "France",
+  "currency": "EUR",
+  "linkedinGeo": "105015875",
+  "indeedHost": "fr.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "gf",
+  "name": "French Guiana",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pf",
+  "name": "French Polynesia",
+  "currency": "XPF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tf",
+  "name": "French Southern Territories",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ga",
+  "name": "Gabon",
+  "currency": "XAF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gm",
+  "name": "Gambia",
+  "currency": "GMD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ge",
+  "name": "Georgia",
+  "currency": "GEL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "de",
+  "name": "Germany",
+  "currency": "EUR",
+  "linkedinGeo": "101282230",
+  "indeedHost": "de.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "gh",
+  "name": "Ghana",
+  "currency": "GHS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gi",
+  "name": "Gibraltar",
+  "currency": "GIP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gr",
+  "name": "Greece",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gl",
+  "name": "Greenland",
+  "currency": "DKK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gd",
+  "name": "Grenada",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gp",
+  "name": "Guadeloupe",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gu",
+  "name": "Guam",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gt",
+  "name": "Guatemala",
+  "currency": "GTQ",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gg",
+  "name": "Guernsey",
+  "currency": "GBP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gn",
+  "name": "Guinea",
+  "currency": "GNF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gw",
+  "name": "Guinea-Bissau",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gy",
+  "name": "Guyana",
+  "currency": "GYD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ht",
+  "name": "Haiti",
+  "currency": "HTG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "hm",
+  "name": "Heard Island and McDonald Islands",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "hn",
+  "name": "Honduras",
+  "currency": "HNL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "hk",
+  "name": "Hong Kong",
+  "currency": "HKD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "hu",
+  "name": "Hungary",
+  "currency": "HUF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "is",
+  "name": "Iceland",
+  "currency": "ISK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "in",
+  "name": "India",
+  "currency": "INR",
+  "linkedinGeo": "102713980",
+  "indeedHost": "in.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "id",
+  "name": "Indonesia",
+  "currency": "IDR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ir",
+  "name": "Iran",
+  "currency": "IRR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "iq",
+  "name": "Iraq",
+  "currency": "IQD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ie",
+  "name": "Ireland",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "im",
+  "name": "Isle of Man",
+  "currency": "GBP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "il",
+  "name": "Israel",
+  "currency": "ILS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "it",
+  "name": "Italy",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "it.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "ci",
+  "name": "Ivory Coast",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "jm",
+  "name": "Jamaica",
+  "currency": "JMD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "jp",
+  "name": "Japan",
+  "currency": "JPY",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "je",
+  "name": "Jersey",
+  "currency": "GBP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "jo",
+  "name": "Jordan",
+  "currency": "JOD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kz",
+  "name": "Kazakhstan",
+  "currency": "KZT",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ke",
+  "name": "Kenya",
+  "currency": "KES",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ki",
+  "name": "Kiribati",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "xk",
+  "name": "Kosovo",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kw",
+  "name": "Kuwait",
+  "currency": "KWD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kg",
+  "name": "Kyrgyzstan",
+  "currency": "KGS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "la",
+  "name": "Laos",
+  "currency": "LAK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "lv",
+  "name": "Latvia",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "lb",
+  "name": "Lebanon",
+  "currency": "LBP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ls",
+  "name": "Lesotho",
+  "currency": "LSL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "lr",
+  "name": "Liberia",
+  "currency": "LRD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ly",
+  "name": "Libya",
+  "currency": "LYD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "li",
+  "name": "Liechtenstein",
+  "currency": "CHF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "lt",
+  "name": "Lithuania",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "lu",
+  "name": "Luxembourg",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mo",
+  "name": "Macao",
+  "currency": "MOP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mg",
+  "name": "Madagascar",
+  "currency": "MGA",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mw",
+  "name": "Malawi",
+  "currency": "MWK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "my",
+  "name": "Malaysia",
+  "currency": "MYR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mv",
+  "name": "Maldives",
+  "currency": "MVR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ml",
+  "name": "Mali",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mt",
+  "name": "Malta",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mh",
+  "name": "Marshall Islands",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mq",
+  "name": "Martinique",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mr",
+  "name": "Mauritania",
+  "currency": "MRU",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mu",
+  "name": "Mauritius",
+  "currency": "MUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "yt",
+  "name": "Mayotte",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mx",
+  "name": "Mexico",
+  "currency": "MXN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "fm",
+  "name": "Micronesia",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "md",
+  "name": "Moldova",
+  "currency": "MDL",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mc",
+  "name": "Monaco",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mn",
+  "name": "Mongolia",
+  "currency": "MNT",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "me",
+  "name": "Montenegro",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ms",
+  "name": "Montserrat",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ma",
+  "name": "Morocco",
+  "currency": "MAD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mz",
+  "name": "Mozambique",
+  "currency": "MZN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mm",
+  "name": "Myanmar",
+  "currency": "MMK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "na",
+  "name": "Namibia",
+  "currency": "NAD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "nr",
+  "name": "Nauru",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "np",
+  "name": "Nepal",
+  "currency": "NPR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "an",
+  "name": "Netherlands Antilles",
+  "currency": "ANG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "nc",
+  "name": "New Caledonia",
+  "currency": "XPF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "nz",
+  "name": "New Zealand",
+  "currency": "NZD",
+  "linkedinGeo": "",
+  "indeedHost": "nz.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "ni",
+  "name": "Nicaragua",
+  "currency": "NIO",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ne",
+  "name": "Niger",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ng",
+  "name": "Nigeria",
+  "currency": "NGN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "nu",
+  "name": "Niue",
+  "currency": "NZD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "nf",
+  "name": "Norfolk Island",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kp",
+  "name": "North Korea",
+  "currency": "KPW",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mk",
+  "name": "North Macedonia",
+  "currency": "MKD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mp",
+  "name": "Northern Mariana Islands",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "no",
+  "name": "Norway",
+  "currency": "NOK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "om",
+  "name": "Oman",
+  "currency": "OMR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pk",
+  "name": "Pakistan",
+  "currency": "PKR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pw",
+  "name": "Palau",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ps",
+  "name": "Palestinian Territory",
+  "currency": "ILS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pa",
+  "name": "Panama",
+  "currency": "PAB",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pg",
+  "name": "Papua New Guinea",
+  "currency": "PGK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "py",
+  "name": "Paraguay",
+  "currency": "PYG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pe",
+  "name": "Peru",
+  "currency": "PEN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ph",
+  "name": "Philippines",
+  "currency": "PHP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pn",
+  "name": "Pitcairn",
+  "currency": "NZD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pl",
+  "name": "Poland",
+  "currency": "PLN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "pt",
+  "name": "Portugal",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pr",
+  "name": "Puerto Rico",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "qa",
+  "name": "Qatar",
+  "currency": "QAR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cg",
+  "name": "Republic of the Congo",
+  "currency": "XAF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "re",
+  "name": "Reunion",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ro",
+  "name": "Romania",
+  "currency": "RON",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ru",
+  "name": "Russia",
+  "currency": "RUB",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "rw",
+  "name": "Rwanda",
+  "currency": "RWF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "bl",
+  "name": "Saint Barthelemy",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sh",
+  "name": "Saint Helena",
+  "currency": "SHP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kn",
+  "name": "Saint Kitts and Nevis",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "lc",
+  "name": "Saint Lucia",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "mf",
+  "name": "Saint Martin",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "pm",
+  "name": "Saint Pierre and Miquelon",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "vc",
+  "name": "Saint Vincent and the Grenadines",
+  "currency": "XCD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ws",
+  "name": "Samoa",
+  "currency": "WST",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sm",
+  "name": "San Marino",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "st",
+  "name": "Sao Tome and Principe",
+  "currency": "STN",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sa",
+  "name": "Saudi Arabia",
+  "currency": "SAR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sn",
+  "name": "Senegal",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "rs",
+  "name": "Serbia",
+  "currency": "RSD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "cs",
+  "name": "Serbia and Montenegro",
+  "currency": "RSD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sc",
+  "name": "Seychelles",
+  "currency": "SCR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sl",
+  "name": "Sierra Leone",
+  "currency": "SLE",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sg",
+  "name": "Singapore",
+  "currency": "SGD",
+  "linkedinGeo": "102454443",
+  "indeedHost": "sg.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "sx",
+  "name": "Sint Maarten",
+  "currency": "XCG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sk",
+  "name": "Slovakia",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "si",
+  "name": "Slovenia",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sb",
+  "name": "Solomon Islands",
+  "currency": "SBD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "so",
+  "name": "Somalia",
+  "currency": "SOS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "za",
+  "name": "South Africa",
+  "currency": "ZAR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "gs",
+  "name": "South Georgia and the South Sandwich Islands",
+  "currency": "GBP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "kr",
+  "name": "South Korea",
+  "currency": "KRW",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ss",
+  "name": "South Sudan",
+  "currency": "SSP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "es",
+  "name": "Spain",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "es.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "lk",
+  "name": "Sri Lanka",
+  "currency": "LKR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sd",
+  "name": "Sudan",
+  "currency": "SDG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sr",
+  "name": "Suriname",
+  "currency": "SRD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "sj",
+  "name": "Svalbard and Jan Mayen",
+  "currency": "NOK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "se",
+  "name": "Sweden",
+  "currency": "SEK",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ch",
+  "name": "Switzerland",
+  "currency": "CHF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": true
+ },
+ {
+  "code": "sy",
+  "name": "Syria",
+  "currency": "SYP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tw",
+  "name": "Taiwan",
+  "currency": "TWD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tj",
+  "name": "Tajikistan",
+  "currency": "TJS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tz",
+  "name": "Tanzania",
+  "currency": "TZS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "th",
+  "name": "Thailand",
+  "currency": "THB",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "nl",
+  "name": "The Netherlands",
+  "currency": "EUR",
+  "linkedinGeo": "102890719",
+  "indeedHost": "nl.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "tl",
+  "name": "Timor Leste",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tg",
+  "name": "Togo",
+  "currency": "XOF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tk",
+  "name": "Tokelau",
+  "currency": "NZD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "to",
+  "name": "Tonga",
+  "currency": "TOP",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tt",
+  "name": "Trinidad and Tobago",
+  "currency": "TTD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tn",
+  "name": "Tunisia",
+  "currency": "TND",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tr",
+  "name": "Turkey",
+  "currency": "TRY",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tm",
+  "name": "Turkmenistan",
+  "currency": "TMT",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tc",
+  "name": "Turks and Caicos Islands",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "tv",
+  "name": "Tuvalu",
+  "currency": "AUD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "vi",
+  "name": "U.S. Virgin Islands",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ug",
+  "name": "Uganda",
+  "currency": "UGX",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ua",
+  "name": "Ukraine",
+  "currency": "UAH",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ae",
+  "name": "United Arab Emirates",
+  "currency": "AED",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "gb",
+  "name": "United Kingdom",
+  "currency": "GBP",
+  "linkedinGeo": "101165590",
+  "indeedHost": "uk.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "us",
+  "name": "United States",
+  "currency": "USD",
+  "linkedinGeo": "103644278",
+  "indeedHost": "www.indeed.com",
+  "adzuna": true
+ },
+ {
+  "code": "um",
+  "name": "United States Minor Outlying Islands",
+  "currency": "USD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "uy",
+  "name": "Uruguay",
+  "currency": "UYU",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "uz",
+  "name": "Uzbekistan",
+  "currency": "UZS",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "vu",
+  "name": "Vanuatu",
+  "currency": "VUV",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "va",
+  "name": "Vatican",
+  "currency": "EUR",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ve",
+  "name": "Venezuela",
+  "currency": "VES",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "vn",
+  "name": "Vietnam",
+  "currency": "VND",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "wf",
+  "name": "Wallis and Futuna",
+  "currency": "XPF",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "eh",
+  "name": "Western Sahara",
+  "currency": "MAD",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "ye",
+  "name": "Yemen",
+  "currency": "YER",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "zm",
+  "name": "Zambia",
+  "currency": "ZMW",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ },
+ {
+  "code": "zw",
+  "name": "Zimbabwe",
+  "currency": "ZWG",
+  "linkedinGeo": "",
+  "indeedHost": "",
+  "adzuna": false
+ }
+]

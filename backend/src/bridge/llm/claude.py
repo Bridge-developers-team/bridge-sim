@@ -20,13 +20,15 @@ from bridge.domain.drafts import (
     EvaluationDraft,
     JobIntroDraft,
     LinkedInProfileDraft,
-    PayEstimateDraft,
+    PayFiguresDraft,
+    PayGuessDraft,
     PracticeDraft,
     RoadmapDraft,
     SampleAnswerDraft,
 )
 from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
-from bridge.domain.web import Found, harvest, numbered
+from bridge.domain.wages import Figure, Snippet, numbered_snippets
+from bridge.domain.web import Found, harvest, host, numbered
 from bridge.llm import prompts
 from bridge.llm.base import LlmError
 
@@ -82,6 +84,27 @@ def search_results(content: list[Any]) -> list[Found]:
             if isinstance(url, str):
                 found.append(Found(url=url, title=getattr(r, "title", "") or "", age=getattr(r, "page_age", "") or ""))
     return found
+
+
+def cited_snippets(content: list[Any]) -> list[Snippet]:
+    """The page words the search engine cited in the answer, one entry per
+    page (several citations of a page are joined), in order of first use."""
+    texts: dict[str, list[str]] = {}
+    titles: dict[str, str] = {}
+    for block in content:
+        if getattr(block, "type", None) != "text":
+            continue
+        for c in getattr(block, "citations", None) or []:
+            if getattr(c, "type", None) != "web_search_result_location":
+                continue
+            url, text = getattr(c, "url", ""), getattr(c, "cited_text", "") or ""
+            if not isinstance(url, str) or not url.startswith("https://") or not text.strip():
+                continue
+            texts.setdefault(url, [])
+            if text not in texts[url]:
+                texts[url].append(text)
+            titles.setdefault(url, getattr(c, "title", "") or "")
+    return [Snippet(url=u, title=titles[u] or host(u), text=" … ".join(t)) for u, t in texts.items()]
 
 
 def fetched_ok(content: list[Any]) -> bool:
@@ -141,7 +164,7 @@ class ClaudeWriter:
 
     async def careers(self, *, resume: str, candidate: Candidate, source: ResumeSource = "cv") -> CareersDraft:
         return await self._call(
-            system=prompts.CAREERS_SYSTEM,
+            system=prompts.careers_system(),
             user=prompts.careers_user(resume, candidate, source),
             schema=CareersDraft,
             effort="medium",
@@ -220,19 +243,50 @@ class ClaudeWriter:
             raise _as_llm_error(err, model) from err
         return harvest(search_results(response.content))
 
-    async def pay_search(self, *, role: str, place: str) -> tuple[list[Found], PayEstimateDraft | None]:
-        found = await self._search(system=prompts.PAY_SEARCH_SYSTEM, user=prompts.pay_search_user(role, place))
-        if not found:
-            return found, None
+    async def pay_research(self, *, role: str, place: str) -> tuple[list[Snippet], list[Figure]]:
+        """Search several pay sources, keep the words each page was cited
+        for, then copy the figures out of those words (checked in code)."""
+        model = self.models.fast
+        tool: WebSearchTool20250305Param = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
+        try:
+            response = await self._client.messages.create(
+                model=model,
+                max_tokens=2500,
+                system=prompts.PAY_RESEARCH_SYSTEM,
+                messages=[{"role": "user", "content": prompts.pay_research_user(role, place)}],
+                tools=[tool],
+            )
+        except anthropic.APIError as err:
+            raise _as_llm_error(err, model) from err
+        snippets = cited_snippets(response.content)[:12]
+        if not snippets:
+            return [], []
         draft = await self._call(
-            system=prompts.PAY_PICK_SYSTEM,
-            user=prompts.pay_pick_user(role, place, numbered(found)),
-            schema=PayEstimateDraft,
+            system=prompts.PAY_FIGURES_SYSTEM,
+            user=prompts.pay_figures_user(role, place, numbered_snippets(snippets)),
+            schema=PayFiguresDraft,
             effort="low",
             model=self.models.fast,
             max_tokens=2000,
         )
-        return found, draft
+        figures = [
+            Figure(source=f.source, low=f.low, high=f.high, currency=f.currency.strip().upper(), period=f.period)
+            for f in draft.figures
+        ]
+        return snippets, figures
+
+    async def pay_guess(self, *, role: str, place: str) -> PayGuessDraft | None:
+        try:
+            return await self._call(
+                system=prompts.PAY_GUESS_SYSTEM,
+                user=prompts.pay_guess_user(role, place),
+                schema=PayGuessDraft,
+                effort="low",
+                model=self.models.main,
+                max_tokens=1500,
+            )
+        except LlmError:
+            return None
 
     async def course_search(
         self, *, role: str, budget: str, domains: list[str]

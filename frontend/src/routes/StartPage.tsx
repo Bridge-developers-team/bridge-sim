@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
@@ -11,14 +11,11 @@ import { ArrowRightIcon, ChevronDownIcon, FileIcon, LinkedInIcon, TrashIcon, Upl
 import { readCvFile } from "../lib/pdf";
 import {
   budgetLabel,
-  COUNTRIES,
+  countries,
   countryName,
-  CURRENCY_OPTIONS,
-  CURRENT_ROLES,
+  currencyOptions,
   HOURS,
-  loadJobTitles,
-  MOTIVATIONS,
-  type Option,
+  motivations,
   withCountry,
 } from "../lib/options";
 import { type InputMode, linkedinProfileUrl, resumeSource } from "../lib/source";
@@ -39,7 +36,9 @@ function startMode(): InputMode {
 }
 
 const hourOptions = HOURS.map((h) => ({ value: String(h), label: `${h} hours a week` }));
-const motivationOptions = MOTIVATIONS.map((m) => ({ value: m, label: m }));
+// Job titles are searched on the server (thousands of them, reference data).
+const searchCurrent = (q: string) => bridgeApi.jobTitles(q, "current");
+const searchTarget = (q: string) => bridgeApi.jobTitles(q, "target");
 
 export function StartPage() {
   const navigate = useNavigate();
@@ -61,17 +60,8 @@ export function StartPage() {
   });
   const [linkedinInput, setLinkedinInput] = useState("");
   const [liRead, setLiRead] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
-  const [jobs, setJobs] = useState<Option[]>(CURRENT_ROLES);
   const [budgetText, setBudgetText] = useState(String(journey.profile.monthlyLearningBudget || ""));
 
-  // Thousands of job titles, loaded once the form is on screen.
-  useEffect(() => {
-    let live = true;
-    void loadJobTitles().then((list) => live && setJobs(list));
-    return () => {
-      live = false;
-    };
-  }, []);
   const resume = drafts[mode].text;
   const source = drafts[mode].source;
   const setSource = (next: Source) => setDrafts((d) => ({ ...d, [mode]: { ...d[mode], source: next } }));
@@ -416,7 +406,8 @@ export function StartPage() {
             label="Current role"
             title="Your current role"
             placeholder="Optional"
-            options={jobs}
+            options={[]}
+            remote={searchCurrent}
             searchable
             allowCustom
             value={profile.currentRole}
@@ -426,7 +417,8 @@ export function StartPage() {
             label="Curious about"
             title="Roles you are curious about"
             placeholder="Optional, up to 3"
-            options={jobs}
+            options={[]}
+            remote={searchTarget}
             searchable
             allowCustom
             multiple
@@ -444,7 +436,7 @@ export function StartPage() {
           <Picker
             label="Country"
             title="Country"
-            options={COUNTRIES}
+            options={countries()}
             searchable
             value={profile.country}
             onChange={(v) =>
@@ -498,7 +490,7 @@ export function StartPage() {
           <Picker
             label="Currency"
             title="Currency"
-            options={CURRENCY_OPTIONS}
+            options={currencyOptions()}
             searchable
             display={profile.currency}
             value={profile.currency}
@@ -508,7 +500,7 @@ export function StartPage() {
             label="Why change"
             title="Why change?"
             placeholder="Optional, up to 3"
-            options={motivationOptions}
+            options={motivations().map((m) => ({ value: m, label: m }))}
             multiple
             max={3}
             value={profile.changeMotivation}

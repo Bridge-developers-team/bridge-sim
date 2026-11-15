@@ -1209,6 +1209,9 @@ body {
 .picklist__options {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Top-aligned items: Firefox otherwise sizes every row to the first
+     line's height and wrapped job titles spill into the next row. */
+  align-items: start;
   gap: var(--space-050);
   max-height: 320px;
   overflow-y: auto;
@@ -1261,4 +1264,10 @@ body {
   .story__thread {
     transform: none;
   }
+}
+
+.picklist__clear {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--space-150);
 }

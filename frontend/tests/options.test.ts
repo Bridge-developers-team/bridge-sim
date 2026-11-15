@@ -2,13 +2,26 @@
 // best matches first.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { budgetLabel, COUNTRIES, countryCurrency, CURRENCY_OPTIONS, rankOptions } from "../src/lib/options.ts";
+import { readFileSync } from "node:fs";
+import { budgetLabel, countries, countryCurrency, currencyOptions, rankOptions } from "../src/lib/options.ts";
+import { setReference } from "../src/lib/reference.ts";
+
+// The same reference data the server seeds its database with.
+const seed = (name: string) => JSON.parse(readFileSync(new URL(`../../backend/src/bridge/db/seed/${name}.json`, import.meta.url), "utf8"));
+const lists = seed("lists");
+setReference({
+  countries: seed("countries").map((c: { code: string; name: string; currency: string }) => ({ code: c.code, name: c.name, currency: c.currency })),
+  currentRoles: lists.currentRoles,
+  targetRoles: lists.targetRoles,
+  motivations: lists.motivations,
+  usdRates: seed("currencies"),
+});
 
 test("every country is listed, with its own currency", () => {
-  assert.ok(COUNTRIES.length > 240);
+  assert.ok(countries().length > 240);
   assert.equal(countryCurrency("kz"), "KZT");
   assert.equal(countryCurrency("de"), "EUR");
-  assert.ok(CURRENCY_OPTIONS.some((c) => c.value === "KZT"));
+  assert.ok(currencyOptions().some((c) => c.value === "KZT"));
 });
 
 test("search puts titles that start with the query first", () => {

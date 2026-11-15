@@ -84,6 +84,10 @@ export const bridgeApi = {
   intro: (role: string, currentRole: string, country: string, sample = false) =>
     api.post<{ intro: JobIntro; mode: Mode }>("/api/intro", { role, currentRole, country, sample }),
 
+  /** Job titles matching what was typed; with nothing typed, the suggested roles. */
+  jobTitles: (q: string, first: "current" | "target") =>
+    api.get<string[]>(`/api/job-titles?${new URLSearchParams({ q, first })}`),
+
   cities: (country: string, q: string) => api.get<string[]>(`/api/cities?${new URLSearchParams({ country, q })}`),
 
   linkedin: (url: string) => api.post<{ resumeText: string; mode: Mode }>("/api/linkedin", { url }),

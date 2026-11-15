@@ -129,12 +129,30 @@ class Limits(CamelModel):
     max_hours: float
 
 
+class CountryOut(CamelModel):
+    code: str
+    name: str
+    currency: str
+
+
+class ReferenceOut(CamelModel):
+    """The pick lists the start form needs (reference data from the database).
+    Job titles and cities are searched on the server instead: they are long."""
+
+    countries: list[CountryOut]
+    current_roles: list[str]
+    target_roles: list[str]
+    motivations: list[str]
+    usd_rates: dict[str, float]  # rough units per US dollar, to carry a budget into a new currency
+
+
 class ConfigResponse(CamelModel):
     mode: Mode
     samples: list[SampleOut]
     demo_persona: dict[str, Any]
     tracks: list[TrackOut]
     limits: Limits
+    reference: ReferenceOut
 
 
 class IntroRequest(CamelModel):

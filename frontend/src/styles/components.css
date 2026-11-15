@@ -2325,3 +2325,14 @@ button.gc-bar:hover {
 .career__why {
   margin: 0;
 }
+
+/* Start-up: the server could not be reached. */
+.boot-error {
+  display: grid;
+  gap: var(--space-200);
+  justify-items: center;
+  max-width: 480px;
+  margin: 20vh auto 0;
+  padding: var(--space-300);
+  text-align: center;
+}

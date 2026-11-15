@@ -1,6 +1,7 @@
 import { IntroPage } from "./routes/IntroPage";
 import { Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
+import { ReferenceGate } from "./components/ReferenceGate";
 import { LandingPage } from "./routes/LandingPage";
 import { NotFoundPage } from "./routes/NotFoundPage";
 import { PathsPage } from "./routes/PathsPage";
@@ -13,7 +14,13 @@ import { TastePage } from "./routes/TastePage";
 export function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route
+        element={
+          <ReferenceGate>
+            <Layout />
+          </ReferenceGate>
+        }
+      >
         <Route index element={<LandingPage />} />
         <Route path="start" element={<StartPage />} />
         <Route path="paths" element={<PathsPage />} />

@@ -7,8 +7,8 @@ import pytest
 
 from bridge.domain.models import Roadmap
 from bridge.domain.roadmap import check_roadmap
-from bridge.domain.samples import DEMO_PERSONA, SAMPLES, TEACHER
 from bridge.llm.base import LlmError
+from tests.samples import DEMO_PERSONA, SAMPLES, TEACHER
 
 ANSWER = (
     "Objective: by the end of this 15-minute module, new warehouse staff will perform a pre-shift dock check "

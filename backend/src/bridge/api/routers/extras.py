@@ -6,7 +6,7 @@ from official tables or a cited search result, links are search results."""
 from __future__ import annotations
 
 import re
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
@@ -26,6 +26,7 @@ from bridge.domain.learning import StudyPlan, study_plan
 from bridge.domain.pay import Pay
 from bridge.domain.roadmap import clamp_hours
 from bridge.domain.text import clean
+from bridge.domain.titles import search_job_titles
 from bridge.domain.videos import MAX_QUERIES, VideosResult
 from bridge.services.insights import cities as city_list
 
@@ -90,6 +91,14 @@ async def pay(body: PayRequest, request: Request, state: State) -> list[Pay | No
     return await state.insights.pay_many(
         writer, roles, fields, country, clean(body.country_name, 80), clean(body.location, 80)
     )
+
+
+@router.get("/job-titles", summary="Job titles matching what the user typed, common career-change roles first")
+async def job_titles(
+    q: Annotated[str, Query(max_length=60)] = "",
+    first: Annotated[Literal["current", "target"], Query()] = "current",
+) -> list[str]:
+    return search_job_titles(q, first=first)
 
 
 @router.get("/cities", summary="Cities of one country, largest first, filtered by what the user typed")
