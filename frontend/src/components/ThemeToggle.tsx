@@ -1,24 +1,33 @@
 import { useEffect, useState } from "react";
-import { applyTheme, getStoredTheme, watchSystemTheme, type Theme } from "../lib/theme";
+import { applyTheme, watchSystemTheme } from "../lib/theme";
+import { MoonIcon, SunIcon } from "./Icons";
 
-const NEXT: Record<Theme, Theme> = { light: "dark", dark: "system", system: "light" };
-const LABEL: Record<Theme, string> = { light: "Light", dark: "Dark", system: "Auto" };
+/** Two states only: light or dark. The first visit follows the device; any
+ * click stores an explicit choice. */
+function isDark(): boolean {
+  return document.documentElement.classList.contains("dark");
+}
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(getStoredTheme);
+  const [dark, setDark] = useState(isDark);
   useEffect(() => watchSystemTheme(), []);
   return (
     <button
       type="button"
-      className="btn btn--subtle btn--sm"
-      aria-label={`Theme: ${LABEL[theme]}. Change theme`}
+      className={`theme-switch ${dark ? "is-dark" : ""}`}
+      role="switch"
+      aria-checked={dark}
+      aria-label="Dark mode"
       onClick={() => {
-        const next = NEXT[theme];
-        applyTheme(next);
-        setTheme(next);
+        const next = !isDark();
+        applyTheme(next ? "dark" : "light");
+        setDark(next);
       }}
     >
-      {LABEL[theme]}
+      <span className="theme-switch__thumb" aria-hidden="true">
+        {dark ? <MoonIcon /> : <SunIcon />}
+      </span>
+      <span className="theme-switch__label">{dark ? "Dark" : "Light"}</span>
     </button>
   );
 }

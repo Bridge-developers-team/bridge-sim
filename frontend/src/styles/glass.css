@@ -204,19 +204,25 @@ body {
   background: rgba(255, 255, 255, 0.06);
 }
 
-/* The span band: deep navy glass with a cool sheen. */
+/* The span band. Light mode: bright glass with navy type, calendar in the
+   deep kind colours. Dark mode: deep navy glass with a faint gold glow. */
 .packet {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: clip;
   border-radius: 28px;
-  background: linear-gradient(160deg, rgba(23, 46, 96, 0.94), rgba(11, 26, 58, 0.97));
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  backdrop-filter: blur(20px) saturate(160%);
+  color: var(--text);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 30px 70px -30px rgba(11, 26, 58, 0.6);
+    inset 0 1px 0 var(--glass-rim),
+    inset 0 0 0 1px var(--glass-edge),
+    var(--glass-shadow);
+  /* Re-map the band tokens so everything inside reads on a light surface. */
+  --band-ink: var(--text);
+  --band-muted: var(--text-subtle);
+  --band-deep: rgba(11, 26, 58, 0.07);
 }
 
 .packet::after {
@@ -226,8 +232,36 @@ body {
   z-index: -1;
   width: 60%;
   height: 140%;
-  background: radial-gradient(closest-side, rgba(201, 161, 78, 0.22), transparent);
+  background: radial-gradient(closest-side, rgba(201, 161, 78, 0.16), transparent);
   pointer-events: none;
+}
+
+:root:not(.dark) :is(.packet, .sample-plan) [data-kind] {
+  --c: var(--kind);
+}
+
+:root:not(.dark) .packet .gc-track {
+  background-image: linear-gradient(90deg, rgba(11, 26, 58, 0.1) 1px, transparent 1px);
+  box-shadow: inset 0 1px 2px rgba(11, 26, 58, 0.08);
+}
+
+:root:not(.dark) .packet .gc-bar:focus-visible {
+  outline-color: var(--ring);
+}
+
+.dark .packet {
+  background: linear-gradient(160deg, rgba(23, 46, 96, 0.94), rgba(11, 26, 58, 0.97));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 30px 70px -30px rgba(0, 0, 0, 0.6);
+  --band-ink: #f6f1e6;
+  --band-muted: #b7c0d4;
+  --band-deep: #0b1a3a;
+}
+
+.dark .packet::after {
+  background: radial-gradient(closest-side, rgba(201, 161, 78, 0.22), transparent);
 }
 
 /* ---------- Header: a floating glass capsule with scroll progress ---------- */
@@ -651,7 +685,7 @@ body {
 
 .story__scene {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-500);
   align-items: center;
   min-height: 56vh;
@@ -752,7 +786,7 @@ body {
 
 .story-meter__bar {
   height: 8px;
-  overflow: hidden;
+  overflow: clip;
   border-radius: 8px;
   background: rgba(11, 26, 58, 0.08);
 }
@@ -815,5 +849,406 @@ body {
   .page-enter,
   .next {
     animation: none !important;
+  }
+}
+
+/* ---------- Picks you can see: navy in light, gold in dark ---------- */
+
+.chip.chip--on {
+  background: var(--brand);
+  color: var(--on-brand);
+  font-weight: 650;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 2px var(--focus-gold-soft),
+    0 6px 16px -6px rgba(11, 26, 58, 0.45);
+}
+
+.dark .chip.chip--on {
+  background: var(--gold-fill);
+  color: #0b1a3a;
+}
+
+.opt[aria-pressed="true"] {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.opt[aria-pressed="true"] .opt__check {
+  color: var(--focus-gold);
+}
+
+.dark .opt[aria-pressed="true"] {
+  background: var(--gold-fill);
+  color: #0b1a3a;
+}
+
+.dark .opt[aria-pressed="true"] .opt__check {
+  color: #0b1a3a;
+}
+
+/* ---------- Light / dark switch ---------- */
+
+.theme-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-100);
+  min-height: 40px;
+  padding: var(--space-050) var(--space-150) var(--space-050) var(--space-050);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: rgba(11, 26, 58, 0.06);
+  color: var(--text);
+  font-size: var(--type-sm);
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow: inset 0 1px 2px rgba(11, 26, 58, 0.1);
+  transition: background-color 0.3s var(--ease-glass);
+}
+
+.dark .theme-switch {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.theme-switch__thumb {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: #b07d1a;
+  box-shadow: 0 2px 6px rgba(11, 26, 58, 0.25), inset 0 1px 0 #fff;
+  transition: transform 0.5s var(--ease-spring), background-color 0.3s var(--ease-glass);
+}
+
+.theme-switch.is-dark .theme-switch__thumb {
+  background: #0b1a3a;
+  color: var(--gold);
+  transform: rotate(-30deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.theme-switch:hover .theme-switch__thumb {
+  transform: scale(1.06);
+}
+
+.theme-switch.is-dark:hover .theme-switch__thumb {
+  transform: rotate(-30deg) scale(1.06);
+}
+
+/* ---------- Landing narrative: a cue, a thread, steps that light up ---------- */
+
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-050);
+  width: max-content;
+  margin: var(--space-200) auto 0;
+  color: var(--text-subtle);
+  font-size: var(--type-sm);
+  font-weight: 650;
+  text-decoration: none;
+  transition: color 0.25s var(--ease-glass);
+}
+
+.scroll-cue:hover {
+  color: var(--text);
+}
+
+.scroll-cue__arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--glass-bg-strong);
+  box-shadow:
+    inset 0 1px 0 var(--glass-rim),
+    0 0 0 1.5px rgba(201, 161, 78, 0.6),
+    0 10px 24px -10px rgba(201, 161, 78, 0.7);
+  color: var(--text);
+  animation: cue 2.2s var(--ease-glass) infinite;
+}
+
+@keyframes cue {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+/* The cue fades away once you start scrolling. */
+@supports (animation-timeline: scroll()) {
+  .scroll-cue {
+    animation: cue-out linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 240px;
+  }
+  @keyframes cue-out {
+    to {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+}
+
+.story {
+  position: relative;
+  padding-left: var(--space-600);
+}
+
+/* A gold thread that grows down the story as you read it. */
+.story::before,
+.story__thread {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 13px;
+  width: 2px;
+  border-radius: 2px;
+}
+
+.story::before {
+  background: rgba(11, 26, 58, 0.1);
+}
+
+.dark .story::before {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.story__thread {
+  background: linear-gradient(180deg, #e3c27a, var(--focus-gold));
+  box-shadow: 0 0 12px rgba(201, 161, 78, 0.6);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+@supports (animation-timeline: view()) {
+  .story {
+    view-timeline: --story block;
+  }
+  .story__thread {
+    animation: thread linear both;
+    animation-timeline: --story;
+    animation-range: entry 40% exit 0%;
+  }
+  @keyframes thread {
+    to {
+      transform: scaleY(1);
+    }
+  }
+  /* Each step badge lights up gold as its scene arrives. */
+  .story__step b {
+    animation: step-on linear both;
+    animation-timeline: view();
+    animation-range: entry 60% cover 40%;
+  }
+  @keyframes step-on {
+    to {
+      background: #d4af62;
+      color: #0b1a3a;
+      box-shadow: 0 0 0 4px rgba(201, 161, 78, 0.18), 0 8px 20px -6px rgba(201, 161, 78, 0.7);
+    }
+  }
+}
+
+/* The ending: one highlighted glass card with the main action. */
+.story__end {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  margin-top: var(--space-400);
+  padding: var(--space-600) var(--space-400);
+  border-radius: 32px;
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--glass-rim), var(--focus-glow);
+}
+
+.story__end::before {
+  content: "";
+  position: absolute;
+  inset: -60% -20% auto;
+  z-index: -1;
+  height: 140%;
+  background: radial-gradient(closest-side, rgba(201, 161, 78, 0.28), transparent 70%);
+  pointer-events: none;
+}
+
+.story__end .btn--cta {
+  min-height: 64px;
+  padding: 0 var(--space-400);
+  font-size: var(--type-lg);
+}
+
+@media (max-width: 760px) {
+  .story {
+    padding-left: var(--space-400);
+  }
+  .story::before,
+  .story__thread {
+    left: 6px;
+  }
+  .story__end {
+    padding: var(--space-400) var(--space-200);
+  }
+}
+
+/* ---------- Inline option lists (unfold under their row) ---------- */
+
+.setting-wrap {
+  border-bottom: 1px solid rgba(11, 26, 58, 0.07);
+}
+
+.dark .setting-wrap {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+.setting-wrap .setting {
+  width: 100%;
+  border-bottom: 0;
+}
+
+.setting-wrap.is-open .setting {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dark .setting-wrap.is-open .setting {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.setting__chev {
+  transition: transform 0.35s var(--ease-spring), color 0.2s var(--ease-glass);
+}
+
+.setting-wrap.is-open .setting__chev {
+  transform: rotate(90deg);
+  color: var(--focus-gold);
+}
+
+.picklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+  padding: 0 var(--space-200) var(--space-200);
+  animation: picklist-open 0.32s var(--ease-glass) both;
+}
+
+.picklist.is-closing {
+  animation: picklist-close 0.16s ease-in both;
+}
+
+@keyframes picklist-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes picklist-close {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.picklist__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-100);
+  padding: 0 var(--space-150);
+  border-radius: var(--radius-full);
+  background: rgba(11, 26, 58, 0.05);
+  color: var(--text-faint);
+  transition: box-shadow 0.2s var(--ease-glass);
+}
+
+.dark .picklist__search {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.picklist__search:focus-within {
+  box-shadow: 0 0 0 2px var(--focus-gold);
+}
+
+.picklist__search input {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--type-input-touch);
+  outline: none;
+}
+
+.picklist__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-050);
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-050);
+}
+
+.picklist .opt {
+  min-height: 44px;
+  padding: var(--space-100) var(--space-200);
+  border-radius: var(--radius-full);
+  font-size: var(--type-md);
+}
+
+.picklist .opt:not([aria-pressed="true"]):hover:not(:disabled) {
+  background: rgba(11, 26, 58, 0.06);
+}
+
+.dark .picklist .opt:not([aria-pressed="true"]):hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.picklist__empty {
+  padding: var(--space-100) var(--space-150);
+}
+
+.picklist__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-200);
+}
+
+@media (max-width: 600px) {
+  .picklist {
+    padding: 0 var(--space-150) var(--space-150);
+  }
+  .picklist__options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue__arrow,
+  .scroll-cue,
+  .story__thread,
+  .story__step b,
+  .picklist {
+    animation: none !important;
+  }
+  .story__thread {
+    transform: none;
   }
 }

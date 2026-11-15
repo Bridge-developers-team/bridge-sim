@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import type { Profile, Track } from "../api/types";
 import { useConfig } from "../api/hooks";
 import { Button } from "../components/ui/Button";
-import { OptionSheet, Picker } from "../components/ui/Picker";
+import { OptionList, Picker } from "../components/ui/Picker";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { ArrowRightIcon, ChevronDownIcon, FileIcon, UploadIcon } from "../components/Icons";
 import { readCvFile } from "../lib/pdf";
@@ -184,10 +184,26 @@ export function StartPage() {
                   Upload a file instead
                 </button>
               )}
-              <button ref={sampleLink} type="button" className="link-btn" aria-haspopup="dialog" onClick={() => setSamples(true)}>
+              <button ref={sampleLink} type="button" className="link-btn" aria-expanded={samples} onClick={() => setSamples((v) => !v)}>
                 Try a sample CV
               </button>
             </div>
+            {samples && config.data && (
+              <OptionList
+                title="Try a sample CV"
+                options={config.data.samples.map((s) => ({ value: s.id, label: s.label.replace(/^Sample: /, "") }))}
+                value=""
+                onChange={(id) => {
+                  const s = config.data?.samples.find((x) => x.id === id);
+                  if (s) applyText(s.resume, { kind: "sample", name: `Sample: ${s.label.replace(/^Sample: /, "")}` });
+                  setShowText(false);
+                }}
+                onClose={() => {
+                  setSamples(false);
+                  sampleLink.current?.focus({ preventScroll: true });
+                }}
+              />
+            )}
           </PanelBody>
         </div>
       </Panel>
@@ -303,23 +319,6 @@ export function StartPage() {
         <p className="submit-bar__note muted small">Takes about 15–30 seconds.</p>
       </div>
 
-      {samples && config.data && (
-        <OptionSheet
-          title="Try a sample CV"
-          options={config.data.samples.map((s) => ({ value: s.id, label: s.label.replace(/^Sample: /, "") }))}
-          value=""
-          anchor={sampleLink.current}
-          onChange={(id) => {
-            const s = config.data?.samples.find((x) => x.id === id);
-            if (s) applyText(s.resume, { kind: "sample", name: `Sample: ${s.label.replace(/^Sample: /, "")}` });
-            setShowText(false);
-          }}
-          onClose={() => {
-            setSamples(false);
-            sampleLink.current?.focus();
-          }}
-        />
-      )}
     </form>
   );
 }

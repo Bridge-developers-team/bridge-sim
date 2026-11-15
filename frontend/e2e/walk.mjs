@@ -110,17 +110,18 @@ async function startForm() {
   await submit.click();
   await page.getByRole("alert").filter({ hasText: "Add your CV first" }).waitFor();
   if (!page.url().endsWith("/start")) problems.push("start-form: left /start with an empty CV");
-  // Sample CV, then the settings rows open scrollable lists.
+  // Sample CV, then each settings row unfolds its list in place (no pop-up).
+  const list = (name) => page.getByRole("group", { name });
   await page.getByRole("button", { name: "Try a sample CV" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: /ICU nurse/ }).click();
-  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await list("Try a sample CV").getByRole("button", { name: /ICU nurse/ }).click();
+  await list("Try a sample CV").waitFor({ state: "detached" });
   await page.getByRole("button", { name: /^Free time/ }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "8 hours a week" }).click();
-  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await list("Free hours a week for the switch").getByRole("button", { name: "8 hours a week" }).click();
+  await list("Free hours a week for the switch").waitFor({ state: "detached" });
   await page.getByRole("button", { name: /^Why change/ }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Less stress" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
-  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await list("Why change?").getByRole("button", { name: "Less stress" }).click();
+  await list("Why change?").getByRole("button", { name: "Done" }).click();
+  await list("Why change?").waitFor({ state: "detached" });
   await page.getByRole("radio", { name: "Fast" }).click();
   await noSideScroll(page, "start-form");
   await page.screenshot({ path: `${OUT}start-form.png`, fullPage: true });
