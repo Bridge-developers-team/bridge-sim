@@ -53,13 +53,16 @@ async def careers(body: CareersRequest, request: Request, state: State) -> Caree
     if len(resume) > MAX_RESUME:
         raise HTTPException(400, f"Your resume is too long. Keep it under {MAX_RESUME:,} characters.")
     writer, mode = pick_writer(request, state, sample=body.sample)
-    profile, paths = await recommend_careers(writer, resume=resume, candidate=read_candidate(body.profile))
+    profile, paths = await recommend_careers(
+        writer, resume=resume, candidate=read_candidate(body.profile), source=body.source
+    )
     return CareersResponse(
         profile=ProfileOut(
             current_role=profile.current_role,
             years_experience=profile.years_experience,
             industry=profile.industry,
             evidence_note=profile.evidence_note,
+            standout=profile.standout,
         ),
         careers=paths,
         mode=mode,

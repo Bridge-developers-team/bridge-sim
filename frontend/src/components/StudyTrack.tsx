@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
-import type { Course, StudyPlan, Week } from "../api/types";
+import type { Course, StudyPlan, Video, Week } from "../api/types";
 import { budgetLabel } from "../lib/options";
 import { BookIcon, PlayIcon } from "./Icons";
 import { Lozenge, type Tone } from "./ui/Lozenge";
@@ -14,14 +14,78 @@ const COST: Record<Course["cost"], { label: string; tone: Tone }> = {
 
 /** Courses from the checked catalog for this role. Free ones only unless the
  * user set a learning budget. */
-export function useStudyPlan(role: string, budget: number, hours: number) {
+export function useStudyPlan(role: string, budget: number, hours: number, field = "") {
   const paid = budget > 0;
   return useQuery({
-    queryKey: ["study", role, paid, hours],
-    queryFn: () => bridgeApi.study(role, paid, hours),
+    queryKey: ["study", role, paid, hours, field],
+    queryFn: () => bridgeApi.study(role, paid, hours, field),
     staleTime: Infinity,
     enabled: Boolean(role),
   });
+}
+
+/** The best English YouTube video for each of the path's video searches. */
+export function useVideos(role: string, queries: string[]) {
+  return useQuery({
+    queryKey: ["videos", role, queries],
+    queryFn: () => bridgeApi.videos(role, queries),
+    staleTime: Infinity,
+    enabled: Boolean(role),
+    retry: false,
+  });
+}
+
+function viewsText(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(/\.0$/, "")}M views`;
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K views`;
+  return `${n} views`;
+}
+
+/** Videos to start with. Hidden when the server has no YouTube key; says so
+ * plainly when YouTube had nothing good enough. */
+export function VideosPanel({ query }: { query: ReturnType<typeof useVideos> }) {
+  if (query.isPending || query.isError || !query.data || query.data.source === "off") return null;
+  const { videos } = query.data;
+  return (
+    <Panel className="videos">
+      <PanelHeader title="Videos to start with" note="English · well watched" />
+      <PanelBody className="stack">
+        {videos.length === 0 ? (
+          <p className="muted small">YouTube had no well-watched English lesson for this path today. The course above covers it.</p>
+        ) : (
+          <ul className="video-list">
+            {videos.map((v) => (
+              <VideoRow key={v.id} video={v} />
+            ))}
+          </ul>
+        )}
+        <p className="fine">
+          Picked from YouTube by search, views and length (3 to 90 minutes, English). Bridge does not make or rank the
+          content itself.
+        </p>
+      </PanelBody>
+    </Panel>
+  );
+}
+
+function VideoRow({ video }: { video: Video }) {
+  return (
+    <li className="video">
+      <a className="video__thumb" href={video.url} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true">
+        {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" width={160} height={90} /> : <PlayIcon />}
+        <span className="video__len tabular">{video.minutes} min</span>
+      </a>
+      <span className="video__text">
+        <a href={video.url} target="_blank" rel="noopener noreferrer">
+          {video.title}
+        </a>
+        <span className="muted small tabular">
+          {video.channel} · {viewsText(video.views)}
+        </span>
+        <span className="fine">For: {video.query}</span>
+      </span>
+    </li>
+  );
 }
 
 function CourseRow({ course, main = false }: { course: Course; main?: boolean }) {
@@ -50,10 +114,13 @@ export function StudyPanel({
   query,
   budget,
   currency,
+  hasVideos = false,
 }: {
   query: ReturnType<typeof useStudyPlan>;
   budget: number;
   currency: string;
+  /** Whether the videos panel has videos to show; the text points there only then. */
+  hasVideos?: boolean;
 }) {
   if (query.isError) {
     return (
@@ -68,6 +135,25 @@ export function StudyPanel({
   const study = query.data;
   if (!study) return null;
   const { main } = study;
+  if (!main) {
+    return (
+      <Panel className="study">
+        <PanelHeader title="Your course for this month" note="No match yet" />
+        <PanelBody className="stack">
+          <p className="small">
+            Bridge's hand-checked course list does not cover this path yet, and it will not send you to a course from
+            another field.{" "}
+            {hasVideos
+              ? "Start with the videos picked for this path below, and the weekly tasks."
+              : "Start with the weekly tasks below: each one builds a skill this path needs."}
+          </p>
+          {budget === 0 && (
+            <p className="fine">Your learning budget is 0, so paid courses are not shown.</p>
+          )}
+        </PanelBody>
+      </Panel>
+    );
+  }
   return (
     <Panel className="study">
       <PanelHeader title="Your course for this month" note={study.fieldLabel} />
@@ -135,7 +221,8 @@ export function StudyPanel({
 
 /** The part of the course that belongs to one plan week. */
 export function WeekStudy({ study, week }: { study: StudyPlan | undefined; week: Week }) {
-  if (!study) return null;
+  if (!study?.main) return null;
+  const main = study.main;
   const modules = study.weeks.find((w) => w.week === week.week)?.modules ?? [];
   return (
     <div className="resources">
@@ -145,12 +232,12 @@ export function WeekStudy({ study, week }: { study: StudyPlan | undefined; week:
           <BookIcon />
         </span>
         <span className="course__text">
-          <a href={study.main.url} target="_blank" rel="noopener noreferrer">
-            {modules.length ? modules.join(", ") : `Keep going: ${study.main.title}`}
+          <a href={main.url} target="_blank" rel="noopener noreferrer">
+            {modules.length ? modules.join(", ") : `Keep going: ${main.title}`}
           </a>
           <span className="muted small">
-            {modules.length ? `${study.main.title} · ` : ""}
-            {study.main.provider}
+            {modules.length ? `${main.title} · ` : ""}
+            {main.provider}
           </span>
         </span>
       </div>

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" font-family="Inter, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="aw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#FFFFFF" stroke-width="1.6"/></marker>
+    <marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#3FE0CF" stroke-width="1.6"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#F2B63D" stroke-width="1.6"/></marker>
+  </defs>
+  <rect width="1600" height="1000" fill="#4A4A4C"/>
+
+  <!-- title -->
+  <text x="60" y="70" fill="#FFFFFF" font-size="34" font-weight="700">Bridge · how a career change gets planned</text>
+  <text x="60" y="104" fill="#C9C9CF" font-size="18">The AI writes the words. Code checks every rule. Every link is real.</text>
+
+  <!-- people -->
+  <g stroke="#FFFFFF" stroke-width="2.4" fill="none" stroke-linecap="round" transform="translate(62,388)">
+    <circle cx="40" cy="14" r="11"/><path d="M22 70 V44 a18 18 0 0 1 36 0 V70"/>
+    <circle cx="78" cy="22" r="11"/><path d="M60 78 V52 a18 18 0 0 1 36 0 V78"/>
+    <circle cx="116" cy="14" r="11"/><path d="M98 70 V44 a18 18 0 0 1 36 0 V70"/>
+  </g>
+  <text x="140" y="500" fill="#FFFFFF" font-size="17" font-weight="600" text-anchor="middle">Career changer, 25–45</text>
+  <path d="M215 445 H262" stroke="#FFFFFF" stroke-width="2" marker-end="url(#aw)"/>
+
+  <!-- browser -->
+  <rect x="270" y="300" width="330" height="300" rx="10" fill="#0E0E10"/>
+  <text x="435" y="340" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">Browser</text>
+  <text x="435" y="366" fill="#A9A9B2" font-size="15" text-anchor="middle">React 18 · TypeScript · Vite</text>
+  <text x="296" y="410" fill="#F5D547" font-size="16" font-weight="600">CV · LinkedIn PDF · own words</text>
+  <text x="296" y="436" fill="#E6E6EA" font-size="15">PDF read on the device (pdf.js)</text>
+  <text x="296" y="472" fill="#E6E6EA" font-size="15">Journey saved in localStorage</text>
+  <text x="296" y="498" fill="#E6E6EA" font-size="15">No accounts, no login</text>
+  <text x="296" y="534" fill="#FF6B6B" font-size="15" font-weight="600">Income never leaves the browser</text>
+  <text x="296" y="570" fill="#A9A9B2" font-size="14">Taste Map · 30-day plan · practice</text>
+
+  <!-- api -->
+  <rect x="740" y="380" width="300" height="150" rx="10" fill="#0E0E10"/>
+  <text x="890" y="420" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">FastAPI</text>
+  <text x="890" y="446" fill="#A9A9B2" font-size="15" text-anchor="middle">Python 3.12 · one Docker image</text>
+  <text x="890" y="482" fill="#F5D547" font-size="15" text-anchor="middle">Rate limits</text>
+  <path d="M858 494 q32 14 64 0" stroke="#FFFFFF" stroke-width="1.6" fill="none" marker-end="url(#aw)"/>
+  <text x="890" y="518" fill="#FF6B6B" font-size="15" text-anchor="middle">Daily AI budget</text>
+
+  <!-- claude -->
+  <rect x="1125" y="150" width="380" height="160" rx="10" fill="#D97757"/>
+  <text x="1315" y="194" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">Claude Sonnet 5.5</text>
+  <text x="1315" y="224" fill="#FFF3EC" font-size="15" text-anchor="middle">Structured outputs, one schema per step</text>
+  <text x="1315" y="250" fill="#FFF3EC" font-size="15" text-anchor="middle">Reads each kind of input its own way</text>
+  <text x="1315" y="282" fill="#FFF3EC" font-size="14" text-anchor="middle">Haiku 5.5 drafts sample answers</text>
+
+  <!-- rules -->
+  <rect x="1125" y="380" width="380" height="190" rx="10" fill="#26357A"/>
+  <text x="1315" y="420" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">Domain rules</text>
+  <text x="1152" y="456" fill="#E8ECFF" font-size="15">• every skill quote checked against the CV</text>
+  <text x="1152" y="482" fill="#E8ECFF" font-size="15">• 3 distinct paths, study field chosen</text>
+  <text x="1152" y="508" fill="#E8ECFF" font-size="15">• weekly minutes never over your hours</text>
+  <text x="1152" y="534" fill="#E8ECFF" font-size="15">• scores signed (HMAC), quotes required</text>
+
+  <!-- proof page -->
+  <rect x="740" y="160" width="300" height="110" rx="10" fill="#F2B63D"/>
+  <text x="890" y="203" fill="#1B1B1F" font-size="21" font-weight="700" text-anchor="middle">Public proof page</text>
+  <text x="890" y="232" fill="#3A3020" font-size="15" text-anchor="middle">/p/:id · a graded work sample</text>
+  <text x="890" y="254" fill="#3A3020" font-size="14" text-anchor="middle">author keeps a delete key</text>
+
+  <!-- sources -->
+  <rect x="270" y="760" width="215" height="110" rx="10" fill="#2F6B4A"/>
+  <text x="377" y="802" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">Course catalog</text>
+  <text x="377" y="828" fill="#DDF3E6" font-size="14" text-anchor="middle">hand-checked links,</text>
+  <text x="377" y="848" fill="#DDF3E6" font-size="14" text-anchor="middle">picked by study field</text>
+
+  <rect x="510" y="760" width="215" height="110" rx="10" fill="#B3261E"/>
+  <text x="617" y="802" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">YouTube Data API</text>
+  <text x="617" y="828" fill="#FFE3E0" font-size="14" text-anchor="middle">English, well watched,</text>
+  <text x="617" y="848" fill="#FFE3E0" font-size="14" text-anchor="middle">3–90 min lessons</text>
+
+  <rect x="750" y="760" width="245" height="110" rx="10" fill="#0A66C2"/>
+  <text x="872" y="802" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">Jobs and people</text>
+  <text x="872" y="828" fill="#E1EEFF" font-size="14" text-anchor="middle">Adzuna listings; LinkedIn,</text>
+  <text x="872" y="848" fill="#E1EEFF" font-size="14" text-anchor="middle">Indeed, hh.kz with filters</text>
+
+  <rect x="1020" y="760" width="215" height="110" rx="10" fill="#8A6A2B"/>
+  <text x="1127" y="802" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">Official pay</text>
+  <text x="1127" y="828" fill="#FBEFD6" font-size="14" text-anchor="middle">US BLS by state,</text>
+  <text x="1127" y="848" fill="#FBEFD6" font-size="14" text-anchor="middle">Kazakhstan stat office</text>
+
+  <rect x="1260" y="760" width="220" height="110" rx="10" fill="#9AA5B1"/>
+  <text x="1370" y="802" fill="#16191D" font-size="18" font-weight="700" text-anchor="middle">Neon Postgres</text>
+  <text x="1370" y="828" fill="#24292F" font-size="14" text-anchor="middle">published proof pages only;</text>
+  <text x="1370" y="848" fill="#24292F" font-size="14" text-anchor="middle">CVs are never stored</text>
+
+  <!-- flow 1: find paths (white) -->
+  <path d="M600 420 H732" stroke="#FFFFFF" stroke-width="2.2" marker-end="url(#aw)"/>
+  <text x="666" y="408" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">1</text>
+  <path d="M1040 405 C1080 400 1085 300 1117 262" stroke="#FFFFFF" stroke-width="2.2" fill="none" marker-end="url(#aw)"/>
+  <text x="1058" y="330" fill="#FFFFFF" font-size="18" font-weight="700">2</text>
+  <path d="M1315 312 V372" stroke="#FFFFFF" stroke-width="2.2" marker-end="url(#aw)"/>
+  <text x="1328" y="350" fill="#FFFFFF" font-size="18" font-weight="700">3</text>
+  <path d="M1125 560 C1040 645 720 645 608 585" stroke="#FFFFFF" stroke-width="2.2" fill="none" marker-end="url(#aw)"/>
+  <text x="760" y="618" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">4</text>
+  <text x="760" y="656" fill="#E6E6EA" font-size="14" text-anchor="middle">3 paths · quotes verified</text>
+
+  <!-- flow 2: plan data (cyan) -->
+  <path d="M600 500 H732" stroke="#3FE0CF" stroke-width="2.2" marker-end="url(#ac)"/>
+  <text x="666" y="528" fill="#3FE0CF" font-size="18" font-weight="700" text-anchor="middle">1</text>
+  <path d="M960 530 V705" stroke="#3FE0CF" stroke-width="2.2"/>
+  <text x="972" y="690" fill="#3FE0CF" font-size="18" font-weight="700">2</text>
+  <path d="M377 705 H1127" stroke="#3FE0CF" stroke-width="2.2"/>
+  <path d="M377 705 V752" stroke="#3FE0CF" stroke-width="2.2" marker-end="url(#ac)"/>
+  <path d="M617 705 V752" stroke="#3FE0CF" stroke-width="2.2" marker-end="url(#ac)"/>
+  <path d="M872 705 V752" stroke="#3FE0CF" stroke-width="2.2" marker-end="url(#ac)"/>
+  <path d="M1127 705 V752" stroke="#3FE0CF" stroke-width="2.2" marker-end="url(#ac)"/>
+  <text x="390" y="694" fill="#3FE0CF" font-size="14">plan: courses · videos · jobs · pay</text>
+
+  <!-- flow 3: proof (gold) -->
+  <path d="M1040 505 H1080 V735 H1370 V752" stroke="#F2B63D" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+  <text x="1210" y="726" fill="#F7E2B0" font-size="14">store the published page</text>
+  <path d="M890 380 V278" stroke="#F2B63D" stroke-width="2.2" marker-end="url(#ag)"/>
+  <text x="902" y="335" fill="#F2B63D" font-size="18" font-weight="700">5</text>
+  <text x="902" y="356" fill="#F7E2B0" font-size="14">publish a signed result</text>
+
+  <!-- legend -->
+  <g font-size="15" transform="translate(60,945)">
+    <path d="M0 0 H40" stroke="#FFFFFF" stroke-width="2.2" marker-end="url(#aw)"/><text x="52" y="5" fill="#FFFFFF">1–4 find 3 paths from your CV</text>
+    <path d="M330 0 H370" stroke="#3FE0CF" stroke-width="2.2" marker-end="url(#ac)"/><text x="382" y="5" fill="#3FE0CF">plan data, never written by the AI</text>
+    <path d="M690 0 H730" stroke="#F2B63D" stroke-width="2.2" marker-end="url(#ag)"/><text x="742" y="5" fill="#F2B63D">5 share a graded practice task</text>
+  </g>
+</svg>

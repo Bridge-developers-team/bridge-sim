@@ -49,15 +49,15 @@ class JobsService:
     ) -> None:
         self._app_id, self._app_key = app_id, app_key
         self._fetch, self._clock = fetch, clock
-        self._cache: dict[tuple[str, str, str], tuple[float, JobsResult]] = {}
+        self._cache: dict[tuple[str, str, str, str], tuple[float, JobsResult]] = {}
 
     @property
     def live(self) -> bool:
         return bool(self._app_id and self._app_key)
 
-    async def find(self, *, role: str, city: str, country: str) -> JobsResult:
-        role, city, country = clean(role, 80), clean(city, 80), normalize_country(country)
-        key = (role.lower(), city.lower(), country)
+    async def find(self, *, role: str, city: str, country: str, field: str = "") -> JobsResult:
+        role, city, country, field = clean(role, 80), clean(city, 80), normalize_country(country), clean(field, 40)
+        key = (role.lower(), city.lower(), country, field)
         cached = self._cache.get(key)
         if cached and self._clock() - cached[0] < CACHE_SECONDS:
             return cached[1]
@@ -72,7 +72,7 @@ class JobsService:
                 "sort_by": "date",
                 "max_days_old": 30,
             }
-            if city:
+            if city and city.lower() not in {"remote", "anywhere"}:
                 params["where"] = city
             try:
                 listings = parse_adzuna(await self._fetch(ADZUNA_URL.format(country=country), params))
@@ -85,7 +85,7 @@ class JobsService:
             source="adzuna" if listings else "links",
             listings=listings,
             links=board_links(role, city, country),
-            people=people_links(role, city),
+            people=people_links(role, city, country, field),
             topics=topic_links(role),
         )
         self._cache[key] = (self._clock(), result)

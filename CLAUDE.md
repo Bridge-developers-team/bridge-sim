@@ -24,6 +24,7 @@ frontend/  React 18 + Vite + TypeScript + TanStack Query, plain CSS
   src/routes/     one page per file
   src/styles/     tokens.css + components.css: Midnight Navy + Signature Gold (DESIGN.md)
   e2e/walk.mjs    real-browser walk of the judge path
+  e2e/qa.mjs      deep QA: every input tab, country/city, cross-field courses, links, reloads
 brand/     the brand kit: logo and icon masters (SVG), PNG/ICO exports, guide
 Dockerfile, render.yaml, .github/workflows/ci.yml
 ```

@@ -14,6 +14,9 @@ Track = Literal["safe", "balanced", "fast"]
 # "live" = real AI, "demo" = no API key on the server, "sample" = the user
 # asked for labeled sample data (e.g. after an AI error).
 Mode = Literal["live", "demo", "sample"]
+# What the experience text is: an uploaded or pasted CV, a LinkedIn profile
+# saved as PDF, or the person's own description. The AI reads each differently.
+ResumeSource = Literal["cv", "linkedin", "text"]
 
 
 class CamelModel(BaseModel):
@@ -32,6 +35,7 @@ class Candidate(CamelModel):
     monthly_learning_budget: int = 0
     currency: str = "USD"
     location: str = ""
+    country: str = ""  # country name, e.g. "Kazakhstan"; "" when not given
     interested_roles: list[str] = []
     transition_preference: Track = "balanced"
 
@@ -52,6 +56,10 @@ class Career(CamelModel):
     relative_effort: Effort = "unknown"
     key_tradeoff: str = ""
     assumptions: list[str] = []
+    motivation_match: str = ""
+    field: str = ""  # study field id (learning.py); "" on cards saved before fields existed
+    job_titles: list[str] = []
+    video_searches: list[str] = []
 
 
 class Task(CamelModel):

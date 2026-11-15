@@ -2,94 +2,176 @@
 
 **Change careers without starting over.**
 
-Bridge is for working adults (about 25-45) who want to change careers but do not
-know where to go. From a CV and a real week, it gives:
+[![Live](https://img.shields.io/badge/live-bridge--prod-0B1A3A)](https://bridge-prod-xoqy.onrender.com)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Claude](https://img.shields.io/badge/Claude-Sonnet_5.5-D97757)](https://www.anthropic.com)
+[![Postgres](https://img.shields.io/badge/Neon-Postgres-4169E1?logo=postgresql&logoColor=white)](https://neon.tech)
 
-1. **Three realistic paths.** Each one reuses what the person already does, and
-   every "skill you already have" quotes their own CV. Code checks each quote.
-2. **A 30-day plan that fits their hours.** Four weeks of concrete tasks. The
-   weekly total never exceeds the hours they said they have, and ticks are
-   saved as they go.
-3. **A taste of each path before choosing.** A 10-minute task from each of
-   the three paths, set in the person's own field, plus one question: would
-   you want to do this on an ordinary Tuesday? The Taste Map plots skill
-   against energy (Thrive, Grow into, Trap, Skip) and code recommends a path
-   from what they actually did.
-4. **A try of the actual job.** A 10-minute practice task from the new role,
-   graded against a rubric shown before writing. A score the AI cannot back
-   with a quote from the answer is capped.
-5. **Proof.** One click publishes the graded task as a public work sample. The
-   page can only show scores the server signed.
+Bridge helps working adults (25–45) who want a new career but do not know
+where to go. You give it your CV, your LinkedIn profile or a few sentences in
+your own words, plus your real week (free hours, budget, city). It gives back:
 
-Prototype for Business Cup 2.0 (AIESEC Astana × Zimran), November 2026.
+1. **Three paths that fit you, not your job title.** Each one names what you
+   already do, quoted from your own text. Code checks every quote.
+2. **A taste of each path.** A 10-minute task from each role, graded, then one
+   question: would you enjoy this on a normal Tuesday? The Taste Map plots
+   skill against energy and recommends a path.
+3. **A 30-day plan that fits your hours.** Weekly tasks, a real course for the
+   role, English YouTube lessons, and jobs, recruiters and pay where you live.
+4. **Proof.** One click publishes a graded practice task as a public work
+   sample you can send to a recruiter.
 
-## Run locally
+**Try it:** [bridge-prod-xoqy.onrender.com](https://bridge-prod-xoqy.onrender.com).
+"Try the demo" needs no sign-up. Built for Business Cup 2.0 (AIESEC Astana ×
+Zimran), November 2026.
+
+---
+
+### Architecture
+
+![How Bridge works: the browser sends the experience text to FastAPI, Claude drafts paths, domain rules check them, and the plan pulls courses, videos, jobs and pay from real sources](docs/architecture.png)
+
+```mermaid
+flowchart LR
+    USER(["Career changer"])
+
+    subgraph WEB["Browser · React + TypeScript"]
+        direction TB
+        INPUT["CV · LinkedIn PDF · own words<br>read on the device"]
+        STORE[("localStorage<br>journey, no income")]
+    end
+
+    subgraph API["FastAPI · Python 3.12"]
+        direction TB
+        LIMITS["Rate limits<br>daily AI budget"]
+        RULES["Domain rules<br>quotes, hours, signed scores"]
+    end
+
+    CLAUDE["Claude Sonnet 5.5<br>structured outputs"]
+
+    subgraph DATA["Real sources, never AI-written"]
+        direction TB
+        COURSES["Course catalog<br>by study field"]
+        YT["YouTube Data API<br>English, well watched"]
+        JOBS["Adzuna · LinkedIn<br>Indeed · hh.kz"]
+        PAY["Official pay<br>BLS · KZ stats"]
+    end
+
+    PG[("Neon Postgres<br>proof pages only")]
+    PROOF["Public proof page<br>/p/:id"]
+
+    USER --> INPUT
+    INPUT -->|"1 POST /api/careers"| LIMITS
+    LIMITS -->|"2 prompt by input type"| CLAUDE
+    CLAUDE -->|"3 drafts"| RULES
+    RULES -->|"4 three checked paths"| STORE
+    STORE -.->|"plan requests"| LIMITS
+    LIMITS -.-> COURSES
+    LIMITS -.-> YT
+    LIMITS -.-> JOBS
+    LIMITS -.-> PAY
+    RULES -->|"5 signed result"| PG
+    PG --> PROOF
+
+    classDef client fill:#0E0E10,stroke:#2D3436,color:#FFFFFF
+    classDef api fill:#26357A,stroke:#1B2560,color:#FFFFFF
+    classDef ai fill:#D97757,stroke:#A4533A,color:#FFFFFF
+    classDef data fill:#2F6B4A,stroke:#1E4630,color:#FFFFFF
+    classDef db fill:#336791,stroke:#1E3F5A,color:#FFFFFF
+    classDef proof fill:#F2B63D,stroke:#B5832A,color:#1B1B1F
+
+    class USER,INPUT,STORE client
+    class LIMITS,RULES api
+    class CLAUDE ai
+    class COURSES,YT,JOBS,PAY data
+    class PG db
+    class PROOF proof
+
+    style WEB fill:none,stroke:#95A5A6,stroke-width:1px
+    style API fill:none,stroke:#95A5A6,stroke-width:1px
+    style DATA fill:none,stroke:#95A5A6,stroke-width:1px
+```
+
+---
+
+### Why you can trust what it says
+
+- **The AI writes words; code checks every rule.** Quotes must appear in your
+  text, plans never exceed your hours, and scores carry a server signature.
+  Each rule is a pure function in `backend/src/bridge/domain/` with a test.
+- **Personal by design.** The prompt reads a CV, a LinkedIn export and your own
+  words differently, weighs your reasons for changing and your constraints,
+  and must name at least two details from your text in every path.
+- **No invented links.** Courses come from a hand-checked catalog chosen by
+  the role's study field (a music teacher is never sent to a programming
+  course). Videos come from the YouTube API, filtered for English, views and
+  length. Job and recruiter links are LinkedIn, Indeed and hh.kz searches
+  with real filters.
+- **Privacy.** Your CV is used for one request and never stored. Income never
+  leaves the browser. LinkedIn profiles are never scraped: you export your own
+  profile as PDF.
+
+### Stack
+
+| Layer | Choice |
+|---|---|
+| Front end | React 18, TypeScript (strict), Vite, TanStack Query, plain CSS |
+| Back end | FastAPI, Python 3.12, uv, SQLAlchemy (async) |
+| AI | Claude Sonnet 5.5 (paths, plans, grading), Haiku 5.5 (sample answers) |
+| Data | Neon Postgres (proof pages only) |
+| Quality | pytest, ruff, ty, import-linter, node:test, Playwright |
+| Deploy | Docker on Render, deploys from `preprod` only after CI passes |
+
+### Run it locally
 
 Needs [uv](https://docs.astral.sh/uv/) and Node 24.
 
 ```bash
-cd backend && uv sync && cp .env.example .env     # add ANTHROPIC_API_KEY, or leave empty for demo mode
+cd backend && uv sync && cp .env.example .env   # add ANTHROPIC_API_KEY, or leave empty for demo mode
 uv run uvicorn bridge.main:create_app --factory --reload --port 8000
-cd ../frontend && npm ci && npm run dev           # http://localhost:5173
+cd ../frontend && npm ci && npm run dev         # http://localhost:5173
 ```
 
-Without an API key the app runs in **demo mode**: hand-written paths for the
-sample CVs, template plans and a length-based score, labeled on every screen.
+Without an API key Bridge runs in **demo mode**: hand-written paths for the
+sample CVs, labeled as samples on every screen.
 
-## Tests
+### Tests
 
 ```bash
-cd backend && uv run pytest            # rules, AI client (mocked SDK), full API flow
-cd frontend && npm test                # progress, money check, saved state
-cd frontend && npm run build && BASE=http://localhost:8000 npm run e2e   # real browser, phone + desktop
+cd backend && uv run pytest                     # rules, AI client (mocked), full API flow
+cd frontend && npm test                         # pure front-end logic
+cd frontend && npm run build && BASE=http://localhost:8000 npm run e2e   # judge path, phone + desktop
+BASE=http://localhost:8000 npm run qa           # deep QA: every input, country, link and reload
 ```
 
-CI (`.github/workflows/ci.yml`) also runs ruff, ty, import-linter, the API
-tests on Postgres, an npm audit and a Docker build smoke test.
+CI (`.github/workflows/ci.yml`) also runs the API tests on Postgres, an npm
+audit and a Docker build.
 
-## Deploy
+### Configuration
 
-- **App:** Render free web service, built from the `Dockerfile`, configured in
-  `render.yaml`. Production deploys from the `preprod` branch, only after
-  every CI check passes. Change it through a PR into `preprod`.
-- **Database:** Neon free Postgres. Only published proof pages are stored.
+Set in Render; names only, never values in git.
 
-Environment variables (names only, set in Render):
-
-| Name | Purpose |
+| Variable | Purpose |
 |---|---|
 | `ANTHROPIC_API_KEY` | Live AI. Without it: demo mode |
-| `DATABASE_URL` | Neon connection string (`postgresql://...?sslmode=require`) |
-| `SECRET_KEY` | Signs practice tasks and results (Render generates it) |
-| `AI_CALLS_PER_DAY` | Hard daily cap on live AI calls (default 400) |
-| `AI_CALLS_PER_CLIENT` | Per visitor per 10 minutes (default 40) |
-| `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Optional: live job listings near the user. Without them the plan links to LinkedIn and Indeed (plus hh.kz in Kazakhstan) |
-| `LLM_PROVIDER`, `BRIDGE_MODEL`, `BRIDGE_MODEL_FAST` | Optional overrides |
+| `DATABASE_URL` | Neon connection string |
+| `SECRET_KEY` | Signs practice tasks and scores (Render generates it) |
+| `AI_CALLS_PER_DAY`, `AI_CALLS_PER_CLIENT` | Spending caps (defaults 400 a day, 40 per visitor per 10 min) |
+| `YOUTUBE_API_KEY` | Optional: lesson videos on the plan |
+| `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Optional: live job listings |
 
-Models: Claude Sonnet 5.5 (`claude-sonnet-5-5`) for paths, plans, practice
-tasks and feedback; Claude Haiku 5.5 (`claude-haiku-5-5`) for sample answers.
+### Repository
 
-## Design
+```
+backend/src/bridge/   domain/ (rules) · llm/ (Claude + demo) · services/ · api/ · db/
+frontend/src/         routes/ · components/ · lib/ (pure logic) · state/ · styles/
+frontend/e2e/         walk.mjs (judge path) · qa.mjs (deep QA)
+docs/                 architecture diagram
+brand/                logo and icon kit
+```
 
-Visual system: **Midnight Navy + Signature Gold**, from the brand kit in
-[`brand/`](brand/) (logo, icons, favicon, palette and guide). The roadmap is
-drawn as a span: each week is a row of task bars sized by minutes, coloured by
-kind and filled when done, with the next step in gold. See
-[`DESIGN.md`](DESIGN.md) for tokens and rules and [`PRODUCT.md`](PRODUCT.md)
-for product facts.
-
-## How it is built
-
-See `CLAUDE.md` for the layout and the rules.
-
-- **The AI writes text; code owns every rule.** This covers time caps, task
-  ids, rubric ids, score caps and quote checks. Each rule is a pure function in
-  `backend/src/bridge/domain/` with a test.
-- **Privacy.** The CV is used for one request and never stored. Income never
-  leaves the browser. Only published proof pages are kept, and the author gets
-  a delete key.
-- **Not done yet:**
-  - live job-market or wage data (O\*NET / BLS);
-  - accounts and cross-device sync;
-  - payments;
-  - practice tasks beyond week 1 use the same engine without special tuning.
+More: [`DESIGN.md`](DESIGN.md) (visual system), [`PRODUCT.md`](PRODUCT.md)
+(product facts), [`CLAUDE.md`](CLAUDE.md) (code rules).

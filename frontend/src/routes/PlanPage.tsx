@@ -15,7 +15,7 @@ import { GrowingCalendar } from "../components/GrowingCalendar";
 import { JobsPanel } from "../components/JobsPanel";
 import { MoneyCheck } from "../components/MoneyCheck";
 import { MakeItStick } from "../components/MakeItStick";
-import { StudyPanel, WeekStudy, useStudyPlan } from "../components/StudyTrack";
+import { StudyPanel, VideosPanel, WeekStudy, useStudyPlan, useVideos } from "../components/StudyTrack";
 import { selectedCareer, setDone, withPractice, withRoadmap } from "../lib/journey";
 import { TASK_TYPE, WEEK_STATUS, hoursText, minutesText } from "../lib/labels";
 import { nextAction, progress, weekMinutes, weekStatus } from "../lib/progress";
@@ -42,7 +42,9 @@ export function PlanPage() {
     journey.roadmap?.targetRole ?? career?.title ?? "",
     journey.profile.monthlyLearningBudget,
     journey.roadmap?.hoursPerWeek ?? hours,
+    career?.field ?? "",
   );
+  const videos = useVideos(journey.roadmap?.targetRole ?? career?.title ?? "", career?.videoSearches ?? []);
   const sample = journey.careers?.mode === "sample";
 
   const build = useMutation({
@@ -180,7 +182,14 @@ export function PlanPage() {
         </Panel>
       )}
 
-      <StudyPanel query={study} budget={journey.profile.monthlyLearningBudget} currency={journey.profile.currency} />
+      <StudyPanel
+        query={study}
+        budget={journey.profile.monthlyLearningBudget}
+        currency={journey.profile.currency}
+        hasVideos={(videos.data?.videos.length ?? 0) > 0}
+      />
+
+      <VideosPanel query={videos} />
 
       <MakeItStick plan={plan} />
 
@@ -206,7 +215,7 @@ export function PlanPage() {
         );
       })}
 
-      <JobsPanel role={plan.targetRole} />
+      <JobsPanel role={plan.targetRole} titles={career?.jobTitles ?? []} field={career?.field ?? ""} />
 
       {(plan.cautions.length > 0 || plan.assumptions.length > 0) && (
         <Panel>

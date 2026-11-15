@@ -26,7 +26,7 @@ export function PathsPage() {
   const started = useRef(false);
 
   const careers = useMutation({
-    mutationFn: (sample: boolean) => bridgeApi.careers(memory.resumeText, getJourney().profile, sample),
+    mutationFn: (sample: boolean) => bridgeApi.careers(memory.resumeText, getJourney().profile, sample, memory.resumeSource),
     onSuccess: (data) => updateJourney((j) => withCareers(j, data)),
   });
 
@@ -42,9 +42,10 @@ export function PathsPage() {
   }, [request, careers, navigate]);
 
   const titles = journey.careers?.careers.map((c) => c.title) ?? [];
+  const fields = journey.careers?.careers.map((c) => c.field ?? "") ?? [];
   const pay = useQuery({
-    queryKey: ["pay", titles, journey.profile.country, journey.profile.location],
-    queryFn: () => bridgeApi.pay(titles, journey.profile.country || "us", journey.profile.location),
+    queryKey: ["pay", titles, fields, journey.profile.country, journey.profile.location],
+    queryFn: () => bridgeApi.pay(titles, journey.profile.country || "us", journey.profile.location, fields),
     enabled: titles.length > 0,
     staleTime: Infinity,
   });
@@ -121,6 +122,7 @@ export function PathsPage() {
           {profile.yearsExperience !== null && <> · {profile.yearsExperience} years</>}
           {profile.industry && <> · {profile.industry}</>}
         </p>
+        {profile.standout && <p className="standout">{profile.standout}</p>}
       </header>
 
       <TastingPanel onChoose={choose} />
@@ -205,6 +207,11 @@ function CareerCard({
       <details className="career__more">
         <summary>Why it fits you</summary>
         <p>{career.fitExplanation}</p>
+        {career.motivationMatch && (
+          <p className="career__why small">
+            <span className="strong">Against what you want:</span> {career.motivationMatch}
+          </p>
+        )}
         {career.transferableSkills.some((s) => s.verified) && (
           <ul className="plain small">
             {career.transferableSkills

@@ -57,6 +57,10 @@ def career_draft(title: str, quote: str = "Write rubrics and quick formative che
         relative_effort="lower",
         key_tradeoff="Less classroom time.",
         assumptions=[],
+        motivation_match="Fewer evenings of grading.",
+        field="learning",
+        job_titles=["Instructional Designer", "instructional designer", "Learning Designer"],
+        video_searches=["storyboarding tutorial"],
     )
 
 

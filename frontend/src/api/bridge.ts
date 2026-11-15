@@ -12,17 +12,19 @@ import type {
   Pay,
   Profile,
   Proof,
+  ResumeSource,
   Roadmap,
   StudyPlan,
   Task,
   Track,
+  VideosResult,
 } from "./types";
 
 export const bridgeApi = {
   config: () => api.get<AppConfig>("/api/config"),
 
-  careers: (resumeText: string, profile: Profile, sample = false) =>
-    api.post<CareersResponse>("/api/careers", { resumeText, profile, sample }),
+  careers: (resumeText: string, profile: Profile, sample = false, source: ResumeSource = "cv") =>
+    api.post<CareersResponse>("/api/careers", { resumeText, profile, sample, source }),
 
   roadmap: (career: Career, profile: Profile, track: Track, hoursPerWeek: number, sample = false) =>
     api.post<{ roadmap: Roadmap; mode: Mode }>("/api/roadmap", { career, profile, track, hoursPerWeek, sample }),
@@ -62,17 +64,30 @@ export const bridgeApi = {
     displayName: string;
   }) => api.post<{ proof: Proof; deleteKey: string }>("/api/proofs", body),
 
-  study: (role: string, paid: boolean, hours: number) =>
-    api.get<StudyPlan>(`/api/study?${new URLSearchParams({ role, paid: String(paid), hours: String(hours) })}`),
+  /** `field`: the study field the AI chose for the path ("" lets the server use the title). */
+  study: (role: string, paid: boolean, hours: number, field = "") =>
+    api.get<StudyPlan>(`/api/study?${new URLSearchParams({ role, paid: String(paid), hours: String(hours), field })}`),
 
-  /** One entry per role, in order; null where no official figure exists. */
-  pay: (roles: string[], country: string, location: string) =>
+  /** One entry per role, in order; null where no official figure exists.
+   * `fields` lines up with `roles` (the AI's study field for each). */
+  pay: (roles: string[], country: string, location: string, fields: string[] = []) =>
     api.get<(Pay | null)[]>(
-      `/api/pay?${new URLSearchParams([...roles.map((r): [string, string] => ["role", r]), ["country", country], ["location", location]])}`,
+      `/api/pay?${new URLSearchParams([
+        ...roles.map((r): [string, string] => ["role", r]),
+        ...fields.map((f): [string, string] => ["field", f]),
+        ["country", country],
+        ["location", location],
+      ])}`,
     ),
 
-  jobs: (role: string, city: string, country: string) =>
-    api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country })}`),
+  jobs: (role: string, city: string, country: string, field = "") =>
+    api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country, field })}`),
+
+  /** The best English YouTube video for each search phrase (at most 3). */
+  videos: (role: string, queries: string[]) =>
+    api.get<VideosResult>(
+      `/api/videos?${new URLSearchParams([["role", role], ...queries.slice(0, 3).map((q): [string, string] => ["q", q])])}`,
+    ),
 
   proof: (id: string) => api.get<Proof>(`/api/proofs/${encodeURIComponent(id)}`),
 

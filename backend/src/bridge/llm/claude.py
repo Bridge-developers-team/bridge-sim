@@ -19,7 +19,7 @@ from bridge.domain.drafts import (
     RoadmapDraft,
     SampleAnswerDraft,
 )
-from bridge.domain.models import Candidate, Career, Practice, Track
+from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
 from bridge.llm import prompts
 from bridge.llm.base import LlmError
 
@@ -105,10 +105,10 @@ class ClaudeWriter:
             raise LlmError("The AI returned an unreadable answer. Try again.", 502)
         return parsed
 
-    async def careers(self, *, resume: str, candidate: Candidate) -> CareersDraft:
+    async def careers(self, *, resume: str, candidate: Candidate, source: ResumeSource = "cv") -> CareersDraft:
         return await self._call(
             system=prompts.CAREERS_SYSTEM,
-            user=prompts.careers_user(resume, candidate),
+            user=prompts.careers_user(resume, candidate, source),
             schema=CareersDraft,
             effort="medium",
             model=self.models.main,

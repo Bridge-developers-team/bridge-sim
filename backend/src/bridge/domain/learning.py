@@ -21,6 +21,30 @@ from bridge.domain.text import clean
 # courses count as paid: its own FAQ says course materials need the paid
 # certificate option, with a free trial or a no-certificate option on some.
 Cost = Literal["free", "paid"]
+# The study fields the catalog covers, plus "other" for every role it does not.
+# The AI picks one per career (drafts.py); keep in sync with FIELDS below
+# (a test checks).
+FieldId = Literal[
+    "health-data",
+    "security",
+    "qa",
+    "ux",
+    "product",
+    "web",
+    "software",
+    "it-support",
+    "data",
+    "project",
+    "learning",
+    "hr",
+    "sales",
+    "marketing",
+    "finance",
+    "writing",
+    "content",
+    "business",
+    "other",
+]
 Format = Literal["certificate", "course", "lectures"]
 Pace = Literal["weekly", "course"]
 
@@ -820,7 +844,20 @@ FIELDS: tuple[Field, ...] = (
     Field(
         "software",
         "Software development",
-        ("software", "developer", "programmer", "back-end", "backend", "full stack", "full-stack", "devops", "coding"),
+        (
+            "software",
+            "developer",
+            "programmer",
+            "back-end",
+            "backend",
+            "full stack",
+            "full-stack",
+            "devops",
+            "coding",
+            "machine learning",
+            "ml engineer",
+            "ai engineer",
+        ),
         ("meta-back-end", "cs50x", "mit-6-0001", "mit-6-0001-videos", "cs50-videos"),
     ),
     Field(
@@ -857,6 +894,7 @@ FIELDS: tuple[Field, ...] = (
         "Instructional design and training",
         (
             "instructional",
+            "educator",
             "learning",
             "training",
             "trainer",
@@ -945,8 +983,25 @@ FIELDS: tuple[Field, ...] = (
         ("wharton-business-analytics", "mit-analytics-edge", "google-data-analytics", "learning-how-to-learn"),
     ),
 )
-GENERAL = Field("general", "Any new field", (), ("learning-how-to-learn", "cs50t"))
+# No hand-checked course for the role's field. Only a course on how to learn
+# any new skill, never a course from an unrelated field (a music teacher must
+# not be sent to a programming course); the plan's videos cover the role.
+GENERAL = Field("general", "Any new field", (), ("learning-how-to-learn",))
 _FIELD_BY_ID = {f.id: f for f in (*FIELDS, GENERAL)}
+
+# Titles where a keyword would pick the wrong field: a personal trainer is not
+# a corporate trainer, a security guard is not in cybersecurity, a video
+# editor is not a copy editor. These go to GENERAL unless the AI said otherwise.
+_NOT_A_FIELD = re.compile(
+    r"\b(personal|fitness|athletic|sports?|dog|horse|yoga|pilates)\s+(trainer|coach|instructor)"
+    r"|\bsecurity\s+(guard|officer)|\b(video|film|photo|music|sound)\s+editor"
+    r"|\bdriving\s+instructor|\b(music|art|dance|drama)\s+(teacher|tutor|instructor|educator)"
+)
+
+
+def field_prompt_list() -> str:
+    """The fields as the AI sees them: "id: label", one per line."""
+    return "\n".join(f"- {f.id}: {f.label}" for f in FIELDS) + "\n- other: none of the above really fits"
 
 
 def _pattern(keyword: str) -> re.Pattern[str]:
@@ -956,9 +1011,18 @@ def _pattern(keyword: str) -> re.Pattern[str]:
 _PATTERNS = [(f, [_pattern(k) for k in f.keywords]) for f in FIELDS]
 
 
-def match_field(role: str) -> Field:
-    """The field a role title belongs to; GENERAL when nothing matches."""
+def match_field(role: str, field_id: str = "") -> Field:
+    """The field a role belongs to. The AI's choice wins when it names a known
+    field ("other" means none fits: GENERAL). Without one (demo data, cards
+    saved before the AI chose fields), the title's keywords decide; GENERAL
+    when nothing matches."""
+    if field_id == "other":
+        return GENERAL
+    if field_id in _FIELD_BY_ID:
+        return _FIELD_BY_ID[field_id]
     title = clean(role, 120).lower()
+    if _NOT_A_FIELD.search(title):
+        return GENERAL
     for field, patterns in _PATTERNS:
         if any(p.search(title) for p in patterns):
             return field
@@ -978,7 +1042,7 @@ class StudyPlan(CamelModel):
     field: str
     field_label: str
     paid: bool  # paid options included (the user has a learning budget)
-    main: Course
+    main: Course | None  # None: no hand-checked course the user can take for this field
     weeks: list[StudyWeek]  # what of the main course goes into each roadmap week
     later: list[str]  # main-course modules left after the 30 days
     more: list[Course]  # other good options the user can take
@@ -1013,11 +1077,13 @@ def spread(modules: list[str], weeks: int = 4) -> list[list[str]]:
     ]
 
 
-def study_plan(role: str, paid: bool, hours_per_week: float, weeks: int = 4) -> StudyPlan:
-    field = match_field(role)
+def study_plan(role: str, paid: bool, hours_per_week: float, weeks: int = 4, field_id: str = "") -> StudyPlan:
+    field = match_field(role, field_id)
     usable = [COURSES[c] for c in field.courses if _allowed(COURSES[c], paid)]
-    if not usable:  # every field lists at least one free course; this is a guard
-        usable = [COURSES[c] for c in GENERAL.courses]
+    if not usable:
+        # Only GENERAL can get here (its one course is paid; every real field
+        # lists a free one). Better no course than one from an unrelated field.
+        return StudyPlan(field=field.id, field_label=field.label, paid=paid, main=None, weeks=[], later=[], more=[])
     main = usable[0]
     n = month_modules(main, hours_per_week)
     month = main.modules[:n]

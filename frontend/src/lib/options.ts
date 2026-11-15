@@ -121,47 +121,127 @@ export const MOTIVATIONS = [
   "Room to grow",
 ];
 
-/** Large US metros first (the hackathon market), then other big job markets.
- * Any other city can be typed into the search box. */
-export const CITIES = list([
-  "New York, NY",
-  "Los Angeles, CA",
-  "Chicago, IL",
-  "Houston, TX",
-  "Dallas, TX",
-  "Austin, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Diego, CA",
-  "San Francisco, CA",
-  "San Jose, CA",
-  "Seattle, WA",
-  "Denver, CO",
-  "Boston, MA",
-  "Atlanta, GA",
-  "Miami, FL",
-  "Orlando, FL",
-  "Washington, DC",
-  "Nashville, TN",
-  "Charlotte, NC",
-  "Raleigh, NC",
-  "Minneapolis, MN",
-  "Detroit, MI",
-  "Columbus, OH",
-  "Portland, OR",
-  "Salt Lake City, UT",
-  "Las Vegas, NV",
-  "Remote",
-  "London",
-  "Toronto",
-  "Sydney",
-  "Berlin",
-  "Almaty",
-  "Astana",
-]);
+/** Big job markets in each country the form offers, largest first. Any other
+ * place can be typed into the search box. US cities carry the state code: the
+ * pay table reads the state from it ("Austin, TX" -> Texas). */
+export const CITIES_BY_COUNTRY: Record<string, string[]> = {
+  us: [
+    "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Dallas, TX", "Austin, TX",
+    "Phoenix, AZ", "Philadelphia, PA", "San Antonio, TX", "San Diego, CA", "San Francisco, CA",
+    "San Jose, CA", "Seattle, WA", "Denver, CO", "Boston, MA", "Atlanta, GA", "Miami, FL", "Orlando, FL",
+    "Tampa, FL", "Washington, DC", "Baltimore, MD", "Nashville, TN", "Charlotte, NC", "Raleigh, NC",
+    "Minneapolis, MN", "Detroit, MI", "Columbus, OH", "Indianapolis, IN", "Kansas City, MO", "St. Louis, MO",
+    "Portland, OR", "Salt Lake City, UT", "Las Vegas, NV", "Pittsburgh, PA", "Sacramento, CA",
+  ],
+  gb: [
+    "London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Edinburgh", "Bristol", "Liverpool",
+    "Newcastle upon Tyne", "Sheffield", "Nottingham", "Cardiff", "Belfast", "Cambridge", "Oxford", "Reading",
+    "Southampton", "Brighton", "Leicester", "Aberdeen",
+  ],
+  ca: [
+    "Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton", "Ottawa", "Winnipeg", "Quebec City",
+    "Hamilton", "Kitchener", "London, ON", "Victoria", "Halifax", "Saskatoon", "Regina", "Mississauga",
+  ],
+  au: [
+    "Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra", "Gold Coast", "Newcastle, NSW",
+    "Hobart", "Darwin", "Geelong", "Wollongong",
+  ],
+  de: [
+    "Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne", "Stuttgart", "Düsseldorf", "Leipzig", "Dresden",
+    "Hanover", "Nuremberg", "Bremen", "Essen", "Dortmund", "Bonn", "Karlsruhe", "Mannheim",
+  ],
+  fr: [
+    "Paris", "Lyon", "Marseille", "Toulouse", "Lille", "Bordeaux", "Nantes", "Nice", "Strasbourg",
+    "Montpellier", "Rennes", "Grenoble",
+  ],
+  nl: [
+    "Amsterdam", "Rotterdam", "The Hague", "Utrecht", "Eindhoven", "Groningen", "Tilburg", "Almere",
+    "Breda", "Nijmegen", "Haarlem", "Leiden",
+  ],
+  in: [
+    "Bengaluru", "Mumbai", "Delhi", "Hyderabad", "Chennai", "Pune", "Gurugram", "Noida", "Kolkata",
+    "Ahmedabad", "Jaipur", "Kochi", "Chandigarh", "Coimbatore", "Indore", "Lucknow",
+  ],
+  sg: ["Singapore"],
+  kz: [
+    "Almaty", "Astana", "Shymkent", "Karaganda", "Aktobe", "Atyrau", "Aktau", "Pavlodar",
+    "Ust-Kamenogorsk", "Kostanay", "Taraz", "Semey", "Kyzylorda", "Uralsk", "Petropavl", "Turkestan",
+  ],
+};
 
-/** Country for job searches. Live listings exist for the first group; any
- * country still gets LinkedIn, Indeed and Google Jobs links. */
+/** The pick list for one country, with "Remote" last. */
+export function citiesFor(country: string): Option[] {
+  return list([...(CITIES_BY_COUNTRY[country] ?? []), "Remote"]);
+}
+
+/** Each country's own currency, where the form offers it. */
+export const COUNTRY_CURRENCY: Record<string, string> = {
+  us: "USD",
+  gb: "GBP",
+  ca: "CAD",
+  au: "AUD",
+  de: "EUR",
+  fr: "EUR",
+  nl: "EUR",
+  kz: "KZT",
+};
+
+/** A best guess at the user's country from the browser's time zone, so a
+ * visitor from Almaty does not start in the United States. Anything unknown
+ * starts in the United States, the hackathon's market. */
+export function countryFromTimeZone(timeZone: string): string {
+  const tz = timeZone || "";
+  const exact: Record<string, string> = {
+    "Europe/London": "gb",
+    "Europe/Belfast": "gb",
+    "Europe/Berlin": "de",
+    "Europe/Busingen": "de",
+    "Europe/Paris": "fr",
+    "Europe/Amsterdam": "nl",
+    "Asia/Kolkata": "in",
+    "Asia/Calcutta": "in",
+    "Asia/Singapore": "sg",
+  };
+  if (exact[tz]) return exact[tz];
+  if (/^Australia\//.test(tz)) return "au";
+  if (/^Asia\/(Almaty|Qostanay|Aqtobe|Aqtau|Atyrau|Oral|Qyzylorda)$/.test(tz)) return "kz";
+  if (
+    /^America\/(Toronto|Montreal|Vancouver|Edmonton|Winnipeg|Halifax|Regina|St_Johns|Moncton|Whitehorse|Yellowknife|Iqaluit|Glace_Bay|Goose_Bay|Swift_Current|Dawson_Creek|Fort_Nelson|Cambridge_Bay|Rankin_Inlet|Resolute|Inuvik|Atikokan|Blanc-Sablon|Creston|Dawson)$/.test(
+      tz,
+    )
+  )
+    return "ca";
+  return "us";
+}
+
+export function browserCountry(): string {
+  try {
+    return countryFromTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  } catch {
+    return "us";
+  }
+}
+
+/** A new country on the form: the city is kept only if it belongs to that
+ * country's list (or is "Remote"), and the currency follows the country, with
+ * the learning budget moved to the same step in the new currency. */
+export function withCountry<P extends { country: string; location: string; currency: string; monthlyLearningBudget: number }>(
+  profile: P,
+  country: string,
+): P {
+  const keepCity =
+    profile.location.toLowerCase() === "remote" ||
+    (CITIES_BY_COUNTRY[country] ?? []).some((c) => c.toLowerCase() === profile.location.toLowerCase());
+  const currency = COUNTRY_CURRENCY[country] ?? profile.currency;
+  return {
+    ...profile,
+    country,
+    location: keepCity ? profile.location : "",
+    currency,
+    monthlyLearningBudget: convertBudget(profile.monthlyLearningBudget, profile.currency, currency),
+  };
+}
+
 export const COUNTRIES: Option[] = [
   { value: "us", label: "United States" },
   { value: "gb", label: "United Kingdom" },

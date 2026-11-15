@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from bridge.domain.learning import FieldId
 from bridge.domain.models import Effort, TaskType
 
 
@@ -22,6 +23,11 @@ class ProfileRead(BaseModel):
     )
     industry: str = Field(description="Current industry or field, e.g. 'K-12 education'")
     evidence_note: str = Field(description="One sentence on how complete the resume evidence is; say plainly if thin")
+    standout: str = Field(
+        description="One sentence, addressed to the person as 'you', on the most distinctive pattern in their "
+        "experience: what they repeatedly do and achieve that most people in their role do not. Cite specifics "
+        "(numbers, scope, kinds of work). Empty string if the text is too thin to say anything specific."
+    )
 
 
 class SkillDraft(BaseModel):
@@ -40,6 +46,24 @@ class CareerDraft(BaseModel):
     relative_effort: Effort = Field(description="Qualitative transition effort compared with the other two paths")
     key_tradeoff: str = Field(description="One honest trade-off of this path")
     assumptions: list[str] = Field(description="0-3 assumptions or uncertainties behind this recommendation")
+    motivation_match: str = Field(
+        description="1-2 sentences, addressed as 'you', on how this path serves the reasons they gave for "
+        "changing and their constraints (free hours, budget, location), and honestly where it does not. "
+        "Empty string if they gave no reasons or constraints."
+    )
+    field: FieldId = Field(
+        description="The study field from the FIELDS list in the instructions that matches this role's day-to-day "
+        "work, or 'other' when none of them really fits. Never pick a field just because one word matches."
+    )
+    job_titles: list[str] = Field(
+        description="2-3 job-post titles, as employers write them, this person could apply for first on this path "
+        "(the realistic entry point for their seniority), e.g. 'Instructional Designer', 'Learning Experience "
+        "Designer', 'Training Specialist'"
+    )
+    video_searches: list[str] = Field(
+        description="2-3 English YouTube searches (3-6 words each) a beginner would type to learn this path's "
+        "missing skills, specific to this role, e.g. 'storyboarding for e-learning tutorial'"
+    )
 
 
 class CareersDraft(BaseModel):
