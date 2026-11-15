@@ -7,7 +7,7 @@ import { OptionList, Picker } from "../components/ui/Picker";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
 import { ArrowRightIcon, ChevronDownIcon, FileIcon, UploadIcon } from "../components/Icons";
 import { readCvFile } from "../lib/pdf";
-import { BUDGETS, CITIES, COUNTRIES, CURRENCIES, CURRENT_ROLES, HOURS, MOTIVATIONS, TARGET_ROLES } from "../lib/options";
+import { budgetLabel, budgetSteps, CITIES, COUNTRIES, CURRENCIES, convertBudget, CURRENT_ROLES, HOURS, MOTIVATIONS, TARGET_ROLES } from "../lib/options";
 import { memory, updateJourney, useJourney } from "../state/journey";
 
 type Source = { kind: "file" | "sample" | "paste"; name: string } | null;
@@ -77,7 +77,7 @@ export function StartPage() {
   const tracks = config.data?.tracks ?? [];
   const trackIndex = Math.max(0, tracks.findIndex((t) => t.id === profile.transitionPreference));
   const track = tracks[trackIndex];
-  const budgetText = profile.monthlyLearningBudget === 0 ? "Free resources only" : `${profile.monthlyLearningBudget} ${profile.currency} a month`;
+  const budgetText = budgetLabel(profile.monthlyLearningBudget, profile.currency);
 
   return (
     <form className="start" onSubmit={submit} noValidate>
@@ -243,12 +243,24 @@ export function StartPage() {
           <Picker
             label="Learning budget"
             title="Monthly learning budget"
-            options={BUDGETS.map((b) => ({ value: String(b), label: b === 0 ? "Free resources only" : `${b} ${profile.currency} a month` }))}
+            options={budgetSteps(profile.currency).map((b) => ({ value: String(b), label: budgetLabel(b, profile.currency) }))}
             display={budgetText}
             value={String(profile.monthlyLearningBudget)}
             onChange={(v) => set("monthlyLearningBudget", Number(v))}
           />
-          <Picker label="Currency" title="Currency" options={currencyOptions} value={profile.currency} onChange={(v) => set("currency", v)} />
+          <Picker
+            label="Currency"
+            title="Currency"
+            options={currencyOptions}
+            value={profile.currency}
+            onChange={(v) =>
+              setProfile((p) => ({
+                ...p,
+                currency: v,
+                monthlyLearningBudget: convertBudget(p.monthlyLearningBudget, p.currency, v),
+              }))
+            }
+          />
           <Picker
             label="City"
             title="Your city, for local job openings"
@@ -307,7 +319,7 @@ export function StartPage() {
       <div className="submit-bar">
         <p className="submit-bar__summary small">
           <span>{profile.hoursPerWeek} h a week</span>
-          <span>{profile.monthlyLearningBudget === 0 ? "Free only" : `${profile.monthlyLearningBudget} ${profile.currency}`}</span>
+          <span>{profile.monthlyLearningBudget === 0 ? "Free only" : `${profile.monthlyLearningBudget.toLocaleString("en-US")} ${profile.currency}`}</span>
           {track && <span>{track.label.replace(/ Track$/, "")} pace</span>}
         </p>
         <button type="submit" className="btn btn--primary btn--cta">
