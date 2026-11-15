@@ -33,17 +33,17 @@ def test_the_ai_field_list_matches_the_catalog():
 def test_a_role_outside_the_catalog_never_gets_a_course_from_another_field():
     # The reported bug: a music teacher was sent to Harvard's CS50.
     for role, field in [("Music Teacher", ""), ("Music Teacher", "other"), ("Pastry Chef", ""), ("Paramedic", "")]:
-        free = study_plan(role, paid=False, hours_per_week=5, field_id=field)
-        paid = study_plan(role, paid=True, hours_per_week=5, field_id=field)
+        free = study_plan(role, budget_usd=0, hours_per_week=5, field_id=field)
+        paid = study_plan(role, budget_usd=100, hours_per_week=5, field_id=field)
         assert free.field == "general" and free.main is None and free.more == [], role
         assert paid.main is not None and paid.main.id == "learning-how-to-learn" and not paid.more, role
         assert all("cs50" not in c.id for c in [*filter(None, [paid.main]), *paid.more])
 
 
 def test_the_ai_field_beats_title_keywords_and_keywords_skip_false_friends():
-    assert study_plan("Machine Learning Engineer", paid=False, hours_per_week=5).field == "software"
-    assert study_plan("Learning Consultant", paid=False, hours_per_week=5, field_id="hr").field == "hr"
-    assert study_plan("Data Analyst", paid=False, hours_per_week=5, field_id="nonsense").field == "data"
+    assert study_plan("Machine Learning Engineer", budget_usd=0, hours_per_week=5).field == "software"
+    assert study_plan("Learning Consultant", budget_usd=0, hours_per_week=5, field_id="hr").field == "hr"
+    assert study_plan("Data Analyst", budget_usd=0, hours_per_week=5, field_id="nonsense").field == "data"
     for role in ["Personal Trainer", "Security Guard", "Video Editor", "Music Educator", "Yoga Instructor"]:
         assert match_field(role).id == "general", role
     assert match_field("Clinical Educator").id == "learning"
@@ -61,8 +61,8 @@ def test_role_titles_map_to_the_right_field_and_unknown_ones_to_general():
 
 
 def test_without_a_budget_only_free_courses_are_offered():
-    plan = study_plan("Data analyst", paid=False, hours_per_week=5)
-    with_budget = study_plan("Data analyst", paid=True, hours_per_week=5)
+    plan = study_plan("Data analyst", budget_usd=0, hours_per_week=5)
+    with_budget = study_plan("Data analyst", budget_usd=60, hours_per_week=5)
 
     assert plan.main is not None and plan.main.cost != "paid" and all(c.cost != "paid" for c in plan.more)
     assert with_budget.main.id == "google-data-analytics"
@@ -75,7 +75,7 @@ def test_the_main_course_is_spread_over_the_month_at_a_realistic_pace():
     assert month_modules(lectures, 3) == 4
     assert month_modules(certificate, 5) == 1 and month_modules(certificate, 10) == 2
     assert spread(["A", "B"]) == [["A"], ["A"], ["B"], ["B"]]
-    plan = study_plan("Data analyst", paid=True, hours_per_week=10)
+    plan = study_plan("Data analyst", budget_usd=60, hours_per_week=10)
     assert [w.modules for w in plan.weeks][2] == [certificate.modules[1]]
     assert plan.later == certificate.modules[2:]
 
@@ -95,3 +95,28 @@ def test_kazakhstan_pay_is_a_monthly_range_across_industries_and_other_countries
     assert kz and kz.currency == "KZT" and kz.period == "month" and kz.low < kz.high
     assert pay_for("Software developer", "de") is None
     assert pay_for("Product manager", "us") is None  # no official US occupation
+
+
+def test_web_picks_keep_only_real_results_and_respect_a_zero_budget():
+    from bridge.domain.drafts import CoursePickDraft, PayEstimateDraft
+    from bridge.domain.learning import pick_courses
+    from bridge.domain.pay import estimate_from_draft
+    from bridge.domain.web import Found, harvest
+
+    found = harvest(
+        [
+            Found("https://www.coursera.org/learn/hr", "HR basics"),
+            Found("https://www.youtube.com/results?search_query=hr", "A search page"),
+            Found("https://ocw.mit.edu/courses/hr/", "MIT HR"),
+        ]
+    )
+    picks = [CoursePickDraft(index=9, free=True, why="made up"), CoursePickDraft(index=0, free=False, why="paid")]
+    picks.append(CoursePickDraft(index=1, free=True, why="free"))
+
+    assert [f.title for f in found] == ["HR basics", "MIT HR"]  # search pages never count
+    assert [c.title for c in pick_courses(found, picks, budget_usd=0)] == ["MIT HR"]
+    assert len(pick_courses(found, picks, budget_usd=100)) == 2
+    draft = PayEstimateDraft(found=True, source=1, low=500000, high=300000, currency="kzt", period="monthly", note="x")
+    pay = estimate_from_draft("HR generalist", "Almaty, Kazakhstan", draft, found)
+    assert pay and pay.low == 300000 and pay.currency == "KZT" and pay.period == "month" and pay.url == found[1].url
+    assert estimate_from_draft("HR", "Almaty", draft.model_copy(update={"source": 7}), found) is None

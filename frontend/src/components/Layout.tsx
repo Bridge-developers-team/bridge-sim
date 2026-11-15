@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useJourney } from "../state/journey";
 import { BridgeLogo } from "./Icons";
@@ -6,6 +7,8 @@ import { ThemeToggle } from "./ThemeToggle";
 export function Layout() {
   const journey = useJourney();
   const { pathname } = useLocation();
+  const [pop, setPop] = useState(0);
+  const popTimer = useRef<number | undefined>(undefined);
   return (
     <>
       <div className="ambient" aria-hidden="true">
@@ -15,7 +18,17 @@ export function Layout() {
       </div>
       <header className="top">
         <div className="top__inner">
-          <Link to="/" className="brand" aria-label="Bridge home">
+          <Link
+            to="/"
+            className={`brand ${pop ? "is-pop" : ""}`}
+            key={pop}
+            aria-label="Bridge home"
+            onClick={() => {
+              window.clearTimeout(popTimer.current);
+              setPop((n) => n + 1);
+              popTimer.current = window.setTimeout(() => setPop(0), 1000);
+            }}
+          >
             <BridgeLogo />
           </Link>
           <nav className="nav" aria-label="Main">

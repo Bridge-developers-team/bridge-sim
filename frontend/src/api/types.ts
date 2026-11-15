@@ -181,14 +181,20 @@ export interface Course {
   modules: string[];
   pace: "weekly" | "course";
   why: string;
+  /** Paid only: the US monthly price, rounded; 0 when unknown. */
+  monthlyUsd: number;
+  /** True when the AI found it on the web for this exact role. */
+  found: boolean;
 }
 
 /** The main course spread over the 30 days, plus other options. */
 export interface StudyPlan {
   field: string;
   fieldLabel: string;
-  paid: boolean;
-  /** null: no hand-checked course for this field (the plan's videos cover it). */
+  /** False: no catalog field fits this role, so web-found courses lead. */
+  matched: boolean;
+  budgetUsd: number;
+  /** null: no checked course for this field (web-found courses and videos cover it). */
   main: Course | null;
   weeks: { week: number; modules: string[] }[];
   later: string[];
@@ -203,12 +209,14 @@ export interface Pay {
   area: string;
   currency: string;
   period: "year" | "month";
-  stat: "median" | "average";
+  stat: "median" | "average" | "estimate";
   low: number;
   high: number;
   note: string;
   source: string;
   url: string;
+  /** official: a statistics table; estimate: a figure the AI found on a cited web page. */
+  kind: "official" | "estimate";
 }
 
 export interface JobListing {
@@ -237,6 +245,18 @@ export interface JobLink {
   site: string;
   url: string;
   hint: string;
+}
+
+/** Meeting a job before planning for it. */
+export interface JobIntro {
+  role: string;
+  oneLiner: string;
+  responsibilities: string[];
+  day: { time: string; what: string }[];
+  tools: string[];
+  youWillLike: string[];
+  hardParts: string[];
+  howToStart: string[];
 }
 
 /** One YouTube video (backend domain/videos.py). */

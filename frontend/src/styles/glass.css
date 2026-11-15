@@ -1156,7 +1156,7 @@ body {
   to {
     opacity: 1;
     transform: none;
-    clip-path: inset(0 0 0 0);
+    clip-path: inset(-12px -12px -12px -12px);
   }
 }
 
@@ -1183,7 +1183,17 @@ body {
 }
 
 .picklist__search:focus-within {
-  box-shadow: 0 0 0 2px var(--focus-gold);
+  box-shadow: inset 0 0 0 2px var(--focus-gold);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dark .picklist__search:focus-within {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.picklist__more {
+  grid-column: 1 / -1;
+  padding: var(--space-100) var(--space-150);
 }
 
 .picklist__search input {

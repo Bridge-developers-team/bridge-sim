@@ -4,18 +4,15 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
 import type { Career, Pay } from "../api/types";
-import { useQuery } from "@tanstack/react-query";
-import { COUNTRIES } from "../lib/options";
+import { PayLine, usePathPay } from "../components/PayLine";
 import { Button } from "../components/ui/Button";
 import { ErrorBox } from "../components/ui/ErrorBox";
 import { Lozenge } from "../components/ui/Lozenge";
 import { ModeBanner } from "../components/ui/ModeBanner";
 import { Panel, PanelBody } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
-import { TastingPanel } from "../components/TastingPanel";
-import { chooseCareer, type Tasting, withCareers } from "../lib/journey";
-import { ENERGY_LABELS } from "../lib/tasting";
-import { CheckIcon } from "../components/Icons";
+import { chooseCareer, withCareers } from "../lib/journey";
+import { ArrowRightIcon, CheckIcon } from "../components/Icons";
 import { EFFORT } from "../lib/labels";
 import { getJourney, memory, updateJourney, useJourney } from "../state/journey";
 
@@ -41,14 +38,7 @@ export function PathsPage() {
     }
   }, [request, careers, navigate]);
 
-  const titles = journey.careers?.careers.map((c) => c.title) ?? [];
-  const fields = journey.careers?.careers.map((c) => c.field ?? "") ?? [];
-  const pay = useQuery({
-    queryKey: ["pay", titles, fields, journey.profile.country, journey.profile.location],
-    queryFn: () => bridgeApi.pay(titles, journey.profile.country || "us", journey.profile.location, fields),
-    enabled: titles.length > 0,
-    staleTime: Infinity,
-  });
+  const pay = usePathPay();
 
   const choose = (career: Career) => {
     updateJourney((j) => chooseCareer(j, career.id));
@@ -116,7 +106,7 @@ export function PathsPage() {
       />
       <header className="page-head">
         <h1>You're not starting from zero.</h1>
-        <p className="lead">Three paths that reuse what you already do. Taste them, then pick one.</p>
+        <p className="lead">Three paths that reuse what you already do. Meet each job first, then build a plan for the one you want.</p>
         <p className="muted small">
           Read as {profile.currentRole}
           {profile.yearsExperience !== null && <> · {profile.yearsExperience} years</>}
@@ -125,19 +115,17 @@ export function PathsPage() {
         {profile.standout && <p className="standout">{profile.standout}</p>}
       </header>
 
-      <TastingPanel onChoose={choose} />
-
       <div className="card-grid">
         {paths.map((career, i) => (
           <CareerCard
             key={career.id}
             career={career}
-            tasting={journey.tastings[career.id]}
+            met={Boolean(journey.intros[career.id]?.seen)}
             pay={pay.data?.[i]}
-            payLoaded={pay.isSuccess}
+            payLoading={pay.isLoading}
             country={country}
             chosen={journey.careerId === career.id}
-            onTaste={() => navigate(`/taste/${career.id}`)}
+            onMeet={() => navigate(`/meet/${career.id}`)}
             onChoose={() => choose(career)}
           />
         ))}
@@ -149,25 +137,24 @@ export function PathsPage() {
 
 function CareerCard({
   career,
-  tasting,
+  met,
   pay,
-  payLoaded,
+  payLoading,
   country,
   chosen,
-  onTaste,
+  onMeet,
   onChoose,
 }: {
   career: Career;
-  tasting: Tasting | undefined;
+  met: boolean;
   pay: Pay | null | undefined;
-  payLoaded: boolean;
+  payLoading: boolean;
   country: string;
   chosen: boolean;
-  onTaste: () => void;
+  onMeet: () => void;
   onChoose: () => void;
 }) {
   const effort = EFFORT[career.relativeEffort];
-  const tasted = tasting?.evaluation;
   return (
     <article className={`panel career ${chosen ? "career--chosen" : ""}`}>
       <div className="career__head">
@@ -175,7 +162,7 @@ function CareerCard({
         <Lozenge tone={effort.tone}>{effort.label}</Lozenge>
       </div>
       <p className="career__summary">{career.roleSummary}</p>
-      {payLoaded && <PayLine pay={pay ?? null} country={country} />}
+      <PayLine pay={pay} loading={payLoading} country={country} />
 
       {career.transferableSkills.length > 0 && (
         <div className="career__tags">
@@ -230,54 +217,26 @@ function CareerCard({
       </details>
 
       <div className="career__action">
-        {tasted && (
-          <p className="small tabular">
-            <span className="strong">Your taste:</span> {tasted.totalScore}/{tasted.maxTotal}
-            {tasting.energy !== undefined && <> · "{ENERGY_LABELS[tasting.energy]}"</>}
-          </p>
-        )}
-        <div className="row">
-          <Button variant={tasted ? "subtle" : "default"} onClick={onTaste}>
-            {tasted ? (tasting.energy === undefined ? "Finish the taste" : "Open my taste") : "Taste it · 10 min"}
-          </Button>
-          <Button variant={chosen ? "primary" : "default"} onClick={onChoose}>
-            {chosen ? "Open my 30-day plan" : "Build my 30-day plan"}
-          </Button>
-        </div>
+        <button type="button" className={`meet-btn ${met ? "is-met" : ""}`} onClick={onMeet}>
+          <span className="meet-btn__step">1</span>
+          <span className="meet-btn__text">
+            <strong>{met ? "Meet the job again" : "Meet the job"}</strong>
+            <span>What you’d do, a typical day, the pay</span>
+          </span>
+          <span className="meet-btn__go" aria-hidden="true">
+            <ArrowRightIcon />
+          </span>
+        </button>
+        <button
+          type="button"
+          className={`plan-btn ${met || chosen ? "is-ready" : ""}`}
+          onClick={onChoose}
+          title={met ? undefined : "Meet the job first, so the plan is for a job you want"}
+        >
+          <span className="plan-btn__step">2</span>
+          <span>{chosen ? "Open my 30-day plan" : met ? "Build my 30-day plan" : "Skip to the plan"}</span>
+        </button>
       </div>
     </article>
-  );
-}
-
-function money(n: number, currency: string): string {
-  return currency === "KZT" ? `${n.toLocaleString("en-US")} ₸` : n.toLocaleString("en-US", { style: "currency", currency, maximumFractionDigits: 0 });
-}
-
-/** Typical pay for this path where the user lives, from an official table,
- * with the source one tap away. No figure is ever estimated. */
-function PayLine({ pay, country }: { pay: Pay | null; country: string }) {
-  if (!pay) {
-    const name = COUNTRIES.find((c) => c.value === country)?.label ?? "your country";
-    return (
-      <p className="pay pay--none small muted">
-        No official pay figure for this role in {name} yet. Job listings on your plan show pay when employers post it.
-      </p>
-    );
-  }
-  const amount = pay.low === pay.high ? money(pay.low, pay.currency) : `${money(pay.low, pay.currency)} – ${money(pay.high, pay.currency)}`;
-  return (
-    <div className="pay">
-      <p className="pay__amount">
-        <span className="label">Typical pay in {pay.area}</span>
-        <strong className="tabular">{amount}</strong> <span className="muted small">a {pay.period}</span>
-      </p>
-      <p className="fine">
-        {pay.stat === "median" ? "Median" : "Average"} for “{pay.occupation}”, the closest official job title.
-        {pay.note && <> {pay.note}</>}{" "}
-        <a href={pay.url} target="_blank" rel="noopener noreferrer">
-          {pay.source}
-        </a>
-      </p>
-    </div>
   );
 }

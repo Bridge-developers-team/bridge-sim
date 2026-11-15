@@ -81,20 +81,22 @@ async function startPage() {
 
   // Country first: Kazakhstan shows Kazakh cities only, switches to tenge, and clears a US city.
   await page.getByRole("button", { name: /^City/ }).click();
-  await list(page, "Your city, for local job openings").getByRole("button", { name: "Austin, TX" }).click();
+  await list(page, "Your city in United States").getByRole("button", { name: "Austin, TX" }).click();
   await page.getByRole("button", { name: /^Country/ }).click();
   await list(page, "Country").getByRole("button", { name: "Kazakhstan" }).click();
   await page.getByRole("button", { name: /^City/ }).filter({ hasText: "Optional" }).waitFor();
   await page.getByRole("button", { name: /^Currency/ }).filter({ hasText: "KZT" }).waitFor();
   await page.getByRole("button", { name: /^City/ }).click();
-  const cityList = list(page, "Your city, for local job openings");
+  const cityList = list(page, "Your city in Kazakhstan");
+  await cityList.getByRole("button", { name: "Almaty" }).waitFor();
   check(await cityList.getByRole("button", { name: "Almaty" }).isVisible(), "start: Almaty missing for Kazakhstan");
   check((await cityList.getByRole("button", { name: "Austin, TX" }).count()) === 0, "start: US city offered for Kazakhstan");
   await cityList.getByRole("button", { name: "Almaty" }).click();
-  await page.getByRole("button", { name: /^Learning budget/ }).click();
-  const budgets = await list(page, "Monthly learning budget").getByRole("button").allTextContents();
-  check(budgets.some((b) => b.includes("50,000 KZT")), `start: KZT budget steps missing: ${budgets}`);
-  await list(page, "Monthly learning budget").getByRole("button", { name: /^Free resources only/ }).click();
+  // The budget is a typed amount in the country's currency.
+  await page.getByLabel(/Learning budget/).fill("20000");
+  await page.getByText("KZT a month", { exact: true }).waitFor();
+  await page.getByText("Paid courses and certificates that fit this budget are included.").waitFor();
+  await page.getByLabel(/Learning budget/).fill("0");
   await noSideScroll(page, "start");
 
   await page.getByRole("button", { name: "Find my 3 paths" }).click();
@@ -139,8 +141,9 @@ async function noCrossFieldCourse() {
   await page.getByRole("button", { name: "Find my 3 paths" }).click();
   await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
   const card = page.locator("article.career").filter({ hasText: "Quality Improvement Coordinator" });
-  await card.getByRole("button", { name: "Build my 30-day plan" }).click();
-  await page.getByRole("heading", { name: "Your course for this month" }).waitFor();
+  await card.getByRole("button", { name: /Skip to the plan|Build my 30-day plan/ }).click();
+  await page.getByRole("heading", { name: "What to study this month" }).waitFor();
+  await page.locator(".study").filter({ hasText: "does not cover this path yet" }).waitFor();
   const study = await page.locator(".study").innerText();
   check(!/CS50|Harvard|programming/i.test(study), `course: unrelated course for a quality coordinator: ${study.slice(0, 200)}`);
   check(study.includes("does not cover this path yet"), "course: no honest 'no match' message");
@@ -163,9 +166,10 @@ async function noCrossFieldCourse() {
   const ukIndeed = await jobs.getByRole("link", { name: /^Indeed/ }).getAttribute("href");
   check(ukIndeed.startsWith("https://uk.indeed.com/"), `jobs: Indeed not UK after switching country: ${ukIndeed}`);
   await jobs.getByRole("button", { name: /^City/ }).click();
-  const ukCities = await list(page, "Your city").getByRole("button").allTextContents();
+  await list(page, "Your city in").getByRole("button", { name: "Manchester" }).waitFor();
+  const ukCities = await list(page, "Your city in").getByRole("button").allTextContents();
   check(ukCities.some((c) => c.includes("Manchester")) && !ukCities.some((c) => c.includes(", TX")), "jobs: city list not UK");
-  await list(page, "Your city").getByRole("button", { name: "Manchester" }).click();
+  await list(page, "Your city in").getByRole("button", { name: "Manchester" }).click();
   await page.waitForFunction(() =>
     [...document.querySelectorAll("a")].some((a) => a.href.includes("location=Manchester%2C+United+Kingdom")),
   );
@@ -211,7 +215,7 @@ async function directLinks() {
   await page.reload();
   await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
   check((await page.locator("article.career").count()) === 3, "links: paths lost after reload");
-  await page.locator("article.career").first().getByRole("button", { name: "Build my 30-day plan" }).click();
+  await page.locator("article.career").first().getByRole("button", { name: /Skip to the plan|Build my 30-day plan/ }).click();
   await page.locator("#packet-role").waitFor();
   await page.reload();
   await page.locator("#packet-role").waitFor();
@@ -227,7 +231,7 @@ async function planControls() {
   const { browser, page, context } = await open("plan", { width: 1280, height: 900 });
   await page.goto(BASE + "/");
   await page.getByRole("button", { name: "Try the demo" }).click();
-  await page.locator("article.career").first().getByRole("button", { name: "Build my 30-day plan" }).click();
+  await page.locator("article.career").first().getByRole("button", { name: /Skip to the plan|Build my 30-day plan/ }).click();
   await page.locator("#packet-role").waitFor();
   const before = await page.getByText(/tasks done/).innerText();
   const box = page.locator(".tasks input[type=checkbox], .tasks [role=checkbox]").nth(1);

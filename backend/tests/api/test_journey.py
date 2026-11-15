@@ -203,8 +203,8 @@ def test_the_input_type_reaches_the_ai_and_paths_come_back_personal(live, fake_a
 def test_courses_and_pay_follow_the_field_the_ai_chose(demo):
     music = demo.get("/api/study", params={"role": "Music Teacher", "field": "other"}).json()
     as_data = demo.get("/api/study", params={"role": "Insights Partner", "field": "data"}).json()
-    pay = demo.get("/api/pay", params=[("role", "Insights Partner"), ("field", "data"), ("country", "us")]).json()
-    analyst = demo.get("/api/pay", params=[("role", "Data Analyst"), ("country", "us")]).json()
+    pay = demo.post("/api/pay", json={"roles": ["Insights Partner"], "fields": ["data"], "country": "us"}).json()
+    analyst = demo.post("/api/pay", json={"roles": ["Data Analyst"], "country": "us"}).json()
 
     assert music["field"] == "general" and music["main"] is None
     assert as_data["field"] == "data" and "cs50" in as_data["main"]["id"]

@@ -3,7 +3,7 @@ import { type ReactNode, useState } from "react";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
 import type { JobLink } from "../api/types";
-import { citiesFor, COUNTRIES, withCountry } from "../lib/options";
+import { COUNTRIES, countryName, withCountry } from "../lib/options";
 import { connectionNote } from "../lib/outreach";
 import { updateJourney, useJourney } from "../state/journey";
 import { BriefcaseIcon, ExternalIcon, PeopleIcon, TrendIcon } from "./Icons";
@@ -99,12 +99,21 @@ export function JobsPanel({ role, titles = [], field = "" }: { role: string; tit
       <PanelHeader title={`${role}: jobs and people`} note={city || "Anywhere"} />
       <PanelBody className="stack">
         <div className="jobs__where">
-          <Picker label="Country" title="Country" options={COUNTRIES} value={country} onChange={setCountry} />
           <Picker
+            label="Country"
+            title="Country"
+            options={COUNTRIES}
+            searchable
+            value={country}
+            onChange={setCountry}
+          />
+          <Picker
+            key={country}
             label="City"
-            title="Your city"
+            title={`Your city in ${countryName(country)}`}
             placeholder="Anywhere"
-            options={citiesFor(country)}
+            options={[]}
+            remote={(q) => bridgeApi.cities(country, q)}
             searchable
             allowCustom
             value={city}

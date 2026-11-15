@@ -175,3 +175,10 @@ brand/                logo and icon kit
 
 More: [`DESIGN.md`](DESIGN.md) (visual system), [`PRODUCT.md`](PRODUCT.md)
 (product facts), [`CLAUDE.md`](CLAUDE.md) (code rules).
+
+## Data credits
+
+- Cities and countries: [GeoNames](https://www.geonames.org/) (CC BY 4.0), cities with 15,000+ people.
+- Job titles: O*NET 30.0 Database "Sample of Reported Titles", U.S. Department of Labor, Employment and Training Administration (CC BY 4.0). O*NET is a trademark of USDOL/ETA.
+- Pay: U.S. Bureau of Labor Statistics OEWS (May 2025) and the Bureau of National Statistics of Kazakhstan (2026); elsewhere, web estimates with their source linked.
+- Exchange rates for the learning budget: open.er-api.com, cached for a day.

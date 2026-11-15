@@ -37,36 +37,28 @@ async function run(name, viewport, colorScheme) {
   await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
   const cards = await page.locator("article.career").count();
   if (cards !== 3) problems.push(`${name}: expected 3 career cards, got ${cards}`);
-  // Each path shows official pay or says there is none; never a made-up number.
-  await page.locator(".pay").first().waitFor();
-  const pays = await page.locator(".pay").count();
+  // Each path shows pay (official, or an estimate with its source) or says there is none.
+  await page.locator(".pay__amount, .pay--none").first().waitFor();
+  const pays = await page.locator(".pay__amount, .pay--none").count();
   if (pays !== 3) problems.push(`${name}: expected a pay line on 3 cards, got ${pays}`);
   await noSideScroll(page, `${name} paths`);
   await shot("2-paths");
 
-  // Career tasting: taste two paths, rate them, and the map recommends one.
-  for (const [i, feeling] of [[0, "I'd love it"], [1, "Dreading it"]]) {
-    if (i === 0) await page.getByRole("button", { name: /^Start with .* · 10 min$/ }).click();
-    else await page.getByRole("button", { name: /^Taste the next path/ }).click();
-    await page.getByRole("heading", { name: /^Taste it:/ }).waitFor();
-    await page.getByRole("button", { name: "Fill a sample answer" }).click();
-    await page.waitForFunction(() => (document.querySelector("textarea")?.value ?? "").length > 50);
-    await page.getByRole("button", { name: "Get feedback", exact: true }).click();
-    await page.getByRole("radio", { name: feeling }).click();
-  }
-  await noSideScroll(page, `${name} taste`);
-  await page.getByRole("button", { name: "See my Taste Map" }).click();
-  await page.getByText("Recommended from your tastes").waitFor();
-  const map = await page.locator("svg.taste-map title").textContent();
-  if (!/Thrive|Grow into/.test(map ?? "")) problems.push(`${name}: taste map has no wanted path: ${map}`);
-  await noSideScroll(page, `${name} taste map`);
-  await shot("2b-taste-map");
-
-  await page.getByRole("button", { name: "Build my 30-day plan" }).first().click();
+  // Meet the job first: slides with the responsibilities and a typical day.
+  await page.getByRole("button", { name: /Meet the job/ }).first().click();
+  await page.getByText("1 of 7").waitFor();
+  await page.getByRole("button", { name: "Next slide" }).click();
+  await page.getByRole("heading", { name: "What you’d be responsible for" }).waitFor();
+  const duties = await page.locator(".meet__list li").count();
+  if (duties < 3) problems.push(`${name}: intro lists ${duties} responsibilities`);
+  for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "Next slide" }).click();
+  await noSideScroll(page, `${name} meet`);
+  await shot("2b-meet");
+  await page.getByRole("button", { name: "Build my 30-day plan for this job" }).click();
   await page.locator("#packet-role").waitFor();
   // The month's course (real course pages, never a search), a study line in
   // every week, the if-then schedule and job openings for the role.
-  await page.getByRole("heading", { name: "Your course for this month" }).waitFor();
+  await page.getByRole("heading", { name: "What to study this month" }).waitFor();
   const courseLinks = await page.locator(".study .course__text a").evaluateAll((as) => as.map((a) => a.href));
   if (!courseLinks.length) problems.push(`${name}: no courses on the plan`);
   if (courseLinks.some((u) => /google\.com\/search|youtube\.com\/results/.test(u))) problems.push(`${name}: a search link: ${courseLinks}`);

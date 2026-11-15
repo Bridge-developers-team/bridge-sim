@@ -29,7 +29,7 @@ export function MoneyCheck({ budget, currency }: { budget: number; currency: str
       <PanelHeader title="Money check (optional)" note="Stays on this device" />
       <PanelBody className="stack">
         <p className="muted small">
-          What the switch might cost, from your own numbers. Bridge never guesses salaries or prices.
+          What the switch might cost, from your own numbers. They stay on this device.
         </p>
         <div className="grid-3">
           {field("learningPerMonth", `Learning per month (${currency})`)}

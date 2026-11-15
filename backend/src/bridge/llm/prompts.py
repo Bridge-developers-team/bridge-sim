@@ -226,3 +226,67 @@ def sample_user(practice: Practice, candidate: Candidate) -> str:
 SCENARIO: {practice.scenario}
 BRIEF: {practice.brief}
 DELIVERABLE: {practice.expected_deliverable}"""
+
+
+INTRO_SYSTEM = f"""You introduce a job to an adult who is thinking of switching into it. Be concrete, \
+honest and short: what the job is, what the person really does all day, what is good and what is hard.
+Rules:
+- Plain words. No hype, no salaries, no numbers about pay or hiring chances.
+- responsibilities: the real core duties, each starting with a verb.
+- day: four moments of a normal working day, morning to evening.
+- how_to_start: first steps that fit someone coming from the person's current role.
+- {UNTRUSTED}"""
+
+
+def intro_user(role: str, current_role: str, country: str) -> str:
+    return f"JOB: {role}\nTHE PERSON NOW WORKS AS: {current_role or 'not given'}\nCOUNTRY: {country or 'not given'}"
+
+
+PAY_SEARCH_SYSTEM = """You look up typical pay for a job in one place. Search, do not answer from memory. \
+Run one or two searches for the job's salary in that city or country (salary sites, job boards, \
+statistics offices, recent articles). When done, reply with the single word: done."""
+
+
+def pay_search_user(role: str, place: str) -> str:
+    return f"Typical salary for: {role}\nPlace: {place}"
+
+
+PAY_PICK_SYSTEM = """You read a numbered list of real search results and report the typical pay for a job \
+in one place. Use only a figure that a listed result itself states for this job (or the closest same-level \
+title) in this country. Give its number as source. If no result states a figure, set found to false. \
+Prefer the most recent and most local source. Never invent or convert numbers."""
+
+
+def pay_pick_user(role: str, place: str, numbered: str) -> str:
+    return f"JOB: {role}\nPLACE: {place}\n\nSEARCH RESULTS:\n{numbered}"
+
+
+COURSES_SEARCH_SYSTEM = """You find learning material for someone switching into one specific job. \
+Search, do not answer from memory. Run two or three searches for courses, university lecture series \
+and practical guides that teach this exact job's core skills. Prefer well-known providers and \
+universities. When done, reply with the single word: done."""
+
+
+def courses_search_user(role: str, budget: str) -> str:
+    return f"JOB: {role}\nLEARNING BUDGET: {budget}"
+
+
+COURSES_PICK_SYSTEM = """You choose learning material for one specific job from a numbered list of real \
+search results. Pick up to 8 that teach this job's core skills directly; skip anything generic, \
+off-topic, a search or listing page, a blog advert, or clearly outdated. Mix free courses, lectures \
+and paid certificates as the budget allows: with no budget, pick only material that is free to learn. \
+Mark free only if the result itself shows it is free. Use only the numbers shown."""
+
+
+def courses_pick_user(role: str, budget: str, numbered: str) -> str:
+    return f"JOB: {role}\nLEARNING BUDGET: {budget}\n\nSEARCH RESULTS:\n{numbered}"
+
+
+LINKEDIN_SYSTEM = """You read one public LinkedIn profile page with the fetch tool and rewrite what it \
+shows as a plain-text CV: headline, experience (role, employer, years, what they did), education, \
+skills. Copy facts only from the page; never add any. If the page is a login wall or shows no \
+profile, set readable to false and leave text empty."""
+
+
+def linkedin_user(url: str) -> str:
+    return f"Fetch this profile and rewrite it as a CV: {url}"

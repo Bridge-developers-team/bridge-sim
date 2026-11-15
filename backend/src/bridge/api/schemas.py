@@ -6,6 +6,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from pydantic import Field
+
+from bridge.domain.intro import JobIntro
+from bridge.domain.learning import Course
 from bridge.domain.models import CamelModel, Career, Evaluation, Mode, Practice, Proof, ResumeSource, Roadmap, Track
 
 MAX_RESUME = 15_000
@@ -131,3 +135,45 @@ class ConfigResponse(CamelModel):
     demo_persona: dict[str, Any]
     tracks: list[TrackOut]
     limits: Limits
+
+
+class IntroRequest(CamelModel):
+    role: str
+    current_role: str = ""
+    country: str = ""
+    sample: bool = False
+
+
+class IntroResponse(CamelModel):
+    intro: JobIntro
+    mode: Mode
+
+
+class CoursesRequest(CamelModel):
+    role: str
+    budget: float = 0
+    currency: str = "USD"
+    sample: bool = False
+
+
+class CoursesResponse(CamelModel):
+    courses: list[Course]
+    mode: Mode
+
+
+class PayRequest(CamelModel):
+    roles: list[str]
+    fields: list[str] = Field(default_factory=list)
+    country: str = "us"
+    country_name: str = ""
+    location: str = ""
+    sample: bool = False
+
+
+class LinkedInRequest(CamelModel):
+    url: str
+
+
+class LinkedInResponse(CamelModel):
+    resume_text: str
+    mode: Mode

@@ -10,16 +10,23 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import anthropic
+from anthropic.types import WebFetchTool20250910Param, WebSearchTool20250305Param
 from pydantic import BaseModel
 
 from bridge.domain.drafts import (
     CareersDraft,
+    CoursePickDraft,
+    CoursePicksDraft,
     EvaluationDraft,
+    JobIntroDraft,
+    LinkedInProfileDraft,
+    PayEstimateDraft,
     PracticeDraft,
     RoadmapDraft,
     SampleAnswerDraft,
 )
 from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
+from bridge.domain.web import Found, harvest, numbered
 from bridge.llm import prompts
 from bridge.llm.base import LlmError
 
@@ -58,6 +65,33 @@ def _as_llm_error(err: Exception, model: str) -> LlmError:
         log.error("Claude error %s (%s): %s", err.status_code, model, err)
         return LlmError(f"AI service error ({err.status_code}). Try again.", 502)
     raise err
+
+
+def search_results(content: list[Any]) -> list[Found]:
+    """Every result the web search tool returned, in order. An error block
+    contributes nothing."""
+    found: list[Found] = []
+    for block in content:
+        if getattr(block, "type", None) != "web_search_tool_result":
+            continue
+        results = getattr(block, "content", None)
+        if not isinstance(results, list):
+            continue
+        for r in results:
+            url = getattr(r, "url", None)
+            if isinstance(url, str):
+                found.append(Found(url=url, title=getattr(r, "title", "") or "", age=getattr(r, "page_age", "") or ""))
+    return found
+
+
+def fetched_ok(content: list[Any]) -> bool:
+    """True if a web fetch returned a document (not an error)."""
+    for block in content:
+        if getattr(block, "type", None) == "web_fetch_tool_result":
+            inner = getattr(block, "content", None)
+            if getattr(inner, "type", None) == "web_fetch_result":
+                return True
+    return False
 
 
 def _fallback_args(model: str) -> dict[str, Any]:
@@ -155,3 +189,98 @@ class ClaudeWriter:
             max_tokens=3000,
         )
         return draft.answer
+
+    # ---------- job introduction, web pay, web courses, LinkedIn ----------
+
+    async def introduce(self, *, role: str, current_role: str, country: str) -> JobIntroDraft:
+        return await self._call(
+            system=prompts.INTRO_SYSTEM,
+            user=prompts.intro_user(role, current_role, country),
+            schema=JobIntroDraft,
+            effort="low",
+            model=self.models.main,
+            max_tokens=6000,
+        )
+
+    async def _search(self, *, system: str, user: str, domains: list[str] | None = None) -> list[Found]:
+        """One web-search turn on the fast model; returns the cleaned results."""
+        model = self.models.fast
+        tool: WebSearchTool20250305Param = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
+        if domains:
+            tool["allowed_domains"] = domains
+        try:
+            response = await self._client.messages.create(
+                model=model,
+                max_tokens=2000,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+                tools=[tool],
+            )
+        except anthropic.APIError as err:
+            raise _as_llm_error(err, model) from err
+        return harvest(search_results(response.content))
+
+    async def pay_search(self, *, role: str, place: str) -> tuple[list[Found], PayEstimateDraft | None]:
+        found = await self._search(system=prompts.PAY_SEARCH_SYSTEM, user=prompts.pay_search_user(role, place))
+        if not found:
+            return found, None
+        draft = await self._call(
+            system=prompts.PAY_PICK_SYSTEM,
+            user=prompts.pay_pick_user(role, place, numbered(found)),
+            schema=PayEstimateDraft,
+            effort="low",
+            model=self.models.fast,
+            max_tokens=2000,
+        )
+        return found, draft
+
+    async def course_search(
+        self, *, role: str, budget: str, domains: list[str]
+    ) -> tuple[list[Found], list[CoursePickDraft]]:
+        found = await self._search(
+            system=prompts.COURSES_SEARCH_SYSTEM, user=prompts.courses_search_user(role, budget), domains=domains
+        )
+        if not found:
+            return found, []
+        draft = await self._call(
+            system=prompts.COURSES_PICK_SYSTEM,
+            user=prompts.courses_pick_user(role, budget, numbered(found)),
+            schema=CoursePicksDraft,
+            effort="low",
+            model=self.models.fast,
+            max_tokens=3000,
+        )
+        return found, draft.picks
+
+    async def read_linkedin(self, *, url: str) -> str | None:
+        """Fetch a public profile with the web fetch tool, then rewrite it as a
+        CV. None when LinkedIn shows a login wall or the fetch fails."""
+        model = self.models.main
+        tool: WebFetchTool20250910Param = {
+            "type": "web_fetch_20250910",
+            "name": "web_fetch",
+            "max_uses": 1,
+            "allowed_domains": ["linkedin.com"],
+        }
+        try:
+            response = await self._client.messages.create(
+                model=model,
+                max_tokens=4000,
+                system=prompts.LINKEDIN_SYSTEM,
+                messages=[{"role": "user", "content": prompts.linkedin_user(url)}],
+                tools=[tool],
+            )
+        except anthropic.APIError as err:
+            raise _as_llm_error(err, model) from err
+        if not fetched_ok(response.content):
+            return None
+        page = "\n".join(getattr(b, "text", "") for b in response.content if getattr(b, "type", None) == "text")
+        draft = await self._call(
+            system=prompts.LINKEDIN_SYSTEM,
+            user="Rewrite this fetched LinkedIn page as a CV. Page notes:\n" + page[:12000],
+            schema=LinkedInProfileDraft,
+            effort="low",
+            model=self.models.fast,
+            max_tokens=4000,
+        )
+        return draft.text if draft.readable and len(draft.text) > 200 else None

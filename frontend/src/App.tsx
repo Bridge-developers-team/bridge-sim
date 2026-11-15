@@ -1,3 +1,4 @@
+import { IntroPage } from "./routes/IntroPage";
 import { Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
 import { LandingPage } from "./routes/LandingPage";
@@ -18,6 +19,7 @@ export function App() {
         <Route path="paths" element={<PathsPage />} />
         <Route path="plan" element={<PlanPage />} />
         <Route path="practice/:taskId" element={<PracticePage />} />
+        <Route path="meet/:careerId" element={<IntroPage />} />
         <Route path="taste/:careerId" element={<TastePage />} />
         <Route path="p/:proofId" element={<ProofPage />} />
         <Route path="*" element={<NotFoundPage />} />

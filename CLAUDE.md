@@ -46,11 +46,12 @@ Dockerfile, render.yaml, .github/workflows/ci.yml
 - **Never fake AI.** Anything not from the live model is labeled: mode is
   `live`, `demo` (no key on the server) or `sample` (user chose sample data),
   and the UI shows a banner for the last two. Proof pages keep the label.
-- **Honesty rules:** no salaries, prices, job listings, hiring dates or URLs are
-  generated. Course links live only in `domain/learning.py` (each opened and
-  checked by hand; never a Google or YouTube search page) and pay figures only
-  in `domain/pay.py` (official tables, source shown). Effort is qualitative. Practice feedback is "practice, not a hiring
-  decision".
+- **Honesty rules:** the AI never types a salary, price or URL. Links are either
+  in the checked catalog (`domain/learning.py`) or a web search result the AI
+  picked by number (`domain/web.py`); search pages never reach the user. Pay is
+  an official table first (`domain/pay.py`), else a figure the AI read from a
+  numbered search result, labeled "estimate" with that page linked. Effort is
+  qualitative. Practice feedback is "practice, not a hiring decision".
 - **Privacy:** resume text is never stored (browser memory only, server uses it
   for one request). Income never leaves the browser. Only a proof the user
   publishes is stored, with a delete key.

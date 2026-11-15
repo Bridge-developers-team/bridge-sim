@@ -27,12 +27,13 @@ Used at home in spare time, often in the evening, on laptop or phone, by someone
 
 ## Capabilities and Constraints
 
-- Flow: landing → CV upload + constraints (all tap-to-choose) → 3 career paths + comparison → 30-day roadmap → practice task with rubric feedback → public proof page (published only on request, deletable).
+- Flow: landing → CV upload (PDF first; or a public LinkedIn profile link, or pasted text) + constraints → 3 career paths with pay → meet each job (illustrated slides: what it is, responsibilities, a typical day, tools, good and hard parts, pay, how to start) → 30-day roadmap → practice task with rubric feedback → public proof page (published only on request, deletable). The 10-minute task is optional, offered after meeting a job.
 - React + TypeScript front end (Vite) served by a FastAPI (Python) backend. Claude Sonnet 5.5 and Haiku 5.5 via the Anthropic API; a labeled demo mode without a key.
 - Progress lives in the browser (localStorage). The CV text and income figures are never stored. No accounts. The only stored data is a proof page the user chose to publish.
 - Never invents salaries, course prices, job listings, hiring dates, success probabilities, or external links. Effort is qualitative (lower / medium / higher).
-- Courses come from a hand-checked catalog (`backend/src/bridge/domain/learning.py`): real course pages and university lecture playlists, each with the provider's own syllabus, never search pages. Free courses only unless the user set a learning budget. No prices are shown; Coursera counts as paid.
-- Typical pay comes only from official tables (`domain/pay.py`): BLS OEWS May 2025 medians for the US (by state where the user gave one) and the Bureau of National Statistics' 2026 wages-by-profession survey for Kazakhstan, with the official occupation name and the source shown. Other countries show no figure.
+- Courses: a hand-checked catalog (`backend/src/bridge/domain/learning.py`) for 17 fields, each course with the provider's own syllabus, plus courses, lectures and guides the live AI finds on course sites for the exact role (links are search results it picks by number, never search pages). The budget is a number in any currency, converted to US dollars: 0 means free material only; a paid Coursera certificate ($49 a month, US price) appears only when the budget covers it.
+- Typical pay: official tables first (BLS OEWS May 2025 medians for the US by state; Kazakhstan's 2026 wages-by-profession survey), else an approximate figure the live AI read from a cited web page for that city or country, labeled "estimate" with the page linked. When nothing is found, the card says so.
+- Location: every country (GeoNames) with its currency, and the cities of the chosen country (GeoNames, 15,000+ people). Job titles: thousands of real reported titles (O*NET).
 - The plan helps people follow through, with the research shown next to each habit: an if-then study slot exported to the calendar (Gollwitzer & Sheeran 2006), a message for one person who checks in (Harkin et al. 2016), and a week-by-week countdown (Kivetz et al. 2006).
 
 ## Brand Commitments

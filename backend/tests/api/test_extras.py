@@ -5,26 +5,52 @@ from __future__ import annotations
 ROLE = "Instructional Designer"
 
 
-def test_study_plan_is_free_only_without_a_budget_and_never_a_search_page(demo):
-    free = demo.get("/api/study", params={"role": ROLE, "paid": "false", "hours": 5}).json()
-    paid = demo.get("/api/study", params={"role": "Data analyst", "paid": "true", "hours": 5}).json()
+def test_study_plan_fits_the_budget_and_is_never_a_search_page(demo):
+    free = demo.get("/api/study", params={"role": ROLE, "budget": 0, "hours": 5}).json()
+    small = demo.get("/api/study", params={"role": "Data analyst", "budget": 20, "currency": "USD"}).json()
+    full = demo.get("/api/study", params={"role": "Data analyst", "budget": 100, "currency": "USD"}).json()
 
     assert free["field"] == "learning" and free["main"]["cost"] != "paid"
-    assert all(c["cost"] != "paid" for c in free["more"])
-    assert paid["main"]["cost"] == "paid"
-    urls = [c["url"] for c in [free["main"], *free["more"], paid["main"], *paid["more"]]]
+    assert all(c["cost"] != "paid" for c in free["more"] + small["more"]) and small["main"]["cost"] == "free"
+    assert full["main"]["cost"] == "paid" and full["budgetUsd"] == 100  # $100 covers a $49-a-month certificate
+    urls = [c["url"] for c in [free["main"], *free["more"], full["main"], *full["more"]]]
     assert not any("google.com/search" in u or "youtube.com/results" in u for u in urls)
     assert demo.get("/api/study", params={"role": " "}).status_code == 400
 
 
-def test_pay_comes_per_role_in_order_and_is_empty_where_we_have_no_official_figure(demo):
-    body = demo.get(
+def test_web_course_search_is_live_only(demo):
+    body = demo.post("/api/study/search", json={"role": ROLE, "budget": 0}).json()
+
+    assert body == {"courses": [], "mode": "demo"}
+
+
+def test_pay_comes_per_role_in_order_and_official_first(demo):
+    body = demo.post(
         "/api/pay",
-        params=[("role", "Data analyst"), ("role", "Product manager"), ("country", "us"), ("location", "Austin, TX")],
+        json={"roles": ["Data analyst", "Product manager"], "country": "us", "location": "Austin, TX"},
     ).json()
 
-    assert body[0]["area"] == "Texas" and body[0]["period"] == "year"
-    assert body[1] is None  # no official US occupation for product managers
+    assert body[0]["area"] == "Texas" and body[0]["kind"] == "official"
+    assert body[1] is None  # no official figure, and demo mode has no web search
+
+
+def test_intro_has_responsibilities_and_a_day(demo):
+    body = demo.post("/api/intro", json={"role": ROLE, "currentRole": "Teacher"}).json()
+
+    assert body["mode"] == "demo"
+    assert len(body["intro"]["responsibilities"]) >= 3 and len(body["intro"]["day"]) >= 3
+
+
+def test_cities_follow_the_country(demo):
+    kz = demo.get("/api/cities", params={"country": "kz"}).json()
+    us = demo.get("/api/cities", params={"country": "us", "q": "aus"}).json()
+
+    assert "Almaty" in kz[:3] and "Austin, TX" in us
+
+
+def test_linkedin_import_needs_a_profile_link(demo):
+    assert demo.post("/api/linkedin", json={"url": "https://example.com/me"}).status_code == 400
+    assert demo.post("/api/linkedin", json={"url": "https://www.linkedin.com/in/someone"}).status_code == 503
 
 
 def test_jobs_without_adzuna_keys_still_give_board_links(demo):

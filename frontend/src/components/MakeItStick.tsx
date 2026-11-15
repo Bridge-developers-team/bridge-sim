@@ -2,8 +2,9 @@ import { useState } from "react";
 import type { Roadmap } from "../api/types";
 import { weekStatus } from "../lib/progress";
 import {
+  DAY_NAMES,
   DAY_SHORT,
-  TIMES,
+  WEEK,
   addDays,
   buddyMessage,
   dateLabel,
@@ -12,6 +13,7 @@ import {
   nextMonday,
   sessionMinutes,
   sessions,
+  slotsOf,
   timeLabel,
   toIcs,
   type StudySchedule,
@@ -19,14 +21,18 @@ import {
 import { updateJourney, useJourney } from "../state/journey";
 import { CalendarIcon, CheckIcon, PeopleIcon } from "./Icons";
 import { Button } from "./ui/Button";
-import { Choices, MultiChoices } from "./ui/Choices";
+import { Choices } from "./ui/Choices";
 import { Panel, PanelBody, PanelHeader } from "./ui/Panel";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+/** Every half hour from 6:00 to 23:00. */
+const TIME_OPTIONS = Array.from({ length: 35 }, (_, i) => {
+  const minutes = 6 * 60 + i * 30;
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${minutes % 60 ? "30" : "00"}`;
+});
 
 function Why({ children, href, cite }: { children: string; href: string; cite: string }) {
   return (
-    <p className="fine">
+    <p className="fine fine--quiet">
       Why: {children} (
       <a href={href} target="_blank" rel="noopener noreferrer">
         {cite}
@@ -44,12 +50,25 @@ export function MakeItStick({ plan }: { plan: Roadmap }) {
   const today = isoDate(new Date());
   const monday = nextMonday(new Date());
   const [copied, setCopied] = useState(false);
-  const schedule: StudySchedule = saved ?? { days: [2, 4], time: "19:00", start: monday };
+  const schedule: StudySchedule = {
+    slots: saved ? slotsOf(saved) : [
+      { day: 2, time: "19:00" },
+      { day: 4, time: "19:00" },
+    ],
+    start: saved?.start ?? monday,
+  };
   const save = (patch: Partial<StudySchedule>) => updateJourney((j) => ({ ...j, schedule: { ...schedule, ...patch } }));
+  const slotFor = (day: number) => schedule.slots.find((x) => x.day === day);
+  const toggleDay = (day: number) => {
+    const on = slotFor(day);
+    const last = schedule.slots.at(-1)?.time ?? "19:00";
+    save({ slots: on ? schedule.slots.filter((x) => x.day !== day) : [...schedule.slots, { day, time: last }] });
+  };
+  const setTime = (day: number, time: string) =>
+    save({ slots: schedule.slots.map((x) => (x.day === day ? { ...x, time } : x)) });
 
-  const dayNames = schedule.days.map((d) => DAY_SHORT[d]);
   const list = sessions(plan, schedule);
-  const minutes = sessionMinutes(plan.hoursPerWeek, schedule.days.length);
+  const minutes = sessionMinutes(plan.hoursPerWeek, schedule.slots.length);
   const checkIn = dateLabel(addDays(schedule.start, 14));
   const message = buddyMessage(plan, schedule, checkIn);
 
@@ -84,19 +103,37 @@ export function MakeItStick({ plan }: { plan: Roadmap }) {
           <h3 id="stick-when" className="stick__title">
             <CalendarIcon /> Pick when you'll study
           </h3>
-          <MultiChoices
-            label="Days"
-            options={WEEKDAYS}
-            value={WEEKDAYS.filter((d) => dayNames.includes(d))}
-            max={7}
-            onChange={(v) => save({ days: v.map((d) => DAY_SHORT.indexOf(d)) })}
-          />
-          <Choices
-            label="Time"
-            options={TIMES.map((t) => ({ value: t, label: timeLabel(t) }))}
-            value={schedule.time}
-            onChange={(time) => save({ time })}
-          />
+          <div className="week" role="group" aria-label="Your study week: tap a day, then set its time">
+            {WEEK.map((day) => {
+              const slot = slotFor(day);
+              return (
+                <div key={day} className={`week__day ${slot ? "is-on" : ""}`}>
+                  <button type="button" className="week__toggle" aria-pressed={Boolean(slot)} onClick={() => toggleDay(day)}>
+                    <span className="week__name">{DAY_SHORT[day]}</span>
+                    <span className="week__state">{slot ? "Study" : "Free"}</span>
+                  </button>
+                  {slot ? (
+                    <select
+                      className="week__time tabular"
+                      aria-label={`${DAY_NAMES[day]} start time`}
+                      value={slot.time}
+                      onChange={(e) => setTime(day, e.target.value)}
+                    >
+                      {[...new Set([...TIME_OPTIONS, slot.time])].sort().map((t) => (
+                        <option key={t} value={t}>
+                          {timeLabel(t)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="week__time week__time--off" aria-hidden="true">
+                      –
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           <Choices
             label="Start"
             options={[
@@ -106,7 +143,7 @@ export function MakeItStick({ plan }: { plan: Roadmap }) {
             value={schedule.start === today || schedule.start === monday ? schedule.start : monday}
             onChange={(start) => save({ start })}
           />
-          {schedule.days.length > 0 ? (
+          {schedule.slots.length > 0 ? (
             <>
               <blockquote className="stick__plan">{ifThen(schedule)}</blockquote>
               <p className="muted small tabular">

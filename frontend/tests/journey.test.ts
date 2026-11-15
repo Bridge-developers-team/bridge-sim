@@ -88,7 +88,7 @@ test("tastings survive choosing a path and rebuilding the plan, and reset with n
 
 test("a saved study schedule survives new career paths", () => {
   const paths = { profile: {}, careers: [], mode: "live" } as unknown as CareersResponse;
-  const j = { ...emptyJourney(), schedule: { days: [2, 4], time: "19:00", start: "2026-11-16" } };
+  const j = { ...emptyJourney(), schedule: { slots: [{ day: 2, time: "19:00" }], start: "2026-11-16" } };
 
   assert.deepEqual(withCareers(j, paths).schedule, j.schedule);
   assert.equal(emptyJourney().profile.country, "us");

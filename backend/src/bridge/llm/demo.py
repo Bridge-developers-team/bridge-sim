@@ -11,14 +11,18 @@ from __future__ import annotations
 
 import math
 import re
-from typing import cast
+from typing import Any, cast
 
 from bridge.domain.drafts import (
     CareerDraft,
     CareersDraft,
+    CoursePickDraft,
     CriterionDraft,
     CriterionScoreDraft,
+    DaySlotDraft,
     EvaluationDraft,
+    JobIntroDraft,
+    PayEstimateDraft,
     PracticeDraft,
     ProfileRead,
     RoadmapDraft,
@@ -29,6 +33,7 @@ from bridge.domain.drafts import (
 from bridge.domain.learning import FieldId, match_field
 from bridge.domain.models import Candidate, Career, Effort, Practice, ResumeSource, TaskType, Track
 from bridge.domain.roadmap import TRACKS, clamp_hours
+from bridge.domain.web import Found
 
 NOTE = "Sample data (not AI)"
 
@@ -437,6 +442,117 @@ _ROLE_PRACTICES: list[tuple[re.Pattern[str], PracticeDraft]] = [
 ]
 
 
+# ---------- Job introductions (fixed sample text, labeled as sample data) ----------
+
+_INTROS: dict[str, dict[str, Any]] = {
+    "instructional designer": {
+        "one_liner": "You turn what experts know into short courses that help employees learn a job skill.",
+        "responsibilities": [
+            "Interview experts to find what learners must be able to do",
+            "Write learning objectives and plan each module",
+            "Storyboard and build e-learning in tools like Articulate",
+            "Write quizzes and practice that check real skills",
+            "Test courses with learners and fix what confuses them",
+        ],
+        "day": [
+            ("9:00", "Call with a subject expert about a new safety module"),
+            ("11:00", "Storyboard three screens and their practice questions"),
+            ("14:00", "Build the module in an authoring tool"),
+            ("16:30", "Review learner feedback and fix two confusing steps"),
+        ],
+        "tools": ["Articulate Storyline", "ADDIE", "Learning objectives", "LMS reports"],
+        "you_will_like": ["Teaching without a classroom", "Seeing people learn faster", "Calm, focused work"],
+        "hard_parts": ["Experts are busy and late", "Endless small revisions", "Learners you rarely meet"],
+        "how_to_start": [
+            "Rewrite one of your lessons as a 10-minute e-learning module",
+            "Learn an authoring tool's free trial",
+            "Show the module in a simple portfolio",
+        ],
+    },
+    "corporate trainer": {
+        "one_liner": "You run live training sessions that help employees learn tools, skills or company processes.",
+        "responsibilities": [
+            "Plan and deliver workshops for groups of employees",
+            "Adapt material to new hires, managers or specialists",
+            "Check understanding with exercises and short tests",
+            "Track attendance and results for each session",
+            "Coach managers who run their own sessions",
+        ],
+        "day": [
+            ("9:00", "Run an onboarding session for twelve new hires"),
+            ("12:00", "Lunch-and-learn on a new software feature"),
+            ("14:00", "Update slides after feedback from yesterday"),
+            ("16:00", "Plan next week's sessions with HR"),
+        ],
+        "tools": ["Facilitation", "Slides", "LMS", "Feedback surveys"],
+        "you_will_like": ["Energy of a live room", "Quick, visible results", "Meeting many people"],
+        "hard_parts": ["Repeating the same session", "Travel or long days", "Hard to prove impact"],
+        "how_to_start": [
+            "Turn a lesson you teach into a one-hour adult workshop",
+            "Offer a free session to a local business or NGO",
+            "Collect written feedback as proof",
+        ],
+    },
+    "education project coordinator": {
+        "one_liner": "You keep education programs on track: people, schedules, budgets and communication.",
+        "responsibilities": [
+            "Plan timelines and track every task to the deadline",
+            "Coordinate teachers, partners and vendors",
+            "Keep the budget and supplies in order",
+            "Send clear updates to staff and families",
+            "Report results and risks to the program lead",
+        ],
+        "day": [
+            ("9:00", "Check the task board and chase two late items"),
+            ("10:30", "Call a venue about next month's workshop"),
+            ("13:00", "Update the budget sheet after new orders"),
+            ("15:30", "Write the weekly update for the program lead"),
+        ],
+        "tools": ["Task boards", "Spreadsheets", "Email updates", "Meeting notes"],
+        "you_will_like": ["Making things run smoothly", "Variety in every day", "Clear wins at deadlines"],
+        "hard_parts": ["Many people to chase", "Last-minute changes", "Credit often goes elsewhere"],
+        "how_to_start": [
+            "Write up a school event you organized as a project case",
+            "Learn a free task-board tool",
+            "Volunteer to coordinate one small program",
+        ],
+    },
+}
+
+
+def _demo_intro(role: str) -> JobIntroDraft:
+    data: dict[str, Any] | None = _INTROS.get(role.strip().lower())
+    if data is None:
+        data = {
+            "one_liner": f"Sample data: a short, fixed overview of what a {role} does. Live AI writes a real one.",
+            "responsibilities": [
+                f"Do the core daily work of a {role}",
+                "Work with colleagues and other teams",
+                "Plan tasks and keep them on schedule",
+                "Report progress and results",
+            ],
+            "day": [
+                ("9:00", "Plan the day and check messages"),
+                ("11:00", "Focused work on the main task"),
+                ("14:00", "Meet colleagues about a shared project"),
+                ("16:30", "Write up progress for tomorrow"),
+            ],
+            "tools": ["Email", "Spreadsheets", "Team chat"],
+            "you_will_like": ["Learning something new"],
+            "hard_parts": ["A learning curve at first"],
+            "how_to_start": ["Read three job posts for this role", "List skills you already have", "Pick one to learn"],
+        }
+    return JobIntroDraft(
+        one_liner=data["one_liner"],
+        responsibilities=data["responsibilities"],
+        day=[DaySlotDraft(time=t, what=w) for t, w in data["day"]],
+        tools=data["tools"],
+        you_will_like=data["you_will_like"],
+        hard_parts=data["hard_parts"],
+        how_to_start=data["how_to_start"],
+    )
+
+
 class DemoWriter:
     async def careers(self, *, resume: str, candidate: Candidate, source: ResumeSource = "cv") -> CareersDraft:
         sample = _sample_id(resume)
@@ -669,3 +785,17 @@ class DemoWriter:
             "For this team of 6, I would add it to the first 5 minutes of the weekly meeting for one month, with no "
             "new tools. We would track how many blockers are solved within the week."
         )
+
+    async def introduce(self, *, role: str, current_role: str, country: str) -> JobIntroDraft:
+        return _demo_intro(role)
+
+    async def pay_search(self, *, role: str, place: str) -> tuple[list[Found], PayEstimateDraft | None]:
+        return [], None  # no web search without a key
+
+    async def course_search(
+        self, *, role: str, budget: str, domains: list[str]
+    ) -> tuple[list[Found], list[CoursePickDraft]]:
+        return [], []
+
+    async def read_linkedin(self, *, url: str) -> str | None:
+        return None

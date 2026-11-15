@@ -9,6 +9,7 @@ import "@fontsource-variable/literata/index.css";
 import "./styles/tokens.css";
 import "./styles/components.css";
 import "./styles/glass.css";
+import "./styles/rebuild.css";
 
 applyTheme(getStoredTheme());
 
