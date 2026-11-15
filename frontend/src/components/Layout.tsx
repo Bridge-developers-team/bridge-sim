@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useJourney } from "../state/journey";
 import { BridgeLogo } from "./Icons";
-import { LangToggle } from "./LangToggle";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout() {
@@ -37,10 +36,7 @@ export function Layout() {
             {journey.careers && <NavLink to="/paths">Paths</NavLink>}
             {journey.roadmap && <NavLink to="/plan">Plan</NavLink>}
           </nav>
-          <div className="top__tools">
-            <ThemeToggle />
-            <LangToggle />
-          </div>
+          <ThemeToggle />
         </div>
       </header>
       <main className="page page-enter" key={pathname}>
