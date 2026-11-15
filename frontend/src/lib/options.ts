@@ -79,8 +79,38 @@ export const TARGET_ROLES = list([
 ]);
 
 export const HOURS = [2, 3, 5, 8, 10, 15, 20];
-export const BUDGETS = [0, 25, 50, 100, 200, 500];
-export const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "KZT"];
+/** Monthly learning budget steps, in round amounts of each currency. Every
+ * currency has the same number of steps, roughly the same value at each step
+ * (step 3 is about 100 USD), so switching currency keeps the user's choice. */
+export const BUDGETS = {
+  USD: [0, 25, 50, 100, 200, 500],
+  EUR: [0, 25, 50, 100, 200, 500],
+  GBP: [0, 20, 40, 80, 150, 400],
+  CAD: [0, 35, 70, 140, 275, 700],
+  AUD: [0, 40, 75, 150, 300, 750],
+  KZT: [0, 10_000, 25_000, 50_000, 100_000, 250_000],
+} as const satisfies Record<string, readonly number[]>;
+export type Currency = keyof typeof BUDGETS;
+export const CURRENCIES = Object.keys(BUDGETS) as Currency[];
+
+export function budgetSteps(currency: string): readonly number[] {
+  return currency in BUDGETS ? BUDGETS[currency as Currency] : BUDGETS.USD;
+}
+
+/** The same step in the new currency. An amount that is not a step snaps to
+ * the nearest step below it. */
+export function convertBudget(amount: number, from: string, to: string): number {
+  const steps = budgetSteps(from);
+  let step = 0;
+  steps.forEach((value, i) => {
+    if (amount >= value) step = i;
+  });
+  return budgetSteps(to)[step] ?? 0;
+}
+
+export function budgetLabel(amount: number, currency: string): string {
+  return amount === 0 ? "Free resources only" : `${amount.toLocaleString("en-US")} ${currency} a month`;
+}
 export const MOTIVATIONS = [
   "Higher pay",
   "Less stress",
