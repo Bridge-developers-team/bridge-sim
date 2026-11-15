@@ -77,9 +77,19 @@ async function run(name, viewport, colorScheme) {
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Add to my calendar (.ics)" }).click();
   if ((await download).suggestedFilename() !== "bridge-study-plan.ics") problems.push(`${name}: calendar file not offered`);
-  const boards = await page.locator(".jobs__where ~ .stack a.btn").allTextContents();
-  if (!boards.join(" ").includes("LinkedIn")) problems.push(`${name}: jobs panel has no board links (${boards})`);
-  if (boards.join(" ").includes("Google")) problems.push(`${name}: jobs panel still links to Google search`);
+  // Openings, recruiters and hot topics: LinkedIn and friends, never Google.
+  for (const [group, expected] of [
+    ["Openings", "LinkedIn: entry level"],
+    ["Recruiters", "Recruiters on LinkedIn"],
+    ["Hot topics this month", "LinkedIn posts"],
+  ]) {
+    const sites = await page.locator(`section.linkgroup[aria-label^="${group}"] .linkcard__site`).allTextContents();
+    if (!sites.join(" ").includes(expected)) problems.push(`${name}: "${group}" links missing ${expected} (${sites})`);
+  }
+  const outside = await page.locator(".linkcard").evaluateAll((as) => as.map((a) => a.href));
+  if (outside.some((u) => u.includes("google."))) problems.push(`${name}: jobs panel still links to Google search`);
+  const note = await page.locator(".outreach__text").textContent();
+  if (!note || note.length > 200) problems.push(`${name}: recruiter note missing or over 200 chars (${note?.length})`);
   await noSideScroll(page, `${name} plan`);
   await shot("3-plan");
 

@@ -14,7 +14,15 @@ from typing import Any
 
 import httpx
 
-from bridge.domain.jobs import ADZUNA_COUNTRIES, JobsResult, board_links, normalize_country, parse_adzuna
+from bridge.domain.jobs import (
+    ADZUNA_COUNTRIES,
+    JobsResult,
+    board_links,
+    normalize_country,
+    parse_adzuna,
+    people_links,
+    topic_links,
+)
 from bridge.domain.text import clean
 
 log = logging.getLogger(__name__)
@@ -77,6 +85,8 @@ class JobsService:
             source="adzuna" if listings else "links",
             listings=listings,
             links=board_links(role, city, country),
+            people=people_links(role, city),
+            topics=topic_links(role),
         )
         self._cache[key] = (self._clock(), result)
         if len(self._cache) > 500:  # keep memory flat

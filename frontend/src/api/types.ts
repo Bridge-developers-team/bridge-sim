@@ -212,5 +212,15 @@ export interface JobsResult {
   country: string;
   source: "adzuna" | "links";
   listings: JobListing[];
-  links: { site: string; url: string }[];
+  links: JobLink[];
+  /** Searches for recruiters and team leads near the city. */
+  people: JobLink[];
+  /** Searches for what the field is talking about this month. */
+  topics: JobLink[];
+}
+
+export interface JobLink {
+  site: string;
+  url: string;
+  hint: string;
 }

@@ -32,7 +32,12 @@ def test_jobs_without_adzuna_keys_still_give_board_links(demo):
 
     assert body["source"] == "links"
     assert body["listings"] == []
-    assert [link["site"] for link in body["links"]] == ["LinkedIn", "Indeed"]
+    assert [link["site"] for link in body["links"]] == ["LinkedIn", "LinkedIn: entry level", "Indeed"]
+    assert [link["site"] for link in body["people"]] == ["Recruiters on LinkedIn", "Team leads on LinkedIn"]
+    assert [link["site"] for link in body["topics"]] == ["LinkedIn posts", "Reddit"]
+    assert all(
+        link["url"].startswith("https://") and link["hint"] for link in body["links"] + body["people"] + body["topics"]
+    )
 
 
 def test_jobs_with_adzuna_return_listings_once_per_hour_and_fall_back_on_errors(make_client):
