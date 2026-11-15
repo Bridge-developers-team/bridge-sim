@@ -56,6 +56,7 @@ def normalize_career(draft: CareerDraft, resume: str) -> Career | None:
         field=draft.field,
         job_titles=_titles(draft.job_titles, title),
         video_searches=clean_list(draft.video_searches, 3, 80),
+        work_modes=list(dict.fromkeys(draft.work_modes))[:3],
     )
 
 
@@ -119,4 +120,5 @@ def bound_career(career: Career) -> Career:
         field=clean(career.field, 40),
         job_titles=clean_list(career.job_titles, 3, 80),
         video_searches=clean_list(career.video_searches, 3, 80),
+        work_modes=list(dict.fromkeys(career.work_modes))[:3],
     )

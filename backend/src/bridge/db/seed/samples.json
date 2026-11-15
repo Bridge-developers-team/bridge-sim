@@ -1,0 +1,35 @@
+{
+ "samples": [
+  {
+   "id": "teacher",
+   "label": "Sample: School teacher, 7 years",
+   "resume": "SAMPLE PROFILE (fictitious person, no real identifiers)\nMiddle-school English teacher, 7 years\n\nExperience\n- English teacher, grades 6-8, a public middle school (2019-present)\n  - Teach 5 classes (about 130 students) a year; plan every unit from state standards to final assessment.\n  - Redesigned the 7th grade persuasive-writing unit into short self-paced lessons with checklists; the share of students meeting the standard on the unit essay rose from 58% to 71% in one year.\n  - Built and maintain the department's shared Google Classroom library of 40+ lessons, used by 5 teachers.\n  - Write rubrics and quick formative checks; review results every two weeks and reteach where students struggle.\n  - Lead two 45-minute professional-development sessions per year for colleagues on giving feedback.\n  - Coordinate the yearly 8th grade showcase: schedule, volunteers, communication with 120 families.\n- Long-term substitute teacher, a public school district (2018-2019)\n\nEducation\n- B.A. English\n- State teaching license, English Language Arts 6-12\n\nSkills\n- Lesson and unit design, rubric writing, formative assessment, Google Classroom, Google Slides, Canva, presenting to groups, family communication"
+  },
+  {
+   "id": "nurse",
+   "label": "Sample: ICU nurse, 6 years",
+   "resume": "James Carter, RN (SAMPLE)\nRegistered Nurse, Intensive Care, 6 years\nColumbus, OH\n\nExperience\n- ICU Registered Nurse, Riverside Medical Center (fictional) (2020-present)\n  - Care for 2 critical patients per 12-hour shift in a 36-bed medical ICU.\n  - Unit \"super user\" for the Epic EHR rollout; trained 40 nurses on charting workflows.\n  - Member of the unit falls and pressure-injury committee; track monthly incident counts in Excel.\n- Med-Surg Registered Nurse, Eastside Community Hospital (fictional) (2018-2020)\n\nEducation\n- BSN, The Ohio State University\n- CCRN certification\n\nSkills\n- Clinical assessment, Epic charting, Excel (pivot tables, basic charts), quality-improvement projects, patient and family communication"
+  },
+  {
+   "id": "retail",
+   "label": "Sample: Retail store manager, 10 years",
+   "resume": "Aisha Thompson (SAMPLE)\nStore Manager, big-box retail, 10 years\nAtlanta, GA\n\nExperience\n- Store Manager, Northgate Superstore (fictional chain) (2019-present)\n  - Run a $28M-a-year store with 120 team members and 6 department leads.\n  - Cut overtime 18% by rebuilding weekly schedules around hourly traffic data.\n  - Led a backroom reorganization that reduced out-of-stocks on top 200 items.\n- Assistant Store Manager, ValueMart (fictional chain) (2014-2019)\n\nEducation\n- B.A. Communications, Georgia State University\n\nSkills\n- Scheduling and labor budgets, inventory and shrink, hiring and coaching, weekly sales reporting, conflict resolution"
+  }
+ ],
+ "demoPersona": {
+  "sampleId": "teacher",
+  "currentRole": "Middle-school English teacher",
+  "yearsExperience": 7,
+  "changeMotivation": [
+   "Less stress",
+   "Better work-life balance"
+  ],
+  "hoursPerWeek": 5,
+  "monthlyLearningBudget": 0,
+  "currency": "USD",
+  "location": "Austin, TX",
+  "country": "us",
+  "interestedRoles": [],
+  "transitionPreference": "balanced"
+ }
+}

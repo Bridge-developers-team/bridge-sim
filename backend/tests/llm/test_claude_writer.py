@@ -170,3 +170,26 @@ async def test_real_sdk_sends_our_schema_and_parses_the_reply():
     assert "careers" in body["output_config"]["format"]["schema"]["properties"]
     assert body["fallbacks"] == "default"
     assert FALLBACK_BETA in seen["beta"]
+
+
+def test_cited_page_words_are_collected_once_per_page_and_only_from_web_search():
+    from bridge.llm.claude import cited_snippets
+
+    cite = lambda url, text, kind="web_search_result_location": SimpleNamespace(  # noqa: E731
+        type=kind, url=url, cited_text=text, title="T"
+    )
+    content = [
+        SimpleNamespace(type="server_tool_use"),
+        SimpleNamespace(
+            type="text", citations=[cite("https://a.example/", "150 000 ₽"), cite("https://a.example/", "150 000 ₽")]
+        ),
+        SimpleNamespace(
+            type="text", citations=[cite("https://a.example/", "до 200 000 ₽"), cite("http://b.example/", "x")]
+        ),
+        SimpleNamespace(type="text", citations=[cite("https://c.example/", "42", kind="char_location")]),
+        SimpleNamespace(type="text", citations=None),
+    ]
+
+    snippets = cited_snippets(content)
+
+    assert [(s.url, s.text) for s in snippets] == [("https://a.example/", "150 000 ₽ … до 200 000 ₽")]

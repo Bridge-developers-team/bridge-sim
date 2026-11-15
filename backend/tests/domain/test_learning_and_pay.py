@@ -3,12 +3,13 @@ figures come from official tables only, for the right place."""
 
 from urllib.parse import urlparse
 
-from bridge.domain.learning import COURSES, FIELDS, match_field, month_modules, spread, study_plan
+from bridge.domain import reference
+from bridge.domain.learning import match_field, month_modules, spread, study_plan
 from bridge.domain.pay import pay_for, us_state
 
 
 def test_every_catalog_link_is_a_specific_https_page_never_a_search():
-    for course in COURSES.values():
+    for course in reference.get().courses.values():
         url = urlparse(course.url)
         assert url.scheme == "https" and url.netloc, course.id
         assert "search" not in url.path and "results" not in url.path, course.id
@@ -17,9 +18,10 @@ def test_every_catalog_link_is_a_specific_https_page_never_a_search():
 
 
 def test_every_field_lists_real_courses_and_at_least_one_free_one():
-    for field in FIELDS:
-        assert field.courses and all(c in COURSES for c in field.courses), field.id
-        assert any(COURSES[c].cost != "paid" for c in field.courses), field.id
+    courses = reference.get().courses
+    for field in reference.get().fields:
+        assert field.courses and all(c in courses for c in field.courses), field.id
+        assert any(courses[c].cost != "paid" for c in field.courses), field.id
 
 
 def test_the_ai_field_list_matches_the_catalog():
@@ -27,7 +29,7 @@ def test_the_ai_field_list_matches_the_catalog():
 
     from bridge.domain.learning import FieldId
 
-    assert set(get_args(FieldId)) == {f.id for f in FIELDS} | {"other"}
+    assert set(get_args(FieldId)) == {f.id for f in reference.get().fields} | {"other"}
 
 
 def test_a_role_outside_the_catalog_never_gets_a_course_from_another_field():
@@ -69,8 +71,8 @@ def test_without_a_budget_only_free_courses_are_offered():
 
 
 def test_the_main_course_is_spread_over_the_month_at_a_realistic_pace():
-    lectures = COURSES["cs50-sql"]  # weekly series: one module a week
-    certificate = COURSES["google-data-analytics"]  # each module takes weeks
+    lectures = reference.get().courses["cs50-sql"]  # weekly series: one module a week
+    certificate = reference.get().courses["google-data-analytics"]  # each module takes weeks
 
     assert month_modules(lectures, 3) == 4
     assert month_modules(certificate, 5) == 1 and month_modules(certificate, 10) == 2
@@ -98,9 +100,8 @@ def test_kazakhstan_pay_is_a_monthly_range_across_industries_and_other_countries
 
 
 def test_web_picks_keep_only_real_results_and_respect_a_zero_budget():
-    from bridge.domain.drafts import CoursePickDraft, PayEstimateDraft
+    from bridge.domain.drafts import CoursePickDraft
     from bridge.domain.learning import pick_courses
-    from bridge.domain.pay import estimate_from_draft
     from bridge.domain.web import Found, harvest
 
     found = harvest(
@@ -116,7 +117,3 @@ def test_web_picks_keep_only_real_results_and_respect_a_zero_budget():
     assert [f.title for f in found] == ["HR basics", "MIT HR"]  # search pages never count
     assert [c.title for c in pick_courses(found, picks, budget_usd=0)] == ["MIT HR"]
     assert len(pick_courses(found, picks, budget_usd=100)) == 2
-    draft = PayEstimateDraft(found=True, source=1, low=500000, high=300000, currency="kzt", period="monthly", note="x")
-    pay = estimate_from_draft("HR generalist", "Almaty, Kazakhstan", draft, found)
-    assert pay and pay.low == 300000 and pay.currency == "KZT" and pay.period == "month" and pay.url == found[1].url
-    assert estimate_from_draft("HR", "Almaty", draft.model_copy(update={"source": 7}), found) is None

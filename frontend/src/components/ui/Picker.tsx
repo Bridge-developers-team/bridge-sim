@@ -46,6 +46,8 @@ interface SingleList extends ListBase {
   multiple?: false;
   value: string;
   onChange: (value: string) => void;
+  /** Optional answer: tapping the chosen option again, or "Clear", empties it. */
+  clearable?: boolean;
 }
 
 interface MultiList extends ListBase {
@@ -112,11 +114,13 @@ export function OptionList(props: OptionListProps) {
       else if (props.value.length < props.max) props.onChange([...props.value, value]);
       setQuery("");
     } else {
-      props.onChange(value);
+      // An optional answer can be taken back: tapping the chosen option clears it.
+      props.onChange(props.clearable && value === props.value ? "" : value);
       // Let the check mark land before the list folds away.
       window.setTimeout(close, 140);
     }
   };
+  const clearable = !props.multiple && props.clearable && Boolean(props.value);
 
   const full = props.multiple && props.value.length >= props.max;
 
@@ -152,6 +156,21 @@ export function OptionList(props: OptionListProps) {
             aria-label={`Search ${title.toLowerCase()}`}
           />
         </label>
+      )}
+
+      {clearable && (
+        <div className="picklist__clear">
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => {
+              if (!props.multiple) props.onChange("");
+              window.setTimeout(close, 60);
+            }}
+          >
+            Clear “{selected[0]}”
+          </button>
+        </div>
       )}
 
       <div className="picklist__options">
@@ -245,6 +264,8 @@ export function Picker(props: PickerProps & { label: string; placeholder?: strin
       {open && (
         <OptionList
           {...({
+            // A row with a placeholder ("Optional", "Anywhere") is an optional answer.
+            clearable: !props.multiple && Boolean(props.placeholder),
             ...props,
             onClose: () => {
               if (openId === id) setOpen(null);

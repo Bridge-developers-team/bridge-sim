@@ -8,10 +8,12 @@ practice.py). Descriptions are part of the prompt: edit them with care.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from bridge.domain.learning import FieldId
-from bridge.domain.models import Effort, TaskType
+from bridge.domain.models import Effort, TaskType, WorkMode
 
 
 class ProfileRead(BaseModel):
@@ -37,7 +39,9 @@ class SkillDraft(BaseModel):
 
 class CareerDraft(BaseModel):
     title: str = Field(description="Target career title, e.g. 'Instructional Designer'")
-    role_summary: str = Field(description="One sentence: what people in this role do all day")
+    role_summary: str = Field(
+        description="One short sentence of 12 words at most: what the job is. The job introduction covers the detail."
+    )
     fit_explanation: str = Field(
         description="1-2 sentences on why it builds on THIS person's experience, naming concrete resume signals"
     )
@@ -59,6 +63,10 @@ class CareerDraft(BaseModel):
         description="2-3 job-post titles, as employers write them, this person could apply for first on this path "
         "(the realistic entry point for their seniority), e.g. 'Instructional Designer', 'Learning Experience "
         "Designer', 'Training Specialist'"
+    )
+    work_modes: list[WorkMode] = Field(
+        description="1-3 ways this job is commonly done in the person's country: remote, hybrid, on-site, "
+        "flexible hours, shift work, travel. Only what is typical for the role, most common first."
     )
     video_searches: list[str] = Field(
         description="2-3 English YouTube searches (3-6 words each) a beginner would type to learn this path's "
@@ -160,6 +168,28 @@ class PayEstimateDraft(BaseModel):
     currency: str = Field(description="ISO 4217 code of the figure, e.g. USD, KZT, EUR")
     period: str = Field(description="'year' or 'month', as the source states it")
     note: str = Field(description="What the figure is, e.g. 'average base salary, Almaty, 2026', under 12 words")
+
+
+class PayFigureDraft(BaseModel):
+    source: int = Field(description="Number of the page the figure is written on, exactly as listed")
+    low: float = Field(description="Low end exactly as the page writes it, as a plain number (85K -> 85000)")
+    high: float = Field(description="High end exactly as the page writes it (equal to low for a single figure)")
+    currency: str = Field(description="ISO 4217 code of the page's currency, e.g. USD, RUB, KZT, EUR")
+    period: Literal["hour", "month", "year"] = Field(description="What the page says the figure is per")
+
+
+class PayFiguresDraft(BaseModel):
+    figures: list[PayFigureDraft] = Field(
+        description="Every pay figure a page states for this job or a same-level title in this country; "
+        "at most one per page; empty if none"
+    )
+
+
+class PayGuessDraft(BaseModel):
+    low: float = Field(description="Low end of typical gross pay for this job in this place")
+    high: float = Field(description="High end of typical gross pay")
+    currency: str = Field(description="ISO 4217 code of the local currency")
+    period: Literal["month", "year"] = Field(description="How pay is usually quoted in this country")
 
 
 class CoursePickDraft(BaseModel):

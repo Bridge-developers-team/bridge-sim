@@ -31,7 +31,7 @@ def profile_block(c: Candidate) -> str:
     return "\n".join(line for line in lines if line)
 
 
-CAREERS_SYSTEM = f"""You are Bridge, a career-transition analyst for working adults (roughly 25-45) who want \
+_CAREERS_SYSTEM = f"""You are Bridge, a career-transition analyst for working adults (roughly 25-45) who want \
 to change careers but do not know where to go. Each person you read is betting months of their evenings on \
 your advice, so it must be about them: their real work, their reasons, their constraints. Advice that could \
 be handed to anyone else with the same job title has failed, however polished it sounds.
@@ -78,6 +78,9 @@ a kind of work). If the sentence would fit another person with the same title, r
 - transferable_skills: 2-4 skills the text actually shows. For each, copy an exact verbatim quote (4-20 \
 words) from the experience text. Copy characters exactly: code checks every quote and labels unmatched \
 ones as unproven to the user.
+- role_summary: 12 words at most. "Meet the job" explains the role in depth, so do not repeat it here.
+- work_modes: how the job is usually done in their country (remote, hybrid, on-site, flexible hours, shift \
+work, travel). Say what is typical, not what is possible: a hospital educator is on-site.
 - missing_skills: 2-4 role-relevant skills to learn, phrased as skills, never as judgments of the person.
 - relative_effort: lower, medium or higher compared with the other two paths; unknown if you cannot judge.
 - Prefer adjacent, non-software moves when they fit. Do not default to generic tech or bootcamp roles.
@@ -95,7 +98,13 @@ durations or URLs.
 FIELDS:
 {{fields}}
 
-{UNTRUSTED}""".replace("{fields}", field_prompt_list())
+{UNTRUSTED}"""
+
+
+def careers_system() -> str:
+    """The careers prompt with the current study fields (reference data) filled in."""
+    return _CAREERS_SYSTEM.replace("{fields}", field_prompt_list())
+
 
 _SOURCE_NOTES: dict[ResumeSource, str] = {
     "cv": "cv (a CV the person uploaded or pasted)",
@@ -240,6 +249,39 @@ Rules:
 
 def intro_user(role: str, current_role: str, country: str) -> str:
     return f"JOB: {role}\nTHE PERSON NOW WORKS AS: {current_role or 'not given'}\nCOUNTRY: {country or 'not given'}"
+
+
+PAY_RESEARCH_SYSTEM = """You research what a job pays in one place, from several independent sources. \
+Search, do not answer from memory. Run two or three searches: salary sites (Glassdoor, Indeed, PayScale, \
+Levels.fyi, hh.ru, hh.kz, local equivalents), official statistics, and recent articles, in English and in \
+the country's own language. Then, for each page that states a pay figure for this job (or a same-level \
+title) in this country, write one short line that quotes the figure exactly as the page writes it, citing \
+that page. One line per page. Do not calculate, convert or summarise."""
+
+
+def pay_research_user(role: str, place: str) -> str:
+    return f"JOB: {role}\nPLACE: {place}"
+
+
+PAY_FIGURES_SYSTEM = """You copy pay figures out of numbered page excerpts. For each excerpt that states \
+pay for the given job (or a same-level title) in the given country, give its number, the low and high \
+amounts exactly as written (a single figure: low = high), the currency and the period the excerpt states. \
+Write numbers plainly: "85K" is 85000, "1,2 млн" is 1200000. Skip excerpts about other jobs, other \
+countries, or without a figure. Never compute, convert or guess a number: code checks every number \
+against the excerpt."""
+
+
+def pay_figures_user(role: str, place: str, numbered: str) -> str:
+    return f"JOB: {role}\nPLACE: {place}\n\nEXCERPTS:\n{numbered}"
+
+
+PAY_GUESS_SYSTEM = """No web source stated pay for this job here. Give your best estimate of typical gross \
+pay for an experienced-entry hire in this job and place, from what you know of this labour market. It will \
+be shown to the user labelled as an AI estimate without a source, so be realistic, not optimistic."""
+
+
+def pay_guess_user(role: str, place: str) -> str:
+    return f"JOB: {role}\nPLACE: {place}"
 
 
 PAY_SEARCH_SYSTEM = """You look up typical pay for a job in one place. Search, do not answer from memory. \

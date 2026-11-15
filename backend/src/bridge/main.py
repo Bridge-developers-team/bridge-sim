@@ -22,7 +22,10 @@ from bridge.api.routers import extras, journey, meta, proofs
 from bridge.api.state import AppState
 from bridge.config import Settings
 from bridge.db.engine import create_tables, make_engine, make_sessions
+from bridge.db.reference import PayCache, load_reference, seed_reference
 from bridge.db.repository import ProofRepository
+from bridge.domain import reference
+from bridge.domain.reference import Reference
 from bridge.llm.base import Writer
 from bridge.llm.claude import ClaudeWriter, Models, make_client
 from bridge.llm.demo import DemoWriter
@@ -65,6 +68,11 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
         await create_tables(engine)
+        # Reference data (countries, cities, job titles, courses, pay tables):
+        # seeded from db/seed/ when those files changed, then held in memory.
+        if await seed_reference(engine):
+            log.info("Reference data seeded")
+        reference.install(Reference.from_data(await load_reference(engine)))
         yield
         await engine.dispose()
 
@@ -85,7 +93,7 @@ def create_app(
             fetch=jobs_fetch,
         ),
         jobs_per_client=SlidingWindow(settings.jobs_per_client, 600),
-        insights=InsightsService(),
+        insights=InsightsService(PayCache(engine)),
         videos=VideosService(
             settings.youtube_api_key.get_secret_value() if settings.youtube_api_key else None, fetch=videos_fetch
         ),

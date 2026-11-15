@@ -22,7 +22,7 @@ from bridge.domain.drafts import (
     DaySlotDraft,
     EvaluationDraft,
     JobIntroDraft,
-    PayEstimateDraft,
+    PayGuessDraft,
     PracticeDraft,
     ProfileRead,
     RoadmapDraft,
@@ -31,12 +31,28 @@ from bridge.domain.drafts import (
     WeekDraft,
 )
 from bridge.domain.learning import FieldId, match_field
-from bridge.domain.models import Candidate, Career, Effort, Practice, ResumeSource, TaskType, Track
+from bridge.domain.models import Candidate, Career, Effort, Practice, ResumeSource, TaskType, Track, WorkMode
 from bridge.domain.roadmap import TRACKS, clamp_hours
+from bridge.domain.wages import Figure, Snippet
 from bridge.domain.web import Found
 
 NOTE = "Sample data (not AI)"
 
+
+# How each sample path is commonly done (hand-written, sample data).
+_WORK_MODES: dict[str, list[WorkMode]] = {
+    "Instructional Designer": ["remote", "hybrid"],
+    "Corporate Trainer": ["on-site", "travel"],
+    "Education Project Coordinator": ["hybrid", "on-site"],
+    "Clinical Informatics Analyst": ["hybrid", "remote"],
+    "Quality Improvement Coordinator": ["on-site", "hybrid"],
+    "Clinical Educator": ["on-site", "shift work"],
+    "Operations Analyst": ["hybrid", "on-site"],
+    "Supply Chain Planner": ["hybrid", "on-site"],
+    "Human Resources Generalist": ["hybrid", "on-site"],
+    "Project Coordinator": ["hybrid"],
+    "Customer Success Manager": ["remote", "hybrid"],
+}
 
 # Job-post titles employers use for each sample path (what to search for).
 _JOB_TITLES: dict[str, list[str]] = {
@@ -67,7 +83,6 @@ def _career(
     assumption: str,
     job_titles: list[str] | None = None,
 ) -> CareerDraft:
-    field = match_field(title).id
     job_titles = job_titles or _JOB_TITLES.get(title, [title])
     return CareerDraft(
         title=title,
@@ -79,13 +94,14 @@ def _career(
         key_tradeoff=tradeoff,
         assumptions=[assumption],
         motivation_match="",  # sample data does not claim to know the person's reasons
-        field=cast(FieldId, "other" if field == "general" else field),  # field ids are FieldId (a test checks)
+        field="other",  # set from the title when served (_with_fields): fields are reference data
         job_titles=job_titles,
         video_searches=[f"{m} tutorial" for m in missing[:3]],
+        work_modes=_WORK_MODES.get(title, []),
     )
 
 
-# Quotes are verbatim from bridge.domain.samples, so they pass the quote check.
+# Quotes are verbatim from the sample CVs (db/seed/samples.json), so they pass the quote check.
 _PATHS: dict[str, tuple[ProfileRead, list[CareerDraft]]] = {
     "teacher": (
         ProfileRead(
@@ -277,6 +293,15 @@ _GENERIC = [
         ("Customer Success Manager", "Helps customers get value from a product.", ["Account planning", "CRM tools"]),
     ]
 ]
+
+
+def _with_fields(careers: list[CareerDraft]) -> list[CareerDraft]:
+    """Each sample path's study field, from its title."""
+    out = []
+    for c in careers:
+        field = match_field(c.title).id
+        out.append(c.model_copy(update={"field": cast(FieldId, "other" if field == "general" else field)}))
+    return out
 
 
 def _sample_id(resume: str) -> str | None:
@@ -558,7 +583,7 @@ class DemoWriter:
         sample = _sample_id(resume)
         if sample:
             profile, careers = _PATHS[sample]
-            return CareersDraft(profile=profile, careers=careers)
+            return CareersDraft(profile=profile, careers=_with_fields(careers))
         years = re.search(r"(\d{1,2})\s+years?", resume, re.IGNORECASE)
         return CareersDraft(
             profile=ProfileRead(
@@ -568,7 +593,7 @@ class DemoWriter:
                 evidence_note=f"{NOTE}: generic paths, not read from your resume.",
                 standout="",
             ),
-            careers=_GENERIC,
+            careers=_with_fields(_GENERIC),
         )
 
     async def roadmap(
@@ -789,8 +814,11 @@ class DemoWriter:
     async def introduce(self, *, role: str, current_role: str, country: str) -> JobIntroDraft:
         return _demo_intro(role)
 
-    async def pay_search(self, *, role: str, place: str) -> tuple[list[Found], PayEstimateDraft | None]:
-        return [], None  # no web search without a key
+    async def pay_research(self, *, role: str, place: str) -> tuple[list[Snippet], list[Figure]]:
+        return [], []  # no web search without the AI
+
+    async def pay_guess(self, *, role: str, place: str) -> PayGuessDraft | None:
+        return None  # sample data never invents a pay figure
 
     async def course_search(
         self, *, role: str, budget: str, domains: list[str]

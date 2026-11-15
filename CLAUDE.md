@@ -11,7 +11,7 @@ backend/   FastAPI + Python 3.12, managed with uv
   src/bridge/
     domain/    pure rules and models: no web, DB or AI imports (enforced)
     llm/       writers: ClaudeWriter (live) and DemoWriter (labeled samples)
-    db/        SQLAlchemy async, one table (proofs)
+    db/        SQLAlchemy async: proofs, reference tables + seed/ (the data), pay cache
     services/  one module per use case; signing; rate limits
     api/       thin routers, request/response schemas, error shape
     main.py    app factory: wiring + serving the built front end
@@ -49,9 +49,19 @@ Dockerfile, render.yaml, .github/workflows/ci.yml
 - **Honesty rules:** the AI never types a salary, price or URL. Links are either
   in the checked catalog (`domain/learning.py`) or a web search result the AI
   picked by number (`domain/web.py`); search pages never reach the user. Pay is
-  an official table first (`domain/pay.py`), else a figure the AI read from a
-  numbered search result, labeled "estimate" with that page linked. Effort is
+  an official table first (`domain/pay.py`), else the median of several web
+  pages' figures, each number checked against the words the search engine
+  cited from that page (`domain/wages.py`), with the pages linked; only when no
+  page states a figure, the AI's own estimate, labeled "AI estimate". Effort is
   qualitative. Practice feedback is "practice, not a hiring decision".
+- **Data lives in the database, not in code.** Countries, cities, job titles,
+  pick lists, courses, study fields, official pay tables and sample CVs are
+  reference tables (`db/reference.py`), seeded from the reviewed files in
+  `db/seed/*.json` whenever those files change (a hash is stored), and loaded
+  once at start-up into `domain/reference.py`. Change data by editing the seed
+  file in a PR, never by adding a constant. Rules, limits and prompts stay in
+  code. The front end gets the lists from `/api/config` and searches job titles
+  and cities on the server.
 - **Privacy:** resume text is never stored (browser memory only, server uses it
   for one request). Income never leaves the browser. Only a proof the user
   publishes is stored, with a delete key.

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
+from bridge.db import reference as _reference_tables  # noqa: F401  (registers the reference tables)
 from bridge.db.models import Base
 
 
@@ -33,7 +34,8 @@ def make_sessions(engine: AsyncEngine) -> async_sessionmaker:
 
 
 async def create_tables(engine: AsyncEngine) -> None:
-    """One table, created if missing. Move to Alembic migrations the first time
-    an existing column has to change."""
+    """Tables created if missing: proofs, the reference data and the pay
+    cache. Move to Alembic migrations the first time an existing column has
+    to change."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

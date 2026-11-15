@@ -3,7 +3,7 @@ import { type ReactNode, useState } from "react";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
 import type { JobLink } from "../api/types";
-import { COUNTRIES, countryName, withCountry } from "../lib/options";
+import { countries, countryName, withCountry } from "../lib/options";
 import { connectionNote } from "../lib/outreach";
 import { updateJourney, useJourney } from "../state/journey";
 import { BriefcaseIcon, ExternalIcon, PeopleIcon, TrendIcon } from "./Icons";
@@ -102,7 +102,7 @@ export function JobsPanel({ role, titles = [], field = "" }: { role: string; tit
           <Picker
             label="Country"
             title="Country"
-            options={COUNTRIES}
+            options={countries()}
             searchable
             value={country}
             onChange={setCountry}

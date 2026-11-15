@@ -5,7 +5,7 @@
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium } from "playwright";
+import { chromium, firefox } from "playwright";
 
 const BASE = process.env.BASE ?? "http://localhost:8000";
 const problems = [];
@@ -269,7 +269,62 @@ async function planControls() {
   console.log("plan controls, proof delete: checked");
 }
 
+// 6. Today's fixes: picker layout (also in Firefox), clearing a choice, the
+// career card's order, work-style pills and a short pay box.
+async function pickersAndCards() {
+  for (const [name, engine] of [["chromium", chromium], ["firefox", firefox]]) {
+    let browser;
+    try {
+      browser = await engine.launch();
+    } catch (e) {
+      if (name === "firefox" && !process.env.CI) {
+        console.log("firefox not installed here: skipped (CI installs it)");
+        continue;
+      }
+      throw e;
+    }
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    page.on("pageerror", (e) => problems.push(`${name} page error: ${e.message}`));
+    await page.goto(BASE + "/start");
+    await page.getByRole("button", { name: /^Current role/ }).click();
+    await page.getByRole("searchbox").fill("air");
+    await page.waitForFunction(() => document.querySelectorAll(".picklist .opt").length > 20);
+    const overflowing = await page.evaluate(() =>
+      [...document.querySelectorAll(".picklist .opt")].filter((o) => o.querySelector("span").getBoundingClientRect().height > o.getBoundingClientRect().height + 1).length,
+    );
+    check(overflowing === 0, `${name}: ${overflowing} job titles overflow their row in the picker`);
+    // Pick a role, then take it back.
+    await page.locator(".picklist .opt").first().click();
+    await page.getByRole("button", { name: /^Current role/ }).filter({ hasNotText: "Optional" }).waitFor();
+    await page.locator(".picklist").waitFor({ state: "detached" }); // let the list finish folding away
+    await page.getByRole("button", { name: /^Current role/ }).click();
+    await page.getByRole("button", { name: /^Clear “/ }).click();
+    await page.getByRole("button", { name: /^Current role/ }).filter({ hasText: "Optional" }).waitFor();
+    await browser.close();
+  }
+
+  const { browser, page } = await open("cards", { width: 1280, height: 900 });
+  await page.goto(BASE + "/");
+  await page.getByRole("button", { name: "Try the demo" }).click();
+  await page.getByRole("heading", { name: "You're not starting from zero." }).waitFor();
+  await page.locator(".pay__amount").first().waitFor();
+  const card = page.locator("article.career").first();
+  const order = await card.evaluate((el) => {
+    const pos = (sel) => [...el.querySelectorAll("*")].indexOf(el.querySelector(sel));
+    return { meet: pos(".meet-btn"), summary: pos(".career__summary"), plan: pos(".plan-btn") };
+  });
+  check(order.meet >= 0 && order.meet < order.summary && order.summary < order.plan, `cards: wrong order ${JSON.stringify(order)}`);
+  const pills = await card.locator(".career__pills li").allTextContents();
+  check(pills.length >= 2 && /effort/i.test(pills[0]), `cards: effort and work-style pills missing: ${pills}`);
+  const payText = await page.locator(".pay").first().innerText();
+  check(!/closest official job title|Range across/i.test(payText), `cards: pay box still long: ${payText}`);
+  check(/Source/i.test(payText), `cards: pay box lost its source: ${payText}`);
+  await browser.close();
+  console.log("pickers (chromium + firefox), card order, pills, pay box: checked");
+}
+
 await startPage();
+await pickersAndCards();
 await timeZoneDefault();
 await noCrossFieldCourse();
 await directLinks();

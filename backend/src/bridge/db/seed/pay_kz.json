@@ -1,0 +1,137 @@
+{
+ "source": "Bureau of National Statistics of Kazakhstan, wages by profession, 2026",
+ "url": "https://stat.gov.kz/en/industries/labor-and-income/stat-wags/",
+ "occupations": {
+  "data": {
+   "title": "Analyst",
+   "byIndustry": {
+    "Information and communication": 935831,
+    "Financial and insurance activities": 1467035,
+    "Professional, scientific and technical activities": 873406
+   }
+  },
+  "health-data": {
+   "title": "Statistician-analyst",
+   "byIndustry": {
+    "Healthcare and social services": 434000
+   }
+  },
+  "software": {
+   "title": "Software Developer",
+   "byIndustry": {
+    "Information and communication": 1948731,
+    "Financial and insurance activities": 1615260,
+    "Professional, scientific and technical activities": 725667
+   }
+  },
+  "web": {
+   "title": "Web developer",
+   "byIndustry": {
+    "Information and communication": 1399021,
+    "Financial and insurance activities": 1229168,
+    "Professional, scientific and technical activities": 855000
+   }
+  },
+  "qa": {
+   "title": "Application Testing Specialist",
+   "byIndustry": {
+    "Information and communication": 1063132,
+    "Financial and insurance activities": 1206587
+   }
+  },
+  "ux": {
+   "title": "Website designer",
+   "byIndustry": {
+    "Information and communication": 552423,
+    "Financial and insurance activities": 2313870,
+    "Administrative and support services activities": 602800
+   }
+  },
+  "it-support": {
+   "title": "Software Product Support Specialist",
+   "byIndustry": {
+    "Information and communication": 999805,
+    "Financial and insurance activities": 735189,
+    "Administrative and support services activities": 591337
+   }
+  },
+  "security": {
+   "title": "Information Security Specialist",
+   "byIndustry": {
+    "Information and communication": 876769,
+    "Financial and insurance activities": 943479,
+    "Professional, scientific and technical activities": 755735
+   }
+  },
+  "project": {
+   "title": "Project Manager in the field of information technology",
+   "byIndustry": {
+    "Information and communication": 1701663,
+    "Financial and insurance activities": 2436185,
+    "Administrative and support services activities": 1325900
+   }
+  },
+  "product": {
+   "title": "Project Manager for Development (New Products)",
+   "byIndustry": {
+    "Information and communication": 1481825,
+    "Financial and insurance activities": 2472907,
+    "Professional, scientific and technical activities": 1417115
+   }
+  },
+  "business": {
+   "title": "Business analyst",
+   "byIndustry": {
+    "Information and communication": 699815,
+    "Financial and insurance activities": 1098497,
+    "Professional, scientific and technical activities": 1806407
+   }
+  },
+  "marketing": {
+   "title": "Marketer",
+   "byIndustry": {
+    "Information and communication": 881053,
+    "Financial and insurance activities": 1264128,
+    "Professional, scientific and technical activities": 1041546
+   }
+  },
+  "learning": {
+   "title": "Trainer (trainings, retraining and advanced training)",
+   "byIndustry": {
+    "Education": 543560
+   }
+  },
+  "hr": {
+   "title": "HR Specialist",
+   "byIndustry": {
+    "Information and communication": 553426,
+    "Financial and insurance activities": 628166,
+    "Professional, scientific and technical activities": 343194
+   }
+  },
+  "sales": {
+   "title": "Sales Manager for Information Technology Products and Solutions",
+   "byIndustry": {
+    "Information and communication": 767778,
+    "Financial and insurance activities": 606770,
+    "Professional, scientific and technical activities": 595331
+   }
+  },
+  "finance": {
+   "title": "Financial analyst",
+   "byIndustry": {
+    "Information and communication": 815464,
+    "Financial and insurance activities": 975890,
+    "Professional, scientific and technical activities": 1117478
+   }
+  },
+  "writing": {
+   "title": "Editor (general profile)",
+   "byIndustry": {
+    "Information and communication": 485795,
+    "Professional, scientific and technical activities": 436700,
+    "Education": 471172
+   }
+  }
+ }
+}

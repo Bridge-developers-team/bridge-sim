@@ -4,16 +4,20 @@
 import { useSyncExternalStore } from "react";
 import type { ResumeSource } from "../api/types";
 import { type Journey, emptyJourney, parseJourney } from "../lib/journey.ts";
-import { browserCountry, withCountry } from "../lib/options.ts";
+import { browserCountry, countryCurrency, withCountry } from "../lib/options.ts";
 
 const KEY = "bridge-journey";
 
 /** A first visit starts in the visitor's own country (from the browser's time
- * zone) with its currency, not always in the United States. */
+ * zone), not always in the United States. Its currency is set once the
+ * country list has loaded (settleCurrency). */
 function fresh(): Journey {
   const j = emptyJourney();
-  return { ...j, profile: withCountry(j.profile, browserCountry()) };
+  startedFresh = true;
+  return { ...j, profile: { ...j.profile, country: browserCountry() } };
 }
+
+let startedFresh = false;
 
 function load(): Journey {
   try {
@@ -21,6 +25,18 @@ function load(): Journey {
     return raw ? parseJourney(raw) : fresh();
   } catch {
     return fresh(); // private mode or blocked storage
+  }
+}
+
+/** After the reference data loads: a fresh visit gets its country's currency
+ * (and the budget carried into it). A saved journey is never changed. */
+export function settleCurrency(): void {
+  if (!startedFresh) return;
+  startedFresh = false;
+  const { profile } = current;
+  const currency = countryCurrency(profile.country);
+  if (currency && currency !== profile.currency) {
+    updateJourney((j) => ({ ...j, profile: withCountry({ ...j.profile, country: "" }, j.profile.country) }));
   }
 }
 

@@ -61,6 +61,7 @@ def career_draft(title: str, quote: str = "Write rubrics and quick formative che
         field="learning",
         job_titles=["Instructional Designer", "instructional designer", "Learning Designer"],
         video_searches=["storyboarding tutorial"],
+        work_modes=["remote", "remote", "hybrid"],
     )
 
 

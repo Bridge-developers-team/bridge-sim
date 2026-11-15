@@ -15,8 +15,8 @@ from typing import Any
 import httpx
 
 from bridge.domain.jobs import (
-    ADZUNA_COUNTRIES,
     JobsResult,
+    adzuna_covers,
     board_links,
     normalize_country,
     parse_adzuna,
@@ -63,7 +63,7 @@ class JobsService:
             return cached[1]
 
         listings = []
-        if self.live and country in ADZUNA_COUNTRIES:
+        if self.live and adzuna_covers(country):
             params = {
                 "app_id": self._app_id,
                 "app_key": self._app_key,

@@ -60,7 +60,7 @@ flowchart LR
         PAY["Official pay<br>BLS · KZ stats"]
     end
 
-    PG[("Neon Postgres<br>proof pages only")]
+    PG[("Neon Postgres<br>reference data · pay cache · proofs")]
     PROOF["Public proof page<br>/p/:id"]
 
     USER --> INPUT
@@ -121,7 +121,7 @@ flowchart LR
 | Front end | React 18, TypeScript (strict), Vite, TanStack Query, plain CSS |
 | Back end | FastAPI, Python 3.12, uv, SQLAlchemy (async) |
 | AI | Claude Sonnet 5.5 (paths, plans, grading), Haiku 5.5 (sample answers) |
-| Data | Neon Postgres (proof pages only) |
+| Data | Neon Postgres: reference data (countries, cities, job titles, courses, official pay), cached pay estimates, published proof pages. Seeded from reviewed files in `backend/src/bridge/db/seed/` |
 | Quality | pytest, ruff, ty, import-linter, node:test, Playwright |
 | Deploy | Docker on Render, deploys from `preprod` only after CI passes |
 
@@ -180,5 +180,5 @@ More: [`DESIGN.md`](DESIGN.md) (visual system), [`PRODUCT.md`](PRODUCT.md)
 
 - Cities and countries: [GeoNames](https://www.geonames.org/) (CC BY 4.0), cities with 15,000+ people.
 - Job titles: O*NET 30.0 Database "Sample of Reported Titles", U.S. Department of Labor, Employment and Training Administration (CC BY 4.0). O*NET is a trademark of USDOL/ETA.
-- Pay: U.S. Bureau of Labor Statistics OEWS (May 2025) and the Bureau of National Statistics of Kazakhstan (2026); elsewhere, web estimates with their source linked.
+- Pay: U.S. Bureau of Labor Statistics OEWS (May 2025) and the Bureau of National Statistics of Kazakhstan (2026); elsewhere, the median of several web pages' figures, each number checked against the page's own words, with every page linked.
 - Exchange rates for the learning budget: open.er-api.com, cached for a day.

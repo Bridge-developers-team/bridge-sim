@@ -2,7 +2,7 @@
  * strings, so a role that is not listed can be typed into the search box and
  * used as is. */
 
-import countryData from "../data/countries.json" with { type: "json" };
+import { getReference } from "./reference.ts";
 
 export interface Option {
   value: string;
@@ -11,74 +11,11 @@ export interface Option {
 
 const list = (labels: string[]): Option[] => labels.map((label) => ({ value: label, label }));
 
-/** Common starting points for a career change (US adults 25-45). */
-export const CURRENT_ROLES = list([
-  "Teacher",
-  "Teaching assistant",
-  "Nurse",
-  "Medical assistant",
-  "Pharmacist",
-  "Social worker",
-  "Retail store manager",
-  "Retail sales associate",
-  "Customer service representative",
-  "Call center agent",
-  "Administrative assistant",
-  "Office manager",
-  "Receptionist",
-  "Accountant",
-  "Bookkeeper",
-  "Bank teller",
-  "Sales representative",
-  "Real estate agent",
-  "Marketing coordinator",
-  "Journalist",
-  "Paralegal",
-  "Lawyer",
-  "Hospitality or hotel staff",
-  "Restaurant manager",
-  "Chef or cook",
-  "Warehouse or logistics associate",
-  "Truck or delivery driver",
-  "Military service member or veteran",
-  "Police officer",
-  "Firefighter",
-  "Fitness trainer",
-  "Graphic designer",
-  "Software developer",
-  "Civil or mechanical engineer",
-  "Lab technician",
-  "Academic researcher",
-  "Recent graduate",
-]);
+/** Suggested current roles, roles to move into and reasons to change: reference data from the server. */
+export const currentRoles = (): Option[] => list(getReference().currentRoles);
+export const targetRoles = (): Option[] => list(getReference().targetRoles);
+export const motivations = (): string[] => getReference().motivations;
 
-/** Roles people commonly move into without starting over. */
-export const TARGET_ROLES = list([
-  "Instructional designer",
-  "Corporate trainer",
-  "Learning and development specialist",
-  "Project coordinator",
-  "Program manager",
-  "Operations specialist",
-  "Customer success manager",
-  "Account manager",
-  "Sales development representative",
-  "HR coordinator or recruiter",
-  "Business analyst",
-  "Data analyst",
-  "Health data analyst",
-  "Care coordinator",
-  "UX researcher",
-  "UX designer",
-  "Product manager",
-  "Marketing specialist",
-  "Content writer",
-  "Technical writer",
-  "Community manager",
-  "Policy analyst",
-  "Financial analyst",
-  "QA tester",
-]);
 
 export const HOURS = [2, 3, 5, 8, 10, 15, 20];
 
@@ -86,32 +23,18 @@ export function budgetLabel(amount: number, currency: string): string {
   return amount === 0 ? "Free courses only" : `${amount.toLocaleString("en-US")} ${currency} a month`;
 }
 
-export const MOTIVATIONS = [
-  "Higher pay",
-  "Less stress",
-  "Better work-life balance",
-  "More meaningful work",
-  "Remote work",
-  "Job security",
-  "Room to grow",
-];
 
-interface Country {
-  code: string;
-  name: string;
-  currency: string;
+/** Every country (GeoNames), with its own currency: reference data from the server. */
+export function countries(): Option[] {
+  return getReference().countries.map((c) => ({ value: c.code, label: c.name }));
 }
 
-/** Every country (GeoNames), with its own currency. */
-export const COUNTRY_LIST = countryData as Country[];
-export const COUNTRIES: Option[] = COUNTRY_LIST.map((c) => ({ value: c.code, label: c.name }));
-
 export function countryName(code: string): string {
-  return COUNTRY_LIST.find((c) => c.code === code)?.name ?? code.toUpperCase();
+  return getReference().countries.find((c) => c.code === code)?.name ?? code.toUpperCase();
 }
 
 export function countryCurrency(code: string): string | undefined {
-  return COUNTRY_LIST.find((c) => c.code === code)?.currency;
+  return getReference().countries.find((c) => c.code === code)?.currency || undefined;
 }
 
 function currencyName(code: string): string {
@@ -123,9 +46,11 @@ function currencyName(code: string): string {
 }
 
 /** Every currency some country uses, as "KZT · Kazakhstani Tenge". */
-export const CURRENCY_OPTIONS: Option[] = [...new Set(COUNTRY_LIST.map((c) => c.currency).filter(Boolean))]
-  .sort()
-  .map((code) => ({ value: code, label: `${code} · ${currencyName(code)}` }));
+export function currencyOptions(): Option[] {
+  return [...new Set(getReference().countries.map((c) => c.currency).filter(Boolean))]
+    .sort()
+    .map((code) => ({ value: code, label: `${code} · ${currencyName(code)}` }));
+}
 
 /** Matches that start with the query first, then words that start with it,
  * then anything else containing it. */
@@ -142,26 +67,6 @@ export function rankOptions(options: Option[], query: string): Option[] {
     else if (l.includes(q)) within.push(o);
   }
   return [...starts, ...words, ...within];
-}
-
-/** Thousands of real job titles (O*NET reported titles, CC BY 4.0), loaded
- * on first use so the start page stays light. Common career-change roles
- * come first. */
-let jobTitles: Promise<Option[]> | null = null;
-export function loadJobTitles(): Promise<Option[]> {
-  jobTitles ??= import("../data/jobs.json").then((m) => {
-    const seen = new Set<string>();
-    const out: Option[] = [];
-    for (const t of [...CURRENT_ROLES.map((o) => o.label), ...TARGET_ROLES.map((o) => o.label), ...(m.default as string[])]) {
-      const key = t.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        out.push({ value: t, label: t });
-      }
-    }
-    return out;
-  });
-  return jobTitles;
 }
 
 /** A best guess at the user's country from the browser's time zone, so a
@@ -200,20 +105,6 @@ export function browserCountry(): string {
   }
 }
 
-/** Rough units per US dollar, only to carry a typed budget into a new
- * currency (the server converts with live rates). Unknown: keep the number. */
-const ROUGH_PER_USD: Record<string, number> = {
-  USD: 1,
-  EUR: 0.92,
-  GBP: 0.79,
-  KZT: 500,
-  CAD: 1.37,
-  AUD: 1.52,
-  INR: 84,
-  SGD: 1.35,
-  RUB: 90,
-};
-
 function roundNice(n: number): number {
   if (n <= 0) return 0;
   const step = 10 ** Math.max(0, Math.floor(Math.log10(n)) - 1);
@@ -229,8 +120,9 @@ export function withCountry<P extends { country: string; location: string; curre
 ): P {
   if (country === profile.country) return profile;
   const currency = countryCurrency(country) ?? profile.currency;
-  const from = ROUGH_PER_USD[profile.currency];
-  const to = ROUGH_PER_USD[currency];
+  const rates = getReference().usdRates;
+  const from = rates[profile.currency];
+  const to = rates[currency];
   const budget =
     currency === profile.currency || !from || !to ? profile.monthlyLearningBudget : roundNice((profile.monthlyLearningBudget / from) * to);
   return {

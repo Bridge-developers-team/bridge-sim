@@ -13,7 +13,7 @@ import { Panel, PanelBody } from "../components/ui/Panel";
 import { Waiting } from "../components/ui/Waiting";
 import { chooseCareer, withCareers } from "../lib/journey";
 import { ArrowRightIcon, CheckIcon } from "../components/Icons";
-import { EFFORT } from "../lib/labels";
+import { EFFORT, WORK_MODE } from "../lib/labels";
 import { getJourney, memory, updateJourney, useJourney } from "../state/journey";
 
 export function PathsPage() {
@@ -157,10 +157,28 @@ function CareerCard({
   const effort = EFFORT[career.relativeEffort];
   return (
     <article className={`panel career ${chosen ? "career--chosen" : ""}`}>
-      <div className="career__head">
-        <h2 className="career__title">{career.title}</h2>
-        <Lozenge tone={effort.tone}>{effort.label}</Lozenge>
-      </div>
+      <h2 className="career__title">{career.title}</h2>
+      <ul className="career__pills" aria-label="Effort and how the job is done">
+        <li>
+          <Lozenge tone={effort.tone}>{effort.label}</Lozenge>
+        </li>
+        {(career.workModes ?? []).map((m) => (
+          <li key={m}>
+            <Lozenge tone="info">{WORK_MODE[m] ?? m}</Lozenge>
+          </li>
+        ))}
+      </ul>
+
+      <button type="button" className={`meet-btn ${met ? "is-met" : ""}`} onClick={onMeet}>
+        <span className="meet-btn__text">
+          <strong>{met ? "Meet the job again" : "Meet the job"}</strong>
+          <span>What you’d do, a typical day, the pay</span>
+        </span>
+        <span className="meet-btn__go" aria-hidden="true">
+          <ArrowRightIcon />
+        </span>
+      </button>
+
       <p className="career__summary">{career.roleSummary}</p>
       <PayLine pay={pay} loading={payLoading} country={country} />
 
@@ -217,24 +235,11 @@ function CareerCard({
       </details>
 
       <div className="career__action">
-        <button type="button" className={`meet-btn ${met ? "is-met" : ""}`} onClick={onMeet}>
-          <span className="meet-btn__step">1</span>
-          <span className="meet-btn__text">
-            <strong>{met ? "Meet the job again" : "Meet the job"}</strong>
-            <span>What you’d do, a typical day, the pay</span>
-          </span>
-          <span className="meet-btn__go" aria-hidden="true">
+        <button type="button" className={`plan-btn ${met || chosen ? "is-ready" : ""}`} onClick={onChoose}>
+          <span>{chosen ? "Open my 30-day plan" : met ? "Build my 30-day plan" : "Skip to the plan"}</span>
+          <span className="plan-btn__go" aria-hidden="true">
             <ArrowRightIcon />
           </span>
-        </button>
-        <button
-          type="button"
-          className={`plan-btn ${met || chosen ? "is-ready" : ""}`}
-          onClick={onChoose}
-          title={met ? undefined : "Meet the job first, so the plan is for a job you want"}
-        >
-          <span className="plan-btn__step">2</span>
-          <span>{chosen ? "Open my 30-day plan" : met ? "Build my 30-day plan" : "Skip to the plan"}</span>
         </button>
       </div>
     </article>
