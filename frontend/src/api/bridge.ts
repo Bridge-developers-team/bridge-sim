@@ -9,10 +9,11 @@ import type {
   JobsResult,
   Mode,
   Practice,
+  Pay,
   Profile,
   Proof,
-  Resource,
   Roadmap,
+  StudyPlan,
   Task,
   Track,
 } from "./types";
@@ -61,8 +62,14 @@ export const bridgeApi = {
     displayName: string;
   }) => api.post<{ proof: Proof; deleteKey: string }>("/api/proofs", body),
 
-  resources: (role: string, topic: string, sample = false) =>
-    api.post<{ resources: Resource[]; mode: Mode }>("/api/resources", { role, topic, sample }),
+  study: (role: string, paid: boolean, hours: number) =>
+    api.get<StudyPlan>(`/api/study?${new URLSearchParams({ role, paid: String(paid), hours: String(hours) })}`),
+
+  /** One entry per role, in order; null where no official figure exists. */
+  pay: (roles: string[], country: string, location: string) =>
+    api.get<(Pay | null)[]>(
+      `/api/pay?${new URLSearchParams([...roles.map((r): [string, string] => ["role", r]), ["country", country], ["location", location]])}`,
+    ),
 
   jobs: (role: string, city: string, country: string) =>
     api.get<JobsResult>(`/api/jobs?${new URLSearchParams({ role, city, country })}`),

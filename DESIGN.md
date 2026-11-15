@@ -252,6 +252,12 @@ Smooth, short and purposeful: it either answers an action or leads the eye down 
 - **Reading guide:** on arrival a page settles in from just below (380ms). As you scroll, each panel and card rises into place once (a scroll-linked 24px rise), so the eye moves top to bottom with the content. Content is visible by default; browsers without scroll timelines skip it.
 - Reduced motion turns all of it off.
 
+### Course panel, study lines and Make it stick
+- **Course panel** ("Your course for this month"): the main course as a row with a navy book tile, title link, provider and the provider's own length, then "This month in the course" as Week 1-4 rows (a 72px week label and the module names), an "After the 30 days" disclosure, and "Other good options" with plain tiles. A cost lozenge on each row: green "Free" or neutral "Paid"; never a price. Fine print says why these courses and when the links were checked.
+- **Study line:** each week panel ends with "Study this week" and that week's module, linked to the course page.
+- **Make it stick:** three steps split by hairlines, each with a stroke icon and an H3: day chips and time chips build an if-then sentence shown as a quote in a sunken box with a thin gold outline (the one gold accent in this panel), then "Add to my calendar (.ics)"; a message for one person in a sunken box with a copy button; a navy week meter. Each step closes with a one-line "Why:" and its study as a link. Buttons here are default, never primary: the next step keeps the one primary.
+- **Pay on career cards:** a sunken box under the summary: a small label "Typical pay in <place>", the figure in `--type-xl` tabular, "a year" or "a month", then fine print naming the official occupation and the source link. When there is no official figure the card says so in one muted line.
+
 ### Growing Calendar (signature)
 Inside the span band (`.packet` in the CSS). One row per week: a "WK n" label and a deep-navy track whose full width is the user's weekly hours, with one hairline per hour. Each task is a bar with flex-basis = its minutes ÷ weekly minutes, a 1.5px border in its kind colour, filled when done. The next bar gets a gold ring and a gold "Next" pin. Ticking a task animates its fill once (0.7s, expo-out); with reduced motion it fills instantly. Bars are buttons that jump to their task.
 

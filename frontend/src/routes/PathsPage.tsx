@@ -3,7 +3,9 @@ import { useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
-import type { Career } from "../api/types";
+import type { Career, Pay } from "../api/types";
+import { useQuery } from "@tanstack/react-query";
+import { COUNTRIES } from "../lib/options";
 import { Button } from "../components/ui/Button";
 import { ErrorBox } from "../components/ui/ErrorBox";
 import { Lozenge } from "../components/ui/Lozenge";
@@ -38,6 +40,14 @@ export function PathsPage() {
       navigate(".", { replace: true, state: null });
     }
   }, [request, careers, navigate]);
+
+  const titles = journey.careers?.careers.map((c) => c.title) ?? [];
+  const pay = useQuery({
+    queryKey: ["pay", titles, journey.profile.country, journey.profile.location],
+    queryFn: () => bridgeApi.pay(titles, journey.profile.country || "us", journey.profile.location),
+    enabled: titles.length > 0,
+    staleTime: Infinity,
+  });
 
   const choose = (career: Career) => {
     updateJourney((j) => chooseCareer(j, career.id));
@@ -90,6 +100,7 @@ export function PathsPage() {
   }
 
   const { profile, careers: paths, mode } = result;
+  const country = journey.profile.country || "us";
   return (
     <div className="stack-lg">
       <ModeBanner
@@ -115,11 +126,14 @@ export function PathsPage() {
       <TastingPanel onChoose={choose} />
 
       <div className="card-grid">
-        {paths.map((career) => (
+        {paths.map((career, i) => (
           <CareerCard
             key={career.id}
             career={career}
             tasting={journey.tastings[career.id]}
+            pay={pay.data?.[i]}
+            payLoaded={pay.isSuccess}
+            country={country}
             chosen={journey.careerId === career.id}
             onTaste={() => navigate(`/taste/${career.id}`)}
             onChoose={() => choose(career)}
@@ -134,12 +148,18 @@ export function PathsPage() {
 function CareerCard({
   career,
   tasting,
+  pay,
+  payLoaded,
+  country,
   chosen,
   onTaste,
   onChoose,
 }: {
   career: Career;
   tasting: Tasting | undefined;
+  pay: Pay | null | undefined;
+  payLoaded: boolean;
+  country: string;
   chosen: boolean;
   onTaste: () => void;
   onChoose: () => void;
@@ -153,6 +173,7 @@ function CareerCard({
         <Lozenge tone={effort.tone}>{effort.label}</Lozenge>
       </div>
       <p className="career__summary">{career.roleSummary}</p>
+      {payLoaded && <PayLine pay={pay ?? null} country={country} />}
 
       {career.transferableSkills.length > 0 && (
         <div className="career__tags">
@@ -218,5 +239,38 @@ function CareerCard({
         </div>
       </div>
     </article>
+  );
+}
+
+function money(n: number, currency: string): string {
+  return currency === "KZT" ? `${n.toLocaleString("en-US")} ₸` : n.toLocaleString("en-US", { style: "currency", currency, maximumFractionDigits: 0 });
+}
+
+/** Typical pay for this path where the user lives, from an official table,
+ * with the source one tap away. No figure is ever estimated. */
+function PayLine({ pay, country }: { pay: Pay | null; country: string }) {
+  if (!pay) {
+    const name = COUNTRIES.find((c) => c.value === country)?.label ?? "your country";
+    return (
+      <p className="pay pay--none small muted">
+        No official pay figure for this role in {name} yet. Job listings on your plan show pay when employers post it.
+      </p>
+    );
+  }
+  const amount = pay.low === pay.high ? money(pay.low, pay.currency) : `${money(pay.low, pay.currency)} – ${money(pay.high, pay.currency)}`;
+  return (
+    <div className="pay">
+      <p className="pay__amount">
+        <span className="label">Typical pay in {pay.area}</span>
+        <strong className="tabular">{amount}</strong> <span className="muted small">a {pay.period}</span>
+      </p>
+      <p className="fine">
+        {pay.stat === "median" ? "Median" : "Average"} for “{pay.occupation}”, the closest official job title.
+        {pay.note && <> {pay.note}</>}{" "}
+        <a href={pay.url} target="_blank" rel="noopener noreferrer">
+          {pay.source}
+        </a>
+      </p>
+    </div>
   );
 }

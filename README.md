@@ -63,7 +63,7 @@ Environment variables (names only, set in Render):
 | `SECRET_KEY` | Signs practice tasks and results (Render generates it) |
 | `AI_CALLS_PER_DAY` | Hard daily cap on live AI calls (default 400) |
 | `AI_CALLS_PER_CLIENT` | Per visitor per 10 minutes (default 40) |
-| `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Optional: live job listings near the user. Without them the plan links to LinkedIn, Indeed and Google Jobs |
+| `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Optional: live job listings near the user. Without them the plan links to LinkedIn and Indeed (plus hh.kz in Kazakhstan) |
 | `LLM_PROVIDER`, `BRIDGE_MODEL`, `BRIDGE_MODEL_FAST` | Optional overrides |
 
 Models: Claude Sonnet 5.5 (`claude-sonnet-5-5`) for paths, plans, practice

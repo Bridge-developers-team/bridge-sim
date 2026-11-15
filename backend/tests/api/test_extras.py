@@ -1,21 +1,30 @@
-"""The two outward-facing panels through HTTP: learning links and job openings."""
+"""The outward-facing panels through HTTP: courses, pay and job openings."""
 
 from __future__ import annotations
 
 ROLE = "Instructional Designer"
 
 
-def test_demo_mode_returns_labeled_search_links_not_invented_pages(demo):
-    response = demo.post("/api/resources", json={"role": ROLE, "topic": "Storyboarding modules"})
+def test_study_plan_is_free_only_without_a_budget_and_never_a_search_page(demo):
+    free = demo.get("/api/study", params={"role": ROLE, "paid": "false", "hours": 5}).json()
+    paid = demo.get("/api/study", params={"role": "Data analyst", "paid": "true", "hours": 5}).json()
 
-    assert response.status_code == 200
-    body = response.json()
-    assert body["mode"] == "demo"
-    assert {r["kind"] for r in body["resources"]} == {"search"}
+    assert free["field"] == "learning" and free["main"]["cost"] != "paid"
+    assert all(c["cost"] != "paid" for c in free["more"])
+    assert paid["main"]["cost"] == "paid"
+    urls = [c["url"] for c in [free["main"], *free["more"], paid["main"], *paid["more"]]]
+    assert not any("google.com/search" in u or "youtube.com/results" in u for u in urls)
+    assert demo.get("/api/study", params={"role": " "}).status_code == 400
 
 
-def test_resources_need_a_role_and_a_topic(demo):
-    assert demo.post("/api/resources", json={"role": ROLE, "topic": "  "}).status_code == 400
+def test_pay_comes_per_role_in_order_and_is_empty_where_we_have_no_official_figure(demo):
+    body = demo.get(
+        "/api/pay",
+        params=[("role", "Data analyst"), ("role", "Product manager"), ("country", "us"), ("location", "Austin, TX")],
+    ).json()
+
+    assert body[0]["area"] == "Texas" and body[0]["period"] == "year"
+    assert body[1] is None  # no official US occupation for product managers
 
 
 def test_jobs_without_adzuna_keys_still_give_board_links(demo):
@@ -23,7 +32,7 @@ def test_jobs_without_adzuna_keys_still_give_board_links(demo):
 
     assert body["source"] == "links"
     assert body["listings"] == []
-    assert [link["site"] for link in body["links"]] == ["LinkedIn", "Indeed", "Google Jobs"]
+    assert [link["site"] for link in body["links"]] == ["LinkedIn", "Indeed"]
 
 
 def test_jobs_with_adzuna_return_listings_once_per_hour_and_fall_back_on_errors(make_client):
