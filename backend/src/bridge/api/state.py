@@ -59,7 +59,7 @@ def pick_writer(request: Request, state: AppState, *, sample: bool) -> tuple[Wri
         return state.demo_writer, "sample"
     if not state.ai_per_client.allow(client_key(request)):
         raise HTTPException(429, "Too many AI requests from this browser. Wait a few minutes and try again.")
-    if not state.ai_per_day.take():
+    if state.ai_per_day.exhausted():  # each Claude call is charged by the writer's meter
         raise HTTPException(
             503, "Today's AI allowance for this demo is used up. Use the labeled sample data, or come back tomorrow."
         )

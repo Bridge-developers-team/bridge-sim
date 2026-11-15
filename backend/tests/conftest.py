@@ -17,6 +17,7 @@ from bridge.db.reference import read_seed
 from bridge.domain import reference
 from bridge.domain.models import Candidate, Career, Practice, ResumeSource, Track
 from bridge.domain.reference import Reference
+from bridge.llm.base import LlmError
 from bridge.llm.demo import DemoWriter
 from bridge.main import create_app
 
@@ -37,8 +38,11 @@ class FakeWriter(DemoWriter):
     def __init__(self) -> None:
         self.calls: list[str] = []
         self.fail_with: Exception | None = None
+        self.meter = None  # the app's daily budget, charged per call like ClaudeWriter
 
     def _hit(self, name: str) -> None:
+        if self.meter is not None and not self.meter():
+            raise LlmError("Today's AI allowance for this demo is used up. Use the labeled sample data.", 503)
         self.calls.append(name)
         if self.fail_with:
             raise self.fail_with

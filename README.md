@@ -114,6 +114,42 @@ flowchart LR
   leaves the browser. LinkedIn profiles are never scraped: you export your own
   profile as PDF.
 
+### Performance and reliability
+
+Measured on production (Render free tier, Frankfurt) with a phone profile:
+Chrome throttled to 9 Mbps, 60 ms latency and a 4x slower CPU.
+
+| What | Measured |
+|---|---|
+| Landing page, largest content painted | 2.3 s (229 KB transferred) |
+| Start page, largest content painted | 0.9 s |
+| Server first byte | ~0.28 s |
+| Front-end JavaScript | 110 KB gzipped; the PDF reader (500 KB) loads only when a PDF is chosen |
+| Three career paths from a CV (Claude Sonnet 5.5) | 15 s |
+| "Meet the job" introduction | 6 s |
+| Cheap endpoints under load (local, 50 concurrent) | 300-550 requests/s, 0 errors |
+| Backend test coverage | 92% of lines |
+
+How it stays fast and cheap:
+
+- **Each card fills in on its own.** Pay is requested per path; for a city,
+  the city search, the country search and the AI's ballpark run in parallel.
+- **Nothing is paid for twice.** Pay estimates are cached in Postgres for 30
+  days; reference data is loaded into memory once at start-up.
+- **Spending has hard limits.** Per-visitor limits on every AI, job and video
+  endpoint (checked on production: the 31st job search in 10 minutes gets a
+  429), and a daily cap that counts every call made to Claude, not requests.
+
+How it stays safe:
+
+- **Security headers on every response:** a Content-Security-Policy that
+  allows only the site's own scripts (the one inline script by its hash),
+  HSTS, nosniff, a strict referrer policy and no framing.
+- **A crash never shows a blank page:** each page has an error boundary with
+  a way out; saved progress is untouched.
+- **Privacy by design:** no accounts, cookies or analytics; the CV is never
+  stored or logged. See the [privacy page](https://bridge-prod-xoqy.onrender.com/privacy).
+
 ### Stack
 
 | Layer | Choice |

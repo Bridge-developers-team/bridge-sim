@@ -20,6 +20,9 @@ from bridge.domain.text import clean
 
 Period = Literal["hour", "month", "year"]
 HOURS_A_MONTH = 173  # 40 hours x 52 weeks / 12
+# More than this a month (in US dollars) is a yearly figure read as monthly:
+# no role Bridge suggests to a career changer pays $480,000 a year.
+MAX_MONTHLY_USD = 40_000
 MAX_SOURCES = 8
 
 # Countries that quote pay by the month; the rest quote it by the year.
@@ -81,6 +84,31 @@ def numbers_in(text: str) -> list[float]:
     return out
 
 
+_PERIOD_WORDS: dict[Period, re.Pattern[str]] = {
+    "year": re.compile(
+        r"/\s*(yr|year|annum)\b|\bper (year|annum)\b|\ba year\b|\bannual(ly)?\b|\byearly\b|\bp\.a\.|"
+        r"в год|годов|за год|jährlich|pro jahr|par an\b|al año|по году",
+        re.IGNORECASE,
+    ),
+    "month": re.compile(
+        r"/\s*(mo|mth|month)\b|\bper month\b|\ba month\b|\bmonthly\b|"
+        r"в месяц|ежемесяч|в мес\b|за месяц|monatlich|pro monat|par mois|al mes|айына",
+        re.IGNORECASE,
+    ),
+    "hour": re.compile(
+        r"/\s*(hr|hour|h)\b|\bper hour\b|\ban hour\b|\bhourly\b|в час|pro stunde|par heure", re.IGNORECASE
+    ),
+}
+
+
+def period_in(text: str) -> Period | None:
+    """The pay period a page's words state, when they state exactly one.
+    The AI's own label is a guess: Glassdoor's "1,587,000 RUB /yr" read as a
+    monthly figure is a twelve-fold error, and both pages agreed on it."""
+    found = [p for p, words in _PERIOD_WORDS.items() if words.search(text or "")]
+    return found[0] if len(found) == 1 else None
+
+
 def _appears(value: float, numbers: list[float]) -> bool:
     return any(abs(value - n) <= max(1.0, n * 0.005) for n in numbers)
 
@@ -96,7 +124,8 @@ def check(figure: Figure, snippets: list[Snippet]) -> Checked | None:
     numbers = numbers_in(snippet.text)
     if not (_appears(low, numbers) and _appears(high, numbers)):
         return None
-    return Checked(snippet, Figure(figure.source, low, high, figure.currency, figure.period))
+    period = period_in(snippet.text) or figure.period  # the page's words win over the AI's label
+    return Checked(snippet, Figure(figure.source, low, high, figure.currency, period))
 
 
 def target_period(country: str) -> Literal["month", "year"]:
@@ -131,21 +160,45 @@ def _round(value: float) -> int:
 
 
 def median_pay(
-    checked: list[Checked], *, currency: str, period: Literal["month", "year"], rates: dict[str, float]
+    checked: list[Checked],
+    *,
+    currency: str,
+    period: Literal["month", "year"],
+    rates: dict[str, float],
+    anchor: float | None = None,
 ) -> Median | None:
     """The median of one midpoint per page, in `currency` per `period`. Pages
     whose currency cannot be converted are left out; a page counts once even
-    if it gave several figures. Outliers more than 4x away from the median of
-    the rest are dropped (a yearly figure read as monthly, a typo)."""
+    if it gave several figures.
+
+    `anchor` (same currency and period) is the AI's own ballpark for the job.
+    A page about twelve times above it states a yearly figure that was read
+    as monthly, so it is divided by 12; a page still more than 5x away from
+    the anchor is dropped (another job, a typo). Without an anchor, outliers
+    more than 4x away from the median of the pages are dropped."""
     per_page: dict[str, tuple[Snippet, float]] = {}
     for c in checked:
         if c.snippet.url in per_page:
             continue
         mid = (c.figure.low + c.figure.high) / 2
-        value = convert(per_period(mid, c.figure.period, period), c.figure.currency, currency, rates)
+        monthly_usd = convert(per_period(mid, c.figure.period, "month"), c.figure.currency, "USD", rates)
+        figure_period = c.figure.period
+        if figure_period == "month" and monthly_usd and monthly_usd > MAX_MONTHLY_USD:
+            figure_period = "year"
+        value = convert(per_period(mid, figure_period, period), c.figure.currency, currency, rates)
         if value and value > 0:
             per_page[c.snippet.url] = (c.snippet, value)
     pages = list(per_page.values())[:MAX_SOURCES]
+    if anchor and anchor > 0:
+        fixed = []
+        for s, v in pages:
+            if period == "month" and v > anchor * 5 and anchor / 3 <= v / 12 <= anchor * 3:
+                v = v / 12  # a yearly figure read as monthly
+            elif period == "year" and v < anchor / 5 and anchor / 3 <= v * 12 <= anchor * 3:
+                v = v * 12  # a monthly figure read as yearly
+            if anchor / 5 <= v <= anchor * 5:
+                fixed.append((s, v))
+        pages = fixed
     if not pages:
         return None
     middle = statistics.median(v for _, v in pages)

@@ -7,6 +7,7 @@ import { NotFoundPage } from "./routes/NotFoundPage";
 import { PathsPage } from "./routes/PathsPage";
 import { PlanPage } from "./routes/PlanPage";
 import { PracticePage } from "./routes/PracticePage";
+import { PrivacyPage } from "./routes/PrivacyPage";
 import { ProofPage } from "./routes/ProofPage";
 import { StartPage } from "./routes/StartPage";
 import { TastePage } from "./routes/TastePage";
@@ -29,6 +30,7 @@ export function App() {
         <Route path="meet/:careerId" element={<IntroPage />} />
         <Route path="taste/:careerId" element={<TastePage />} />
         <Route path="p/:proofId" element={<ProofPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

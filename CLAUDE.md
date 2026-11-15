@@ -62,6 +62,13 @@ Dockerfile, render.yaml, .github/workflows/ci.yml
   file in a PR, never by adding a constant. Rules, limits and prompts stay in
   code. The front end gets the lists from `/api/config` and searches job titles
   and cities on the server.
+- **Privacy page is a promise.** `frontend/src/routes/PrivacyPage.tsx` states
+  what is stored, sent and logged. Any change to that (a new table, a new
+  outside service, a new log line with user input) updates the page in the
+  same PR. Never log request bodies (`api/errors.py` logs field names only).
+- **Security headers** (`api/security.py`): the CSP allows this site's scripts
+  and the inline theme script by hash. A new outside host (images, scripts,
+  fetches) must be added there, or the browser will block it.
 - **Privacy:** resume text is never stored (browser memory only, server uses it
   for one request). Income never leaves the browser. Only a proof the user
   publishes is stored, with a delete key.

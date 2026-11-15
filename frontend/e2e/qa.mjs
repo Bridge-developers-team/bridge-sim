@@ -30,6 +30,9 @@ async function open(name, viewport = { width: 390, height: 844 }, timezoneId = "
   });
   page.on("pageerror", (e) => problems.push(`${name} page error: ${e.message}`));
   page.on("request", (r) => r.url().includes("/api/") && requests.push({ url: r.url(), body: r.postData() }));
+  await page.addInitScript(() =>
+    document.addEventListener("securitypolicyviolation", (e) => console.error(`CSP blocked ${e.blockedURI} (${e.violatedDirective})`)),
+  );
   page.on("response", (r) => {
     // 404s that a test asks for on purpose are checked where they happen.
     if (r.status() >= 400 && !r.url().includes("/api/proofs/no-such")) problems.push(`${name} HTTP ${r.status()} ${r.url()}`);
@@ -261,6 +264,8 @@ async function planControls() {
   await page.getByRole("button", { name: "Get feedback" }).click();
   await page.getByRole("button", { name: "Publish proof page" }).click();
   const url = await page.locator("a.link-box").innerText();
+  const preview = await (await context.request.get(url)).text();
+  check(/<meta property="og:title" content="[^"]*practice task: [^"]+ \| Bridge"/.test(preview), "plan: proof link has no preview title");
   await page.getByRole("button", { name: "Delete page" }).click();
   await page.getByRole("button", { name: "Publish proof page" }).waitFor();
   const gone = await context.request.get(url.replace("/p/", "/api/proofs/"));
@@ -325,8 +330,62 @@ async function pickersAndCards() {
   console.log("pickers (chromium + firefox), card order, pills, pay box: checked");
 }
 
+// 7. Trust and safety: headers, a real PDF under the CSP, the crash screen,
+// one pay request per card, the privacy page and proof link previews.
+async function trustAndSafety() {
+  const { browser, page, context, requests } = await open("trust", { width: 1280, height: 900 });
+  const home = await page.goto(BASE + "/");
+  const h = home.headers();
+  check((h["content-security-policy"] ?? "").includes("frame-ancestors 'none'"), "trust: no CSP on the page");
+  check(h["x-content-type-options"] === "nosniff", "trust: no nosniff header");
+  const html = await home.text();
+  check(/<meta property="og:image" content="https?:\/\/[^"]+\/og\.png"/.test(html), "trust: no absolute og:image");
+  check((await context.request.get(BASE + "/og.png")).status() === 200, "trust: og.png missing");
+
+  // A real PDF (made by the browser itself) is read under the CSP.
+  const pdfPage = await context.newPage();
+  await pdfPage.setContent("<h1>Jane Doe</h1><p>English teacher for 7 years. Redesigned a writing unit into self-paced lessons; the pass rate rose from 58% to 71%. Lead training sessions for colleagues.</p>");
+  const pdfFile = join(tmp, "cv.pdf");
+  await pdfPage.pdf({ path: pdfFile });
+  await pdfPage.close();
+  await page.goto(BASE + "/start");
+  await page.locator('input[type="file"]').first().setInputFiles(pdfFile);
+  await page.getByText("cv.pdf").waitFor();
+  await page.getByText(/\d+ words · read on this device/).waitFor();
+
+  // One pay request per card, so each card fills in on its own.
+  requests.length = 0;
+  await page.goto(BASE + "/");
+  await page.getByRole("button", { name: "Try the demo" }).click();
+  await page.locator(".pay__amount").first().waitFor();
+  await page.waitForLoadState("networkidle");
+  const payCalls = requests.filter((r) => r.url.endsWith("/api/pay")).map((r) => JSON.parse(r.body).roles.length);
+  check(payCalls.length === 3 && payCalls.every((n) => n === 1), `trust: expected 3 single-role pay requests, got ${JSON.stringify(payCalls)}`);
+
+  // Privacy page from the footer.
+  await page.getByRole("link", { name: "Privacy" }).click();
+  await page.getByRole("heading", { name: "Privacy", level: 1 }).waitFor();
+  check((await page.locator("main").innerText()).includes("bridge-journey"), "trust: privacy page incomplete");
+  await noSideScroll(page, "privacy");
+
+  // A page that crashes shows a way out, not a blank screen.
+  const crashPage = await context.newPage();
+  const crashErrors = [];
+  crashPage.on("console", (m) => m.type() === "error" && crashErrors.push(m.text()));
+  await crashPage.route("**/api/careers", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"profile":{},"careers":[{"id":"x"}],"mode":"live"}' }));
+  await crashPage.goto(BASE + "/");
+  await crashPage.getByRole("button", { name: "Try the demo" }).click();
+  await crashPage.getByRole("heading", { name: "Something went wrong on this page" }).waitFor();
+  check(await crashPage.getByRole("button", { name: "Reload the page" }).isVisible(), "trust: crash screen has no reload");
+  check(await crashPage.locator("header").first().isVisible(), "trust: crash took the header down");
+  await crashPage.close();
+  await browser.close();
+  console.log("headers, CSP, PDF under CSP, per-card pay, privacy, crash screen: checked");
+}
+
 await startPage();
 await pickersAndCards();
+await trustAndSafety();
 await timeZoneDefault();
 await noCrossFieldCourse();
 await directLinks();

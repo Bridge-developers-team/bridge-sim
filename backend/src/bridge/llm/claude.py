@@ -6,6 +6,7 @@ act on."""
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -126,9 +127,24 @@ def _fallback_args(model: str) -> dict[str, Any]:
 
 
 class ClaudeWriter:
-    def __init__(self, client: anthropic.AsyncAnthropic, models: Models | None = None) -> None:
+    def __init__(
+        self,
+        client: anthropic.AsyncAnthropic,
+        models: Models | None = None,
+        meter: Callable[[], bool] | None = None,
+    ) -> None:
         self._client = client
         self.models = models or Models()
+        # The daily AI budget: charged before every call to Claude (a pay
+        # lookup makes several), refusing once today's cap is reached.
+        self.meter = meter
+
+    def _spend(self) -> None:
+        if self.meter is not None and not self.meter():
+            raise LlmError(
+                "Today's AI allowance for this demo is used up. Use the labeled sample data, or come back tomorrow.",
+                503,
+            )
 
     async def _call[T: BaseModel](
         self,
@@ -140,6 +156,7 @@ class ClaudeWriter:
         model: str,
         max_tokens: int = 16000,
     ) -> T:
+        self._spend()
         try:
             response = await self._client.beta.messages.parse(
                 model=model,
@@ -231,6 +248,7 @@ class ClaudeWriter:
         tool: WebSearchTool20250305Param = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
         if domains:
             tool["allowed_domains"] = domains
+        self._spend()
         try:
             response = await self._client.messages.create(
                 model=model,
@@ -248,6 +266,7 @@ class ClaudeWriter:
         for, then copy the figures out of those words (checked in code)."""
         model = self.models.fast
         tool: WebSearchTool20250305Param = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
+        self._spend()
         try:
             response = await self._client.messages.create(
                 model=model,
@@ -316,6 +335,7 @@ class ClaudeWriter:
             "max_uses": 1,
             "allowed_domains": ["linkedin.com"],
         }
+        self._spend()
         try:
             response = await self._client.messages.create(
                 model=model,

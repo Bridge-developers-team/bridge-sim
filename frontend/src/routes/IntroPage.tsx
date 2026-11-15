@@ -159,7 +159,7 @@ function IntroView({ careerId }: { careerId: string }) {
   const slides = saved
     ? slidesFor(
         saved.intro,
-        <PayLine pay={pay.data?.[payIndex]} loading={pay.isLoading} country={journey.profile.country || "us"} />,
+        <PayLine pay={pay.data[payIndex]} loading={pay.loading[payIndex] ?? false} country={journey.profile.country || "us"} />,
       )
     : [];
   const last = slides.length - 1;

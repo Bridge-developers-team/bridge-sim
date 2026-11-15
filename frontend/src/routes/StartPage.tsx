@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { bridgeApi } from "../api/bridge";
 import { errorText } from "../api/hooks";
 import type { Profile, Track } from "../api/types";
@@ -142,7 +142,7 @@ export function StartPage() {
         <h1>Tell Bridge where you are now</h1>
         <p className="lead">
           Two minutes. Your CV, LinkedIn profile or own words are read on this device and sent only to the AI that
-          suggests paths.
+          suggests paths. <Link to="/privacy">How we handle your data</Link>
         </p>
       </header>
 

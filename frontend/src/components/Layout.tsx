@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { useJourney } from "../state/journey";
 import { BridgeLogo } from "./Icons";
 import { ThemeToggle } from "./ThemeToggle";
@@ -40,12 +41,15 @@ export function Layout() {
         </div>
       </header>
       <main className="page page-enter" key={pathname}>
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
       <footer className="foot">
         <p>
           AI suggestions are informational and can be wrong. Not career, financial or legal advice, and no guarantee of
-          a job or income. Your resume is sent to the AI only to suggest paths; Bridge does not store it.
+          a job or income. Your resume is sent to the AI only to suggest paths; Bridge does not store it.{" "}
+          <Link to="/privacy">Privacy</Link>
         </p>
       </footer>
     </>
