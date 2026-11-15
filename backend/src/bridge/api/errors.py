@@ -27,7 +27,8 @@ def install(app: FastAPI) -> None:
     async def invalid(_: Request, err: RequestValidationError) -> JSONResponse:
         # The front end always sends well-formed bodies; a failure here means a
         # stale tab or a hand-made request. Say so plainly, log the specifics.
-        log.info("Rejected request body: %s", err.errors()[:3])
+        # Where and why only: never the submitted values (a CV must not reach the logs).
+        log.info("Rejected request body: %s", [(e.get("loc"), e.get("type")) for e in err.errors()[:3]])
         return JSONResponse({"detail": "That request was incomplete. Reload the page and try again."}, status_code=400)
 
     @app.exception_handler(Exception)

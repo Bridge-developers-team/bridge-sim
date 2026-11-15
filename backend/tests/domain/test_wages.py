@@ -73,3 +73,37 @@ def test_periods_convert_through_the_month():
     assert per_period(120_000, "year", "month") == 10_000
     assert per_period(10_000, "month", "year") == 120_000
     assert target_period("us") == "year" and target_period("kz") == "month"
+
+
+def test_the_pages_own_words_set_the_period_not_the_ai_label():
+    # Production, Moscow: two Glassdoor pages said "/yr"; the AI said month.
+    pages = [page(0, "Systems Analyst: RUB 1,587,000 /yr"), page(1, "Системный аналитик: 1 600 000 ₽ в год")]
+    figures = [Figure(0, 1_587_000, 1_587_000, "RUB", "month"), Figure(1, 1_600_000, 1_600_000, "RUB", "month")]
+    checked = [c for f in figures if (c := check(f, pages))]
+
+    median = median_pay(checked, currency="RUB", period="month", rates=RATES)
+
+    assert [c.figure.period for c in checked] == ["year", "year"]
+    assert median is not None and 125_000 <= median.value <= 140_000  # about 132k a month, not 1.6M
+
+
+def test_the_ai_ballpark_catches_a_yearly_figure_read_as_monthly_without_period_words():
+    pages = [page(0, "Analyst salary 1 587 000"), page(1, "Analyst 140 000"), page(2, "Chef 2 000 000 000")]
+    figures = [
+        Figure(0, 1_587_000, 1_587_000, "RUB", "month"),
+        Figure(1, 140_000, 140_000, "RUB", "month"),
+        Figure(2, 2_000_000_000, 2_000_000_000, "RUB", "month"),
+    ]
+    checked = [c for f in figures if (c := check(f, pages))]
+
+    median = median_pay(checked, currency="RUB", period="month", rates=RATES, anchor=150_000)
+
+    assert median is not None and len(median.sources) == 2  # the absurd page is dropped
+    assert 130_000 <= median.value <= 140_000  # 1.587M/12 = 132k and 140k
+
+
+def test_ambiguous_pages_keep_the_ai_label():
+    from bridge.domain.wages import period_in
+
+    assert period_in("Average monthly salary 200 000; annual bonus") is None
+    assert period_in("$40 an hour") == "hour" and period_in("₽150K/mo") == "month"

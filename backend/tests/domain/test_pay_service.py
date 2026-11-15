@@ -66,12 +66,13 @@ async def test_city_then_country_and_the_median_is_cached(monkeypatch):
 
     pay = await service.pay(writer, "Systems Analyst", "ru", "Russia", "Moscow", "")
 
-    assert writer.asked == ["Moscow, Russia", "Russia"]  # one page for Moscow: widened to the country
+    # City, country and the AI's ballpark run at once; one Moscow page is too few, so the country's count too.
+    assert sorted(writer.asked) == ["Moscow, Russia", "Russia", "guess"]
     assert pay is not None and pay.kind == "estimate" and pay.stat == "median"
     assert (pay.low, pay.currency, pay.period) == (180_000, "RUB", "month")  # median of 200k, 140k, 180k
     assert len(pay.sources) == 3 and pay.note == "Median of 3 sources"
     again = await service.pay(writer, "Systems Analyst", "ru", "Russia", "Moscow", "")
-    assert again == pay and writer.asked == ["Moscow, Russia", "Russia"]  # from the cache
+    assert again == pay and len(writer.asked) == 3  # from the cache: no new calls
 
 
 async def test_no_page_with_a_figure_gives_a_labeled_ai_estimate_never_nothing(monkeypatch):
@@ -86,3 +87,22 @@ async def test_no_page_with_a_figure_gives_a_labeled_ai_estimate_never_nothing(m
 
     assert pay is not None and pay.kind == "ai" and pay.currency == "RUB" and (pay.low, pay.high) == (90_000, 150_000)
     assert "AI estimate" in pay.note and pay.url == ""
+
+
+async def test_two_city_pages_are_enough_and_the_ballpark_fixes_a_yearly_figure(monkeypatch):
+    monkeypatch.setattr(InsightsService, "rates", no_network_rates)
+    writer = FakeWriter(
+        {
+            "Moscow, Russia": [
+                ("Systems analyst 1 587 000", Figure(0, 1_587_000, 1_587_000, "RUB", "month")),  # yearly, mislabeled
+                ("Аналитик 140 000", Figure(1, 140_000, 140_000, "RUB", "month")),
+            ],
+            "Russia": [("Аналитик по России 90 000", Figure(0, 90_000, 90_000, "RUB", "month"))],
+        },
+        guess=PayGuessDraft(low=120_000, high=180_000, currency="RUB", period="month"),
+    )
+
+    pay = await InsightsService(FakeCache()).pay(writer, "Systems Analyst", "ru", "Russia", "Moscow", "")
+
+    assert pay is not None and pay.area == "Moscow, Russia" and len(pay.sources) == 2  # the city alone
+    assert 130_000 <= pay.low <= 140_000  # 1.587M/12 = 132k and 140k: not 1.6M a month

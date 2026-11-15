@@ -193,3 +193,19 @@ def test_cited_page_words_are_collected_once_per_page_and_only_from_web_search()
     snippets = cited_snippets(content)
 
     assert [(s.url, s.text) for s in snippets] == [("https://a.example/", "150 000 ₽ … до 200 000 ₽")]
+
+
+async def test_every_claude_call_is_charged_to_the_daily_budget_and_refused_after_it():
+    from bridge.llm.base import LlmError
+    from bridge.services.limits import DailyBudget
+
+    budget = DailyBudget(limit=2)
+    w, _ = writer(response(CAREERS))
+    w.meter = budget.take
+
+    await w.careers(resume="resume text", candidate=Candidate())
+    await w.careers(resume="resume text", candidate=Candidate())
+    with pytest.raises(LlmError) as refused:
+        await w.careers(resume="resume text", candidate=Candidate())
+
+    assert refused.value.status == 503 and budget.exhausted()

@@ -7,7 +7,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import replace
 from typing import Any, Protocol, cast
 
 import httpx
@@ -17,7 +16,7 @@ from bridge.domain.learning import Course, course_domains, pick_courses
 from bridge.domain.pay import Pay, pay_for, pay_from_guess, pay_from_median
 from bridge.domain.reference import Country
 from bridge.domain.text import clean
-from bridge.domain.wages import Checked, Snippet, check, median_pay, target_period
+from bridge.domain.wages import Checked, Snippet, check, convert, median_pay, per_period, target_period
 from bridge.llm.base import LlmError, Writer
 
 log = logging.getLogger(__name__)
@@ -114,30 +113,44 @@ class InsightsService:
         return estimate
 
     async def _research(self, writer: Writer, role: str, country: str, name: str, town: str) -> Pay | None:
+        """City and country searches and the AI's ballpark run at the same
+        time (each is slow; one after the other took about 30 seconds). The
+        city's pages are used alone when there are at least two of them."""
         places = [f"{town}, {name}", name] if town else [name]
-        snippets: list[Snippet] = []
-        checked: list[Checked] = []
-        area = name
-        for place in places:
+
+        async def research(place: str) -> tuple[list[Snippet], list[Checked]]:
             try:
-                found, figures = await writer.pay_research(role=role, place=place)
+                snippets, figures = await writer.pay_research(role=role, place=place)
             except LlmError as err:
                 log.warning("Pay research failed for %s in %s: %s", role, place, err.message)
-                continue
-            offset = len(snippets)
-            snippets.extend(found)
-            checked.extend(
-                c for f in figures if (c := check(replace(f, source=f.source + offset), snippets)) is not None
-            )
-            if len({c.snippet.url for c in checked}) >= 2:
-                area = place  # enough sources for this place: no need to widen
-                break
+                return [], []
+            checked = [c for f in figures if (c := check(f, snippets)) is not None]
+            log.info(
+                "Pay %r in %s: %d pages cited, %d figures read, %d kept after checks",
+                role, place, len(snippets), len(figures), len(checked),
+            )  # fmt: skip
+            return snippets, checked
+
+        found, guess, rates = await asyncio.gather(
+            asyncio.gather(*(research(p) for p in places)),
+            writer.pay_guess(role=role, place=places[0]),
+            self.rates(),
+        )
+        city_checked = found[0][1] if town else []
+        if town and len({c.snippet.url for c in city_checked}) >= 2:
+            checked, area = city_checked, places[0]
+        else:
+            checked, area = [c for _, cs in found for c in cs], name
         local = (reference.get().country(country) or _NO_COUNTRY).currency
         currency = local or (checked[0].figure.currency if checked else "USD")
-        median = median_pay(checked, currency=currency, period=target_period(country), rates=await self.rates())
+        period = target_period(country)
+        anchor = None
+        if guess:
+            mid = (guess.low + guess.high) / 2
+            anchor = convert(per_period(mid, guess.period, period), clean(guess.currency, 3).upper(), currency, rates)
+        median = median_pay(checked, currency=currency, period=period, rates=rates, anchor=anchor)
         if median:
             return pay_from_median(role, area, median)
-        guess = await writer.pay_guess(role=role, place=places[0])
         return pay_from_guess(role, places[0], guess) if guess else None
 
     async def pay_many(

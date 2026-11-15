@@ -121,8 +121,8 @@ export function PathsPage() {
             key={career.id}
             career={career}
             met={Boolean(journey.intros[career.id]?.seen)}
-            pay={pay.data?.[i]}
-            payLoading={pay.isLoading}
+            pay={pay.data[i]}
+            payLoading={pay.loading[i] ?? false}
             country={country}
             chosen={journey.careerId === career.id}
             onMeet={() => navigate(`/meet/${career.id}`)}

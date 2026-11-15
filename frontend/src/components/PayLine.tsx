@@ -1,26 +1,30 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { bridgeApi } from "../api/bridge";
 import { useConfig } from "../api/hooks";
 import type { Pay } from "../api/types";
 import { countryName } from "../lib/options";
 import { useJourney } from "../state/journey";
 
-/** Typical pay for the three paths where the user lives: official tables
- * first, else a figure the live AI found on a cited web page. One request
- * for all three, shared by the paths page and each job introduction. */
-export function usePathPay() {
+/** Typical pay for each path where the user lives: official tables first,
+ * else the median of several web pages. One request per path, so each card
+ * fills in as soon as its own figure is ready (a web lookup takes a while).
+ * Shared by the paths page and each job introduction. */
+export function usePathPay(): { data: (Pay | null | undefined)[]; loading: boolean[] } {
   const journey = useJourney();
-  const titles = journey.careers?.careers.map((c) => c.title) ?? [];
-  const fields = journey.careers?.careers.map((c) => c.field ?? "") ?? [];
+  const careers = journey.careers?.careers ?? [];
   const country = journey.profile.country || "us";
+  const location = journey.profile.location;
   const sample = journey.careers?.mode === "sample";
-  return useQuery({
-    queryKey: ["pay", titles, fields, country, journey.profile.location, sample],
-    queryFn: () => bridgeApi.pay(titles, fields, country, countryName(country), journey.profile.location, sample),
-    enabled: titles.length > 0,
-    staleTime: Infinity,
-    retry: false,
+  const results = useQueries({
+    queries: careers.map((c) => ({
+      queryKey: ["pay", c.title, c.field ?? "", country, location, sample],
+      queryFn: async () =>
+        (await bridgeApi.pay([c.title], [c.field ?? ""], country, countryName(country), location, sample))[0] ?? null,
+      staleTime: Infinity,
+      retry: false,
+    })),
   });
+  return { data: results.map((r) => r.data), loading: results.map((r) => r.isLoading) };
 }
 
 function money(n: number, currency: string): string {

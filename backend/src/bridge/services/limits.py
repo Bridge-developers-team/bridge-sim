@@ -4,7 +4,8 @@ and a restart forgets it.
 
 - per client: N calls in a sliding window (spreads a shared demo fairly);
 - per day: a hard cap on all live AI calls (a spend ceiling in code, on top
-  of the monthly limit set in the Anthropic Console).
+  of the monthly limit set in the Anthropic Console). It counts every call
+  the writer makes to Claude, not requests: one pay lookup is several calls.
 """
 
 from __future__ import annotations
@@ -60,11 +61,19 @@ class DailyBudget:
         self._day = today()
         self._used = 0
 
-    def take(self) -> bool:
+    def _roll(self) -> None:
         day = self._today()
         if day != self._day:
             self._day, self._used = day, 0
+
+    def take(self) -> bool:
+        """Spend one call; False (and nothing spent) when today's cap is reached."""
+        self._roll()
         if self._used >= self.limit:
             return False
         self._used += 1
         return True
+
+    def exhausted(self) -> bool:
+        self._roll()
+        return self._used >= self.limit
