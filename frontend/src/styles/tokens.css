@@ -6,7 +6,7 @@
    logo and the "Next" step. Inter carries the interface; Literata is the
    editorial voice for the target role and the landing headline only.
 
-   Token NAMES are the facerec set (so components read --text, --brand, ...);
+   Token NAMES are generic (components read --text, --brand, ...);
    VALUES are DESIGN.md's. Dark mode is the `dark` class on <html> (set by
    lib/theme.ts and before first paint by index.html), never a media query in
    CSS, so the user's choice always wins over the OS.

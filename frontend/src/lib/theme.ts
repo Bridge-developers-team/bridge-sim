@@ -1,5 +1,4 @@
-/** Theme: a `dark` class on <html>, nothing else (same contract as the facerec
- * dashboard). "system" is resolved to light or dark when applied, and again
+/** Theme: a `dark` class on <html>, nothing else. "system" is resolved to light or dark when applied, and again
  * when the OS preference changes while the tab is open. index.html applies the
  * saved choice before first paint. */
 export type Theme = "light" | "dark" | "system";
