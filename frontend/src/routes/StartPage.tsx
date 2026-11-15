@@ -7,7 +7,7 @@ import { useConfig } from "../api/hooks";
 import { Button } from "../components/ui/Button";
 import { OptionList, Picker } from "../components/ui/Picker";
 import { Panel, PanelBody, PanelHeader } from "../components/ui/Panel";
-import { ArrowRightIcon, ChevronDownIcon, FileIcon, LinkedInIcon, UploadIcon } from "../components/Icons";
+import { ArrowRightIcon, ChevronDownIcon, FileIcon, LinkedInIcon, TrashIcon, UploadIcon } from "../components/Icons";
 import { readCvFile } from "../lib/pdf";
 import {
   budgetLabel,
@@ -291,9 +291,26 @@ export function StartPage() {
                         {words.toLocaleString("en-US")} words · read on this device
                       </span>
                     </span>
-                    <Button size="sm" onClick={() => fileInput.current?.click()} loading={reading}>
-                      Replace
-                    </Button>
+                    <div className="cv-file__actions">
+                      <Button size="sm" onClick={() => fileInput.current?.click()} loading={reading}>
+                        Replace
+                      </Button>
+                      <button
+                        type="button"
+                        className="cv-file__remove"
+                        aria-label={`Delete ${source.name}`}
+                        title="Delete this file"
+                        onClick={() => {
+                          // Only this tab's text goes; nothing was stored anywhere else.
+                          setDrafts((d) => ({ ...d, [mode]: { text: "", source: null } }));
+                          setShowText(false);
+                          setFileError(null);
+                        }}
+                      >
+                        <TrashIcon />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   </div>
                 ) : source?.kind !== "paste" ? (
                   <button type="button" className="cv-drop" onClick={() => fileInput.current?.click()} disabled={reading}>

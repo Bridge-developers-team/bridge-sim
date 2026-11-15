@@ -132,6 +132,12 @@ async function startForm() {
   await page.getByRole("button", { name: "Try a sample CV" }).click();
   await list("Try a sample CV").getByRole("button", { name: /ICU nurse/ }).click();
   await list("Try a sample CV").waitFor({ state: "detached" });
+  // Delete takes the file away and brings the upload back; then pick it again.
+  await page.getByRole("button", { name: /^Delete Sample/ }).click();
+  await page.getByRole("button", { name: /Upload your CV/ }).waitFor();
+  await page.getByRole("button", { name: "Try a sample CV" }).click();
+  await list("Try a sample CV").getByRole("button", { name: /ICU nurse/ }).click();
+  await list("Try a sample CV").waitFor({ state: "detached" });
   await page.getByRole("button", { name: /^Free time/ }).click();
   await list("Free hours a week for the switch").getByRole("button", { name: "8 hours a week" }).click();
   await list("Free hours a week for the switch").waitFor({ state: "detached" });

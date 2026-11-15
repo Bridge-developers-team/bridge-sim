@@ -1248,3 +1248,58 @@
     transform: translateX(24px) rotate(-360deg);
   }
 }
+
+/* ---------- Uploaded CV: replace or delete ---------- */
+
+.cv-file__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-100);
+  margin-left: auto;
+}
+
+.cv-file__remove {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-050);
+  min-height: 36px;
+  padding: 0 var(--space-150);
+  border: 1.5px solid #c0392b;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: #b42318;
+  font: inherit;
+  font-size: var(--type-sm);
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-glass), color 0.2s var(--ease-glass);
+}
+
+.cv-file__remove .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.cv-file__remove:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+.dark .cv-file__remove {
+  border-color: #f07167;
+  color: #f4a39c;
+}
+
+.dark .cv-file__remove:hover {
+  background: #d1453b;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .cv-file__remove span {
+    display: none;
+  }
+  .cv-file__remove {
+    padding: 0 var(--space-100);
+  }
+}
